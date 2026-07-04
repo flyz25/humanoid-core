@@ -15,6 +15,7 @@
 #include <humanoid/configuration/ConfigValue.hpp>
 #include <humanoid/configuration/Configuration.hpp>
 #include <humanoid/core/CoreContext.hpp>
+#include <humanoid/core/RobotAdapter.h>
 #include <humanoid/core/RobotState.hpp>
 #include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/core/RuntimeMetadata.hpp>

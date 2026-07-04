@@ -12,6 +12,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 4.1 Plugin Infrastructure: added plugin interfaces, lifecycle
   states, version compatibility metadata, a thread-safe plugin registry,
   plugin tests, and the plugin architecture document.
+- Milestone 4.2 RobotAdapter Interface: added the vendor-independent core robot
+  adapter contract, robot information and capability metadata, and interface
+  validation coverage.
 
 ## [0.3.0-alpha] - 2026-07-04
 
