@@ -18,9 +18,15 @@ introducing a vendor dependency.
 
 `humanoid::core::CommandDispatcher` validates commands and forwards supported
 operations to a dependency-injected `humanoid::adapters::IRobotAdapter`. It
-serializes adapter access, provides synchronous and priority-aware asynchronous
-execution, cancels queued commands, and shuts down without owning the adapter
-lifecycle. Unsupported commands are rejected explicitly.
+applies `humanoid::core::SafetyValidator`, serializes adapter access, provides
+synchronous and priority-aware asynchronous execution, cancels queued commands,
+and shuts down without owning the adapter lifecycle. Unsupported or unsafe
+commands are rejected explicitly before adapter execution.
+
+`humanoid::core::SafetyValidator` is the command-path safety policy. It checks
+connection state, emergency stop, robot faults, command capabilities, battery
+thresholds, and current posture state using only framework-owned types. It owns
+no robot resources and remains vendor independent.
 
 `humanoid::core::CommandQueue` owns bounded asynchronous scheduling. It uses
 one or more `std::jthread` consumers, priority/FIFO dequeue ordering, condition

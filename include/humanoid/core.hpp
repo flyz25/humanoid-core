@@ -26,6 +26,7 @@
 #include <humanoid/core/RobotState.hpp>
 #include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/core/RuntimeMetadata.hpp>
+#include <humanoid/core/SafetyValidator.h>
 #include <humanoid/diagnostics/DiagnosticController.hpp>
 #include <humanoid/diagnostics/DiagnosticManager.hpp>
 #include <humanoid/diagnostics/DiagnosticRecord.hpp>

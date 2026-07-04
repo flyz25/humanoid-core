@@ -52,6 +52,18 @@ humanoid_core_configure_target(humanoid_core_command_queue_unit_test)
 add_test(NAME humanoid_core_command_queue_unit_test
          COMMAND humanoid_core_command_queue_unit_test)
 
+add_executable(humanoid_core_safety_validator_unit_test safety_validator_unit_test.cpp)
+
+target_link_libraries(
+  humanoid_core_safety_validator_unit_test
+  PRIVATE humanoid::core
+          humanoid::adapter_interfaces)
+
+humanoid_core_configure_target(humanoid_core_safety_validator_unit_test)
+
+add_test(NAME humanoid_core_safety_validator_unit_test
+         COMMAND humanoid_core_safety_validator_unit_test)
+
 add_executable(humanoid_core_plugin_registry_unit_test plugin_registry_unit_test.cpp)
 
 target_link_libraries(

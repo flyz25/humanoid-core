@@ -14,6 +14,7 @@ execution, dispatch, or adapter behavior.
 #include <humanoid/core/CommandResult.h>
 #include <humanoid/core/CommandStatus.h>
 #include <humanoid/core/CommandType.h>
+#include <humanoid/core/SafetyValidator.h>
 ```
 
 All types are in `humanoid::core` and are also available through the
@@ -129,12 +130,38 @@ must return normally. `Shutdown()` rejects new submissions, cancels queued
 commands, and joins workers after active callbacks finish. Calling `Shutdown()`
 from an executor callback is rejected because a worker cannot join itself.
 
+## Safety Validator
+
+`SafetyValidator` is the vendor-independent safety policy used before command
+forwarding. It owns no SDK client, no robot connection, no thread, and no
+global state. Callers provide a `SafetyValidationContext` containing the latest
+`RobotState`, a `CommandCapabilitySet`, and availability flags for state,
+battery, and capability data.
+
+The validator rejects commands when:
+
+- The command ID, timeout, type, or priority is invalid.
+- Robot state or capability data is unavailable.
+- The robot is not connected.
+- The command capability is not supported.
+- Emergency stop or a robot fault is active.
+- Battery state is unavailable, invalid, or below the configured threshold for
+  actuator commands.
+- Current posture state is contradictory or base motion is requested while the
+  robot is not standing.
+
+`Stop` remains permitted during emergency-stop, fault, low-battery, and
+contradictory-motion states when the robot is connected and the stop capability
+is supported. This preserves a safe stop path without bypassing connection or
+capability checks.
+
 ## Command Dispatcher
 
 `CommandDispatcher` receives a dependency-injected
 `std::shared_ptr<humanoid::adapters::IRobotAdapter>`. It validates generic
-commands and forwards supported operations through that interface. It never
-includes an SDK header or depends on a concrete adapter.
+commands, applies `SafetyValidator`, and forwards supported operations through
+that interface. It never includes an SDK header or depends on a concrete
+adapter.
 
 ```cpp
 auto dispatcher = humanoid::core::CommandDispatcher{adapter};
@@ -163,8 +190,14 @@ owned by the application composition root, so dispatcher shutdown does not call
 
 The asynchronous dispatcher path delegates queue ownership, scheduling,
 timeout, cancellation, and worker lifecycle to `CommandQueue`. The dispatcher
-retains command-specific validation, adapter translation, and serialized adapter
-access.
+retains command-specific validation, safety gating, adapter translation, and
+serialized adapter access.
+
+The default constructor validates connection state through the legacy
+`IRobotAdapter::GetRobotState()` query and uses the capabilities currently
+expressible by that interface. The overload accepting `RobotStateManager`,
+`CommandCapabilitySet`, and `SafetyValidator` enables full state, battery,
+fault, emergency-stop, and posture validation from an injected state cache.
 
 ### Adapter Mapping
 

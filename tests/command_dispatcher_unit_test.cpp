@@ -52,7 +52,11 @@ public:
   humanoid::adapters::Result EmergencyStop() override { return Invoke("EmergencyStop"); }
 
   [[nodiscard]] humanoid::adapters::RobotStateResult GetRobotState() const override {
-    return humanoid::adapters::RobotStateResult{Success("state"), {}};
+    humanoid::adapters::RobotState state;
+    state.initialized = true;
+    state.connected = true;
+    state.connection_state = humanoid::adapters::RobotConnectionState::kConnected;
+    return humanoid::adapters::RobotStateResult{Success("state"), state};
   }
 
   void BlockNextCommand() {

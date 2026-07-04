@@ -18,6 +18,7 @@
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/adapters/Result.h>
 #include <humanoid/core/CommandQueue.h>
+#include <humanoid/core/RobotStateManager.hpp>
 
 namespace humanoid::core {
 namespace {
@@ -210,6 +211,16 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
   return now >= command.timestamp && now - command.timestamp >= command.timeout;
 }
 
+[[nodiscard]] SafetyValidator LegacySafetyValidator() noexcept {
+  SafetyValidatorOptions options;
+  options.requireBatteryStateForActuatorCommands = false;
+  options.enforceBatteryRange = false;
+  options.rejectRobotFaults = false;
+  options.enforceMotionStateConsistency = false;
+  options.requireStandingForBaseMotion = false;
+  return SafetyValidator{options};
+}
+
 [[nodiscard]] CommandResult FromAdapterResult(const adapters::Result& adapter_result) {
   if (adapter_result.Succeeded()) {
     return Result(CommandStatus::Completed, adapter_result.message);
@@ -232,7 +243,14 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
 class CommandDispatcher::Impl final {
 public:
   explicit Impl(std::shared_ptr<adapters::IRobotAdapter> adapter)
-      : adapter_(std::move(adapter)),
+      : Impl(std::move(adapter), nullptr, CommandCapabilitySet::LegacyAdapterDefaults(),
+             LegacySafetyValidator()) {}
+
+  Impl(std::shared_ptr<adapters::IRobotAdapter> adapter,
+       std::shared_ptr<const RobotStateManager> state_manager, CommandCapabilitySet capabilities,
+       SafetyValidator safety_validator)
+      : adapter_(std::move(adapter)), state_manager_(std::move(state_manager)),
+        capabilities_(capabilities), safety_validator_(safety_validator),
         queue_([this](const Command& command) { return Dispatch(command); },
                CommandQueueOptions{kDispatcherMaximumQueueSize, 1U}) {}
 
@@ -390,6 +408,12 @@ private:
         return Result(CommandStatus::Timeout, "Command expired before adapter execution");
       }
 
+      const SafetyValidationContext safety_context = BuildSafetyContextLocked();
+      CommandResult safety_result = safety_validator_.Validate(command, safety_context);
+      if (!safety_result.isSuccess()) {
+        return safety_result;
+      }
+
       switch (command.type) {
       case CommandType::Stand:
         adapter_result = adapter_->StandUp();
@@ -423,7 +447,35 @@ private:
     return FromAdapterResult(adapter_result);
   }
 
+  [[nodiscard]] SafetyValidationContext BuildSafetyContextLocked() const {
+    SafetyValidationContext context;
+    context.capabilities = capabilities_;
+    context.capabilitiesAvailable = true;
+
+    if (state_manager_) {
+      context.robotState = state_manager_->GetState();
+      context.robotStateAvailable = true;
+      context.batteryStateAvailable = true;
+      return context;
+    }
+
+    context.robotStateAvailable = false;
+    context.batteryStateAvailable = false;
+    try {
+      const adapters::RobotStateResult adapter_state = adapter_->GetRobotState();
+      context.robotStateAvailable = adapter_state.result.Succeeded();
+      context.robotState.connection.connected = adapter_state.state.connected;
+    } catch (...) {
+      context.robotStateAvailable = false;
+    }
+
+    return context;
+  }
+
   std::shared_ptr<adapters::IRobotAdapter> adapter_;
+  std::shared_ptr<const RobotStateManager> state_manager_;
+  CommandCapabilitySet capabilities_{};
+  SafetyValidator safety_validator_{};
   std::mutex adapter_mutex_;
   std::mutex state_mutex_;
   std::condition_variable state_condition_;
@@ -436,6 +488,13 @@ private:
 
 CommandDispatcher::CommandDispatcher(std::shared_ptr<adapters::IRobotAdapter> adapter)
     : impl_(std::make_unique<Impl>(std::move(adapter))) {}
+
+CommandDispatcher::CommandDispatcher(std::shared_ptr<adapters::IRobotAdapter> adapter,
+                                     std::shared_ptr<const RobotStateManager> state_manager,
+                                     CommandCapabilitySet capabilities,
+                                     SafetyValidator safety_validator)
+    : impl_(std::make_unique<Impl>(std::move(adapter), std::move(state_manager), capabilities,
+                                   safety_validator)) {}
 
 CommandDispatcher::~CommandDispatcher() noexcept = default;
 

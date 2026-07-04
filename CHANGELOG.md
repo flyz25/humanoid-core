@@ -23,6 +23,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   condition-variable waiting, timeout enforcement, cancellation, duplicate-ID
   rejection, queue statistics, dispatcher integration, and concurrent
   producer/consumer stress coverage.
+- Milestone 5.4 Safety Layer: added vendor-independent command safety
+  validation for connection state, emergency stop, command capabilities,
+  battery thresholds, robot faults, posture state, dispatcher integration, and
+  hardware-free safety tests.
 
 ## [0.4.0-alpha] - 2026-07-04
 

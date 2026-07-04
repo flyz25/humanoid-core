@@ -14,6 +14,7 @@ humanoid-core skeleton.
 | `UnitreeG1Adapter` plugin skeleton | Thread-safe skeleton lifecycle and connection reads through atomics. |
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
+| `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
 | `CommandDispatcher` | Thread-safe synchronous execution, asynchronous queueing, queued-command cancellation, and idempotent shutdown. Adapter calls are serialized. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
@@ -53,10 +54,17 @@ mutex, then invoke the injected executor after releasing it. Workers sleep on a
 condition variable when no work is available. Multiple workers may execute
 callbacks concurrently.
 
+`SafetyValidator` stores only value-type policy options. It does not cache robot
+state, own adapter handles, or perform I/O. `CommandDispatcher` provides a fresh
+validation context for each command from either an injected `RobotStateManager`
+or the legacy adapter state query.
+
 `CommandDispatcher` protects lifecycle and synchronous command IDs separately
 and serializes all calls to its injected `IRobotAdapter` with an adapter mutex.
-Its asynchronous path delegates worker lifecycle to `CommandQueue`. `Cancel()`
-removes only queued work; running calls require the adapter to return.
+Safety validation and adapter forwarding occur under that serialized adapter
+section for legacy state queries. Its asynchronous path delegates worker
+lifecycle to `CommandQueue`. `Cancel()` removes only queued work; running calls
+require the adapter to return.
 `Shutdown()` rejects new work, cancels queued work, and waits for synchronous
 and asynchronous calls already in progress.
 

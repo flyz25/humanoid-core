@@ -56,6 +56,7 @@ Robot state flow
 Command flow
   -> humanoid::core::CommandDispatcher
   -> humanoid::core::Command
+  -> humanoid::core::SafetyValidator
   -> humanoid::core::CommandQueue
   -> injected humanoid::adapters::IRobotAdapter
   -> concrete adapter
@@ -101,6 +102,8 @@ unitree_sdk2
 - Runtime services may depend on core state models and managers.
 - Runtime services receive core services through dependency injection.
 - Command dispatch may depend on the abstract robot adapter interface.
+- Command safety validation may depend only on generic command, capability, and
+  robot state models.
 - `common` depends only on the C++ standard library.
 
 ## Forbidden Dependencies
