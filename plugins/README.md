@@ -72,6 +72,11 @@ Milestone 4.4 provides the interfaces, registry, factory, and Unitree G1 plugin
 skeleton only. No platform-specific `dlopen`, `LoadLibrary`, manifest parser,
 SDK communication, or physical robot control is implemented.
 
+Milestone 4.8 adds buildable examples that compose `PluginRegistry`,
+`PluginFactory`, and `UnitreeG1Plugin` from an application-owned composition
+root. The examples use static registration through `RegisterUnitreeG1Plugin()`;
+they do not add dynamic shared-library loading.
+
 ## Documentation
 
 See `docs/architecture/plugin_architecture.md` for the full plugin architecture

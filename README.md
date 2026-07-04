@@ -103,6 +103,13 @@ The Unitree G1 plugin skeleton is SDK-free. It validates plugin packaging,
 metadata, lifecycle, adapter construction, and conservative mock state feedback.
 It does not communicate with Unitree SDK2 and does not command robot movement.
 
+Milestone 4.8 adds buildable integration examples that exercise the composition
+paths for plugin registry/factory wiring, plugin lifecycle, robot factory
+connection, telemetry, adapter capability queries, and Unitree SDK-boundary
+command adapters. These examples do not change dependency direction: core still
+does not depend on plugins, and application-facing examples never include
+Unitree SDK2 headers.
+
 ## Directory Structure
 
 ```text
@@ -180,10 +187,24 @@ Basic framework initialization:
 ./build/examples/humanoid_core_basic_initialization
 ```
 
+Plugin registry and factory loading example:
+
+```bash
+./build/examples/humanoid_core_plugin_loading_example
+```
+
+Full composition example using plugin factory, Unitree plugin skeleton,
+`RobotStateManager`, and `TelemetryService`:
+
+```bash
+./build/examples/humanoid_core_framework_integration_example
+```
+
 Factory-based robot connection example:
 
 ```bash
 ./build/examples/humanoid_core_basic_robot_connection config/robot.yaml
+./build/examples/humanoid_core_robot_connection_example config/robot.yaml
 ```
 
 By default, the connection example validates configuration, registers available
@@ -193,12 +214,32 @@ communication workflow:
 
 ```bash
 ./build/examples/humanoid_core_basic_robot_connection config/robot.yaml --execute
+./build/examples/humanoid_core_robot_connection_example config/robot.yaml --execute
 ```
 
 The read-only hardware workflow is:
 
 ```text
 Initialize -> Connect -> Disconnect -> Shutdown
+```
+
+Telemetry example:
+
+```bash
+./build/examples/humanoid_core_telemetry_example
+```
+
+Capability query example:
+
+```bash
+./build/examples/humanoid_core_capability_query_example
+```
+
+When Unitree SDK2 is available and `ENABLE_UNITREE=ON`, the SDK-boundary command
+adapter validation example is also built:
+
+```bash
+./build/examples/humanoid_core_unitree_sdk_boundary_example
 ```
 
 ## Configuration
@@ -349,6 +390,7 @@ Production hardening documentation:
 
 - `docs/Production_Hardening_Report.md`
 - `docs/Repository_Governance_Report.md`
+- `docs/integration/Milestone_4_8_Integration_Report.md`
 - `docs/architecture/plugin_architecture.md`
 - `docs/thread_safety.md`
 - `docs/dependency_graph.md`

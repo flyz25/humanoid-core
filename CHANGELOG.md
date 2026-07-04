@@ -36,6 +36,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   `LocoAdapter`, `HandAdapter`, and `AudioAdapter` command translation layers,
   refactored `SdkWrapper` to delegate locomotion commands, and added
   hardware-free adapter validation tests.
+- Milestone 4.8 Integration & Examples: added buildable integration examples
+  for plugin loading, full framework composition, robot connection, telemetry,
+  capability queries, and Unitree SDK-boundary command-adapter validation, plus
+  the Milestone 4.8 integration report.
 
 ## [0.3.0-alpha] - 2026-07-04
 

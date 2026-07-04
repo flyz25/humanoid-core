@@ -54,6 +54,28 @@ Milestone 4.7 adds SDK-boundary command adapters for locomotion, hand/gesture,
 and audio commands. These adapters perform command translation only; they do not
 contain business logic, mission execution, planning, AI, or behavior sequencing.
 
+Milestone 4.8 adds integration examples that wire the existing targets from an
+application composition root:
+
+```text
+Example application
+  -> PluginFactory / PluginRegistry
+    -> UnitreeG1Plugin
+      -> core::RobotAdapter
+
+Example application
+  -> RobotFactoryRegistry
+    -> UnitreeRobotFactory
+      -> IRobotAdapter
+        -> LocoClientWrapper
+          -> SdkWrapper
+```
+
+The examples validate integration without changing dependency direction. Core
+libraries do not link concrete plugins, plugin infrastructure does not link
+vendor SDKs, and SDK-boundary examples are built only when the Unitree SDK
+abstraction target exists.
+
 The core foundation modules do not implement ROS2, DDS participants, AI, OpenCV,
 GUI workflows, mission engines, or event controllers. Unitree SDK2 integration
 is isolated in the optional adapter and SDK wrapper targets.

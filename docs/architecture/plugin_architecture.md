@@ -256,6 +256,21 @@ The skeleton is intentionally SDK-free. It returns conservative mock
 `RobotState` snapshots, reports `Connect()` as unavailable, and never commands
 robot movement. It builds whether `ENABLE_UNITREE` is `ON` or `OFF`.
 
+Milestone 4.8 adds examples that demonstrate static plugin package integration:
+
+- `humanoid_core_plugin_loading_example` registers `UnitreeG1Plugin` through
+  `PluginFactory`, creates it through the `IPlugin` boundary, runs lifecycle
+  methods, enumerates registry records, and destroys the instance through the
+  factory.
+- `humanoid_core_framework_integration_example` composes plugin factory,
+  Unitree plugin skeleton, `core::RobotAdapter`, `RobotStateManager`, and
+  `TelemetryService` in one application-owned composition root.
+- `humanoid_core_capability_query_example` creates a plugin-owned adapter and
+  queries vendor-independent `RobotCapabilities`.
+
+These examples use the existing static registration helper and do not introduce
+dynamic shared-library loading or a new plugin host architecture.
+
 ## Unitree SDK Abstraction Layer
 
 Milestone 4.5 adds the internal Unitree SDK abstraction under
@@ -280,6 +295,11 @@ boundary types, and `SdkConverter` converts those types into framework
 
 `LocoClientWrapper` remains as the existing adapter-facing facade so Milestone 2
 adapter code does not expose SDK details or change public behavior.
+
+Milestone 4.8 also adds `humanoid_core_unitree_sdk_boundary_example` when the
+SDK abstraction target is available. The example validates command-adapter error
+paths for `LocoAdapter`, `HandAdapter`, `AudioAdapter`, and `SdkWrapper`
+without opening robot communication or issuing physical commands.
 
 ## Forbidden Dependencies
 
