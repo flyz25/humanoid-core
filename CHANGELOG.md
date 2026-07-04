@@ -9,6 +9,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- Milestone 4.1 Plugin Infrastructure: added plugin interfaces, lifecycle
+  states, version compatibility metadata, a thread-safe plugin registry,
+  plugin tests, and the plugin architecture document.
+
+## [0.3.0-alpha] - 2026-07-04
+
+### Added
+
 - Milestone 3.1 Robot State Model: vendor-independent, allocation-free core
   state snapshot with connection, power, motion, velocity, pose, orientation,
   health, and timestamp fields.
@@ -48,5 +56,6 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.1.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.3.0-alpha...HEAD
+[0.3.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.1.0-alpha...v0.3.0-alpha
 [0.1.0-alpha]: https://github.com/humanoid-core/humanoid-core/releases/tag/v0.1.0-alpha

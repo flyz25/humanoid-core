@@ -1,0 +1,209 @@
+# Plugin Architecture
+
+Milestone 4.1 defines the plugin infrastructure for humanoid-core. The design
+adds plugin contracts and a host registry without introducing vendor code,
+runtime behavior changes, dynamic library loading, or dependencies from the core
+framework target to plugins.
+
+## Goals
+
+- Allow future robot vendors, simulators, diagnostics exporters, and other
+  extensions to be delivered as plugins.
+- Keep applications dependent on framework interfaces, not vendor SDKs.
+- Keep `humanoid::humanoid_core` independent of concrete plugins and plugin
+  implementations.
+- Provide explicit lifecycle, metadata, compatibility, and registration
+  contracts before adding any vendor plugin.
+
+## Non-Goals
+
+Milestone 4.1 does not implement:
+
+- Unitree, simulator, or mock plugins.
+- Dynamic shared-library loading.
+- Plugin manifest parsing.
+- ROS2, DDS integration, AI, mission execution, planning, navigation, behavior
+  trees, GUI code, or robot communication.
+
+## Dependency Direction
+
+The plugin infrastructure is a separate exported target:
+
+```text
+Application or plugin host
+  -> humanoid::plugins
+    -> humanoid::common
+```
+
+The core framework target remains independent:
+
+```text
+humanoid::humanoid_core
+  -> core framework modules
+  -> no plugin dependency
+```
+
+Future concrete plugins must depend on framework interfaces and plugin
+contracts. Framework core modules must never depend on concrete plugins.
+
+## Public Contracts
+
+### IPlugin
+
+`humanoid::plugins::IPlugin` is the base lifecycle interface implemented by
+future plugins.
+
+Lifecycle functions:
+
+- `Metadata()`
+- `Initialize(IPluginRegistrar&)`
+- `Start()`
+- `Stop()`
+- `Shutdown()`
+
+Plugin lifecycle functions return `humanoid::common::Status`. Plugin
+implementations should translate internal exceptions or SDK failures into
+status values before crossing the plugin boundary.
+
+### IPluginRegistrar
+
+`humanoid::plugins::IPluginRegistrar` is the host registration boundary passed
+to plugin instances during initialization.
+
+Registration functions:
+
+- `RegisterPlugin(PluginMetadata)`
+- `UnregisterPlugin(std::string_view)`
+- `SetLifecycleState(std::string_view, PluginLifecycleState)`
+
+This keeps plugin registration explicit and testable. It also avoids singleton
+or global registries.
+
+### IPluginLoader
+
+`humanoid::plugins::IPluginLoader` defines the host-side loading abstraction for
+future platform-specific loaders. Milestone 4.1 intentionally provides only the
+interface.
+
+Future loader responsibilities:
+
+- Locate plugin package or shared-library paths.
+- Read and validate plugin metadata before loading.
+- Verify framework API compatibility.
+- Load the binary through a platform implementation.
+- Create the plugin instance.
+- Drive `Initialize()`, `Start()`, `Stop()`, and `Shutdown()`.
+- Unload only after plugin shutdown has completed.
+
+## Metadata
+
+`humanoid::plugins::PluginMetadata` contains:
+
+- `plugin_id`: stable plugin identifier.
+- `name`: human-readable plugin name.
+- `vendor`: organization responsible for the plugin.
+- `description`: plugin purpose.
+- `version`: plugin semantic version.
+- `compatibility`: accepted framework API version range.
+- `manifest_path`: optional path for future manifest-based loaders.
+
+Required fields are validated before registry insertion. Current required
+fields are `plugin_id`, `name`, `vendor`, and a valid compatibility range.
+
+## Version Compatibility
+
+`humanoid::plugins::PluginVersionCompatibility` declares an inclusive framework
+API version range:
+
+```text
+minimumFrameworkVersion <= humanoid-core API version <= maximumFrameworkVersion
+```
+
+The registry rejects incompatible plugins before registration. This makes
+version failures deterministic and visible before plugin runtime startup.
+
+Milestone 4.1 compatibility targets humanoid-core `0.3.0-alpha` through the
+numeric API version `0.3.0`.
+
+## Lifecycle
+
+Plugin lifecycle states are represented by
+`humanoid::plugins::PluginLifecycleState`:
+
+```text
+Discovered
+Registered
+Loaded
+Initialized
+Started
+Stopped
+Shutdown
+Failed
+```
+
+Expected host flow:
+
+```text
+Discover metadata
+  -> Validate compatibility
+    -> Register metadata
+      -> Load package or shared library
+        -> Initialize plugin
+          -> Start plugin
+            -> Stop plugin
+              -> Shutdown plugin
+                -> Unload plugin
+```
+
+Milestone 4.1 implements metadata registration and lifecycle state tracking. It
+does not implement package discovery, binary loading, or unloading.
+
+## Registration Mechanism
+
+`humanoid::plugins::PluginRegistry` implements `IPluginRegistrar`.
+
+Registry guarantees:
+
+- Thread-safe registration and unregistration.
+- Thread-safe metadata lookup.
+- Thread-safe lifecycle state updates.
+- Snapshot access to registered plugin records.
+- No ownership of plugin implementation objects.
+- No dynamic loader behavior.
+
+The registry stores metadata and lifecycle state only. Plugin instances remain
+owned by the host or future loader.
+
+## Adding Future Plugins
+
+Future plugin implementation steps:
+
+1. Implement `humanoid::plugins::IPlugin`.
+2. Provide complete `PluginMetadata`.
+3. Declare a compatible framework API version range.
+4. Keep vendor SDK headers inside the plugin implementation or SDK wrapper.
+5. Register through `IPluginRegistrar` during `Initialize()`.
+6. Return `humanoid::common::Status` for lifecycle failures.
+7. Ensure `Stop()` and `Shutdown()` are safe to call during host cleanup.
+
+## Forbidden Dependencies
+
+- Core framework modules depending on concrete plugins.
+- `humanoid::humanoid_core` linking to concrete plugins.
+- Vendor SDK types in plugin infrastructure headers.
+- Global plugin registries or singletons.
+- Applications directly depending on vendor SDK headers.
+- Plugin lifecycle methods throwing exceptions across the host boundary.
+
+## Validation
+
+Milestone 4.1 adds the always-built
+`humanoid_core_plugin_registry_unit_test` CTest target. It validates:
+
+- Plugin metadata validation.
+- Version compatibility range handling.
+- Duplicate registration rejection.
+- Lifecycle state updates.
+- Registration through `IPluginRegistrar`.
+- Concurrent registry registration.
+- Lifecycle state string conversion.

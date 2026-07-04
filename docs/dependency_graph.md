@@ -25,6 +25,9 @@ humanoid::humanoid_core
   -> humanoid::robot_factory
   -> humanoid::telemetry_service
 
+humanoid::plugins
+  -> humanoid::common
+
 humanoid::robot_factory
   -> humanoid::adapter_interfaces
 
@@ -60,6 +63,8 @@ unitree_sdk2
 - Applications may depend on managers, interfaces, and factory registry.
 - Factory registry may depend on factory interfaces.
 - Factories may create concrete adapters.
+- Plugin hosts may depend on `humanoid::plugins`.
+- Plugin infrastructure may depend on `common`.
 - Adapters may depend on SDK wrappers.
 - SDK wrappers may depend on vendor SDKs.
 - Managers may depend on module interfaces and `common`.
@@ -74,5 +79,7 @@ unitree_sdk2
 - Managers depending on concrete adapters or vendor SDKs.
 - Core modules depending on Unitree SDK2, ROS2, OpenCV, AI runtimes, GUI
   frameworks, mission engines, planners, navigation, or behavior trees.
+- Core framework modules depending on concrete plugins.
+- `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - Vendor SDK types in public interfaces.
 - Global singleton access as a framework dependency pattern.

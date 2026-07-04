@@ -7,6 +7,8 @@ Allowed dependency direction:
 
 ```text
 applications -> managers, interfaces, factory registry
+plugin hosts -> plugin infrastructure
+plugin infrastructure -> common
 factory registry -> robot factory interfaces
 robot factories -> robot adapter implementations
 robot adapters -> SDK wrappers
@@ -22,6 +24,8 @@ Forbidden dependencies:
 - Applications directly including vendor SDK headers.
 - Applications directly constructing concrete robot adapters.
 - Managers depending on concrete adapters or communication backends.
+- Core modules depending on concrete plugins or plugin implementations.
+- `humanoid::humanoid_core` linking concrete plugins.
 - Core modules depending on ROS2, OpenCV, AI runtimes, GUI frameworks, or Unitree
   SDKs.
 - Common depending on any other humanoid-core module.

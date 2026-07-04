@@ -68,9 +68,31 @@ This layer remains SDK-free and vendor independent. It does not perform robot
 communication, command execution, planning, navigation, AI, behavior trees, or
 mission orchestration.
 
+## Plugin Infrastructure
+
+Milestone 4.1 adds plugin infrastructure as a separate exported module:
+
+```text
+Application or plugin host
+  -> humanoid::plugins
+    -> humanoid::common
+```
+
+The aggregate core target `humanoid::humanoid_core` does not link against
+`humanoid::plugins`, and no core module depends on concrete plugins. Future
+plugin hosts may use `humanoid::plugins::IPlugin`,
+`humanoid::plugins::IPluginRegistrar`, `humanoid::plugins::IPluginLoader`, and
+`humanoid::plugins::PluginRegistry` to manage metadata, version compatibility,
+registration, and lifecycle state.
+
+Milestone 4.1 does not implement vendor plugins, dynamic shared-library loading,
+manifest parsing, or robot communication plugins.
+
 ## Module Ownership
 
 - `common`: dependency-free lifecycle, status, and version primitives.
+- `plugins`: plugin interfaces, metadata, version compatibility, lifecycle
+  states, and thread-safe registration registry.
 - `utilities`: small implementation-agnostic helpers.
 - `logging`: logger and sink interfaces plus sink routing infrastructure.
 - `configuration`: read-only configuration interfaces and provider ownership.

@@ -8,6 +8,7 @@ humanoid-core skeleton.
 | Component | Guarantee |
 | --- | --- |
 | `RobotFactoryRegistry` | Thread-safe registration, lookup, factory count, and vendor listing. |
+| `PluginRegistry` | Thread-safe plugin registration, unregistration, lifecycle updates, metadata lookup, and registry snapshots. |
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
@@ -53,6 +54,11 @@ after `Unsubscribe()` if publication was already in progress.
 `RobotFactoryRegistry` protects its factory collection with a mutex. Returned
 factory instances are held by `std::shared_ptr`; factory implementations must
 preserve their own thread-safety guarantees.
+
+`PluginRegistry` protects metadata and lifecycle state with `std::shared_mutex`.
+Registration, unregistration, and lifecycle updates use exclusive access.
+Metadata lookup, lifecycle lookup, registry snapshots, and count reads use
+shared access. The registry does not own plugin implementation objects.
 
 ## Logging
 

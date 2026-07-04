@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.1.0-alpha`
+Current release: `0.3.0-alpha`
 
 ## Architecture
 
@@ -55,6 +55,17 @@ Robot adapter or state producer
 The state and telemetry path remains SDK-free. `RobotStateManager` is injected
 through `CoreContext`, and `TelemetryService` receives that manager explicitly.
 
+Milestone 4.1 adds a separate plugin infrastructure target:
+
+```text
+Application or plugin host
+  -> humanoid::plugins
+    -> humanoid::common
+```
+
+The aggregate core target `humanoid::humanoid_core` does not link against
+`humanoid::plugins`.
+
 ## Directory Structure
 
 ```text
@@ -73,6 +84,7 @@ humanoid-core/
   logging/                   Logging interfaces and routing manager
   motion/                    Motion interfaces and manager
   network/                   Network interfaces and endpoint metadata
+  plugins/                   Plugin interfaces, metadata, compatibility, and registry
   robot/                     Robot interfaces plus manager
   safety/                    Safety interfaces and manager
   scripts/                   Build and formatting scripts
@@ -272,7 +284,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.1.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.3.0-alpha`.
 
 Release tags use:
 
@@ -294,6 +306,7 @@ Production hardening documentation:
 
 - `docs/Production_Hardening_Report.md`
 - `docs/Repository_Governance_Report.md`
+- `docs/architecture/plugin_architecture.md`
 - `docs/thread_safety.md`
 - `docs/dependency_graph.md`
 - `docs/security_review.md`
