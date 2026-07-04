@@ -1,0 +1,7 @@
+BasedOnStyle: LLVM
+Standard: c++17
+ColumnLimit: 100
+IndentWidth: 2
+DerivePointerAlignment: false
+PointerAlignment: Left
+SortIncludes: true

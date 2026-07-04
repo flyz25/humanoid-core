@@ -1,0 +1,7 @@
+add_executable(humanoid_core_basic_initialization basic_initialization/main.cpp)
+
+target_link_libraries(humanoid_core_basic_initialization PRIVATE humanoid::humanoid_core)
+
+humanoid_core_configure_target(humanoid_core_basic_initialization)
+
+install(TARGETS humanoid_core_basic_initialization RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
