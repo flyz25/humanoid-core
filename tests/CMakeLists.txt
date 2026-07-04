@@ -57,6 +57,20 @@ humanoid_core_configure_target(humanoid_core_unitree_g1_plugin_skeleton_test)
 add_test(NAME humanoid_core_unitree_g1_plugin_skeleton_test
          COMMAND humanoid_core_unitree_g1_plugin_skeleton_test)
 
+if(TARGET humanoid::unitree_sdk_abstraction)
+  add_executable(humanoid_core_unitree_sdk_converter_test
+                 unitree_sdk_converter_test.cpp)
+
+  target_link_libraries(
+    humanoid_core_unitree_sdk_converter_test
+    PRIVATE humanoid::unitree_sdk_abstraction)
+
+  humanoid_core_configure_target(humanoid_core_unitree_sdk_converter_test)
+
+  add_test(NAME humanoid_core_unitree_sdk_converter_test
+           COMMAND humanoid_core_unitree_sdk_converter_test)
+endif()
+
 add_executable(humanoid_core_robot_adapter_interface_unit_test
                robot_adapter_interface_unit_test.cpp)
 

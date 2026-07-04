@@ -60,8 +60,8 @@ Validation completed on Ubuntu/WSL2 with the pinned Unitree SDK2 submodule.
   YAML tooling.
 - Ran `git diff --check`; no whitespace errors were reported.
 - Ran shell syntax checks for scripts under `scripts/`.
-- Re-scanned Unitree SDK references; SDK headers remain isolated to
-  `src/sdk/LocoClientWrapper.cpp`.
+- Re-scanned Unitree SDK references; SDK headers remain isolated to the
+  Unitree SDK boundary.
 - Re-scanned CMake files for global include/link directives; none were found.
 - Verified referenced governance and process documents exist.
 

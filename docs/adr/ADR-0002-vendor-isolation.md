@@ -20,6 +20,6 @@ adapter implementations and SDK wrappers.
 ## Consequences
 
 - Applications never include Unitree SDK2 headers.
-- Unitree SDK2 appears only in `src/sdk/LocoClientWrapper.cpp`.
+- Unitree SDK2 appears only in `plugins/unitree/sdk/SdkWrapper.cpp`.
 - New vendors can be added by implementing existing interfaces.
 - SDK replacement does not require application-layer changes.

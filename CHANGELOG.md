@@ -23,6 +23,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   plugin package, plugin-local adapter skeleton, manifest, factory registration
   helper, mock state validation, and build coverage for Unitree-enabled and
   Unitree-disabled configurations.
+- Milestone 4.5 SDK Abstraction Layer: added the Unitree SDK abstraction
+  boundary under `plugins/unitree/sdk`, normalized SDK result/state conversion,
+  SDK converter tests, and refactored the legacy locomotion wrapper so Unitree
+  SDK2 headers are included only by the SDK abstraction implementation.
 
 ## [0.3.0-alpha] - 2026-07-04
 

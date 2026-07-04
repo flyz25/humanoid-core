@@ -40,6 +40,7 @@ add_subdirectory(safety)
 add_subdirectory(diagnostics)
 add_subdirectory(network)
 add_subdirectory(core)
+add_subdirectory(plugins/unitree/sdk)
 add_subdirectory(src)
 add_subdirectory(apps)
 

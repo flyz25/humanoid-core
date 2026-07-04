@@ -2,7 +2,7 @@
 
 /**
  * @file LocoClientWrapper.h
- * @brief Defines a narrow Unitree G1 locomotion SDK wrapper.
+ * @brief Defines the legacy Unitree G1 locomotion wrapper facade.
  */
 
 #include <memory>
@@ -12,10 +12,11 @@
 namespace humanoid::sdk {
 
 /**
- * @brief RAII wrapper around Unitree SDK2 G1 LocoClient.
+ * @brief RAII facade over the Unitree SDK abstraction layer.
  *
- * The Unitree SDK type is hidden behind a private implementation so SDK headers
- * are never exposed to applications or adapter interfaces.
+ * `LocoClientWrapper` preserves the Milestone 2 adapter-facing API while
+ * delegating all SDK interaction to `plugins/unitree/sdk/SdkWrapper`. It does
+ * not include Unitree SDK2 headers and does not own vendor SDK types directly.
  */
 class LocoClientWrapper final {
 public:

@@ -12,13 +12,15 @@ the humanoid-core public API.
 
 ## Decision
 
-Each vendor SDK is hidden behind a narrow SDK wrapper. For Unitree G1,
-`LocoClientWrapper` owns the SDK client internally and exposes only framework
-types such as `RobotConfig` and `Result`.
+Each vendor SDK is hidden behind a narrow SDK abstraction boundary. For Unitree
+G1, `plugins/unitree/sdk/SdkWrapper.cpp` owns the SDK client internally and
+exposes only framework-owned SDK abstraction types. `LocoClientWrapper`
+preserves the legacy adapter-facing API and delegates to that boundary.
 
 ## Consequences
 
-- SDK exceptions and return codes are translated to framework `Result` values.
-- SDK headers are included only in wrapper implementation files.
+- SDK exceptions and return codes are translated to normalized SDK abstraction
+  results and then to framework `Result` values.
+- SDK headers are included only in SDK abstraction implementation files.
 - Adapter implementations translate framework commands and delegate to wrappers.
 - Public API stability is decoupled from vendor SDK API changes.

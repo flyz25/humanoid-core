@@ -37,10 +37,13 @@ Application
         -> UnitreeRobotFactory
           -> UnitreeG1Adapter
             -> LocoClientWrapper
-              -> Unitree SDK2
+              -> SdkWrapper
+                -> Unitree SDK2
 ```
 
-Only `src/sdk/LocoClientWrapper.cpp` includes Unitree SDK2 headers.
+Only `plugins/unitree/sdk/SdkWrapper.cpp` includes Unitree SDK2 headers.
+`src/sdk/LocoClientWrapper.cpp` is a compatibility facade over the SDK
+abstraction layer and does not include vendor SDK headers.
 
 Milestone 3 adds a vendor-independent runtime state path:
 
@@ -102,12 +105,13 @@ humanoid-core/
   network/                   Network interfaces and endpoint metadata
   plugins/                   Plugin interfaces, registry, factory, and plugin packages
   plugins/unitree/g1/        SDK-free Unitree G1 plugin skeleton
+  plugins/unitree/sdk/       Unitree SDK2 abstraction boundary
   robot/                     Robot interfaces plus manager
   safety/                    Safety interfaces and manager
   scripts/                   Build and formatting scripts
   src/adapters/unitree/      Optional SDK-backed Unitree adapter target
   src/factory/               Robot factory registry
-  src/sdk/                   Vendor SDK wrappers
+  src/sdk/                   Legacy adapter-facing SDK facades
   src/services/              Vendor-independent runtime services
   tests/                     Smoke test and optional GoogleTest tests
   third_party/unitree_sdk2/  Pinned Unitree SDK2 submodule
@@ -266,7 +270,7 @@ Add new vendors without modifying application code:
 
 1. Implement `humanoid::adapters::IRobotAdapter`.
 2. Implement `humanoid::adapters::IRobotFactory`.
-3. Hide vendor SDK headers inside a wrapper under `src/sdk/` or a vendor plugin.
+3. Hide vendor SDK headers inside a vendor SDK abstraction boundary.
 4. Register the factory with `RobotFactoryRegistry`.
 5. Keep application code dependent only on `IRobotFactory`, `IRobotAdapter`, and
    manager interfaces.

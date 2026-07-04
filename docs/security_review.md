@@ -43,9 +43,10 @@ C++ files outside the vendored SDK.
 
 ## Vendor SDK Boundary
 
-Unitree SDK2 headers and types are isolated to `src/sdk/LocoClientWrapper.cpp`.
-SDK exceptions are translated to framework `Result` values at the wrapper
-boundary.
+Unitree SDK2 headers and types are isolated to
+`plugins/unitree/sdk/SdkWrapper.cpp`. SDK exceptions are translated to normalized
+SDK abstraction results at that boundary and then to framework `Result` values
+by the adapter-facing facade.
 
 ## Known Limitations
 

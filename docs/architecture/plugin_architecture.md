@@ -256,6 +256,28 @@ The skeleton is intentionally SDK-free. It returns conservative mock
 `RobotState` snapshots, reports `Connect()` as unavailable, and never commands
 robot movement. It builds whether `ENABLE_UNITREE` is `ON` or `OFF`.
 
+## Unitree SDK Abstraction Layer
+
+Milestone 4.5 adds the internal Unitree SDK abstraction under
+`plugins/unitree/sdk`.
+
+```text
+UnitreeG1Adapter
+  -> LocoClientWrapper
+    -> SdkWrapper
+      -> Unitree SDK2
+```
+
+`SdkWrapper.cpp` is the only production translation unit allowed to include
+Unitree SDK2 headers. It wraps SDK initialization, shutdown, discovery,
+connection, disconnection, and locomotion commands. `SdkTypes.h` defines
+framework-owned normalized SDK boundary types, and `SdkConverter` converts
+those types into framework `Result`, adapter connection state, and
+`humanoid::core::RobotState`.
+
+`LocoClientWrapper` remains as the existing adapter-facing facade so Milestone 2
+adapter code does not expose SDK details or change public behavior.
+
 ## Forbidden Dependencies
 
 - Core framework modules depending on concrete plugins.
@@ -297,3 +319,7 @@ Milestone 4.4 adds the always-built
 - Adapter creation through the plugin instance.
 - SDK-free adapter capabilities.
 - Conservative mock robot state.
+
+Milestone 4.5 adds `humanoid_core_unitree_sdk_converter_test` when Unitree SDK2
+is enabled. It validates normalized SDK result, connection state, string, and
+robot state conversions without connecting to physical hardware.

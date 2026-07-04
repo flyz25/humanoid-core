@@ -20,17 +20,19 @@ Applications receive adapters through `RobotFactoryRegistry` and depend only on
 
 ```text
 Application
-  -> RobotFactoryRegistry
-    -> UnitreeRobotFactory
-      -> UnitreeG1Adapter
-        -> LocoClientWrapper
-          -> Unitree SDK2
+      -> RobotFactoryRegistry
+        -> UnitreeRobotFactory
+          -> UnitreeG1Adapter
+            -> LocoClientWrapper
+              -> SdkWrapper
+                -> Unitree SDK2
 ```
 
-`LocoClientWrapper` is the only class allowed to include Unitree SDK2 headers.
-`UnitreeG1Adapter` translates generic framework commands and delegates to the
-wrapper. It contains no mission, behavior, planning, navigation, or application
-logic.
+`plugins/unitree/sdk/SdkWrapper.cpp` is the only production translation unit
+allowed to include Unitree SDK2 headers. `LocoClientWrapper` is a compatibility
+facade over that abstraction. `UnitreeG1Adapter` translates generic framework
+commands and delegates to the wrapper. It contains no mission, behavior,
+planning, navigation, or application logic.
 
 Unitree SDK2 is pinned as a submodule:
 

@@ -12,10 +12,14 @@ Application
     -> UnitreeRobotFactory
       -> UnitreeG1Adapter
         -> LocoClientWrapper
-          -> Unitree SDK2
+          -> SdkWrapper
+            -> Unitree SDK2
 ```
 
 Applications depend on `IRobotFactory` and `IRobotAdapter`, not Unitree SDK2.
+`LocoClientWrapper` preserves the Milestone 2 adapter-facing API. The only
+component that includes Unitree SDK2 headers is
+`plugins/unitree/sdk/SdkWrapper.cpp`.
 
 ## SDK Source
 
@@ -62,5 +66,6 @@ robot:
   firmware:
 ```
 
-Unitree SDK2 initializes communication through a network interface. The `ip`
-value is retained as robot connection metadata and validated by the adapter.
+`SdkWrapper` initializes Unitree SDK2 communication through a network interface.
+The `ip` value is retained as robot connection metadata and validated by the
+adapter.

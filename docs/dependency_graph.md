@@ -54,6 +54,9 @@ humanoid::unitree_adapter
 
 humanoid::unitree_loco_client
   -> humanoid::adapter_interfaces
+  -> humanoid::unitree_sdk_abstraction
+
+humanoid::unitree_sdk_abstraction
   -> unitree_sdk2
 
 unitree_sdk2
@@ -71,8 +74,9 @@ unitree_sdk2
 - Plugin registry and factory infrastructure may depend on `common`.
 - Concrete plugin packages may depend on `humanoid::plugins` and public
   framework interfaces.
-- Adapters may depend on SDK wrappers.
-- SDK wrappers may depend on vendor SDKs.
+- Adapters may depend on SDK wrapper facades.
+- SDK wrapper facades may depend on vendor SDK abstraction targets.
+- Vendor SDK abstraction targets may depend on vendor SDKs.
 - Managers may depend on module interfaces and `common`.
 - Runtime services may depend on core state models and managers.
 - Runtime services receive core services through dependency injection.
@@ -88,5 +92,6 @@ unitree_sdk2
 - Core framework modules depending on concrete plugins.
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - SDK-free plugin skeletons including vendor SDK headers.
+- SDK wrapper facades including vendor SDK headers directly.
 - Vendor SDK types in public interfaces.
 - Global singleton access as a framework dependency pattern.

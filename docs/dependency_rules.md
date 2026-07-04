@@ -11,8 +11,9 @@ plugin hosts -> plugin infrastructure
 plugin infrastructure -> common
 factory registry -> robot factory interfaces
 robot factories -> robot adapter implementations
-robot adapters -> SDK wrappers
-SDK wrappers -> vendor SDKs
+robot adapters -> SDK wrapper facades
+SDK wrapper facades -> vendor SDK abstraction targets
+vendor SDK abstraction targets -> vendor SDKs
 core -> logging, configuration, common
 managers -> module interfaces, common
 utilities -> common
@@ -24,6 +25,7 @@ Forbidden dependencies:
 - Applications directly including vendor SDK headers.
 - Applications directly constructing concrete robot adapters.
 - Managers depending on concrete adapters or communication backends.
+- SDK wrapper facades directly including vendor SDK headers.
 - Core modules depending on concrete plugins or plugin implementations.
 - `humanoid::humanoid_core` linking concrete plugins.
 - Core modules depending on ROS2, OpenCV, AI runtimes, GUI frameworks, or Unitree

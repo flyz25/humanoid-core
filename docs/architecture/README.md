@@ -28,14 +28,17 @@ Application
       -> IRobotAdapter
         -> UnitreeG1Adapter
           -> LocoClientWrapper
-            -> Unitree SDK2
+            -> SdkWrapper
+              -> Unitree SDK2
 ```
 
 `IRobotAdapter` is the application-facing dependency. `UnitreeRobotFactory`
 creates `UnitreeG1Adapter` through the generic factory interface.
 `UnitreeG1Adapter` translates generic commands such as `Move`, `Stop`, `StandUp`,
-`BalanceStand`, and `EmergencyStop`. `LocoClientWrapper` is the only layer that
-includes Unitree SDK2 headers and owns `unitree::robot::g1::LocoClient`.
+`BalanceStand`, and `EmergencyStop`. `LocoClientWrapper` is a compatibility
+facade over `plugins/unitree/sdk/SdkWrapper`. `SdkWrapper.cpp` is the only
+production translation unit that includes Unitree SDK2 headers and owns
+`unitree::robot::g1::LocoClient`.
 
 The Unitree adapter is optional at build time. When `UnitreeSDK2` is not found,
 the SDK-free core and adapter interface still build.
@@ -99,6 +102,7 @@ parsing, or physical robot communication plugins.
 - `plugins`: plugin interfaces, metadata, version compatibility, lifecycle
   states, thread-safe registration registry, thread-safe plugin factory, and
   concrete plugin packages.
+- `plugins/unitree/sdk`: Unitree SDK2 abstraction boundary and conversion layer.
 - `utilities`: small implementation-agnostic helpers.
 - `logging`: logger and sink interfaces plus sink routing infrastructure.
 - `configuration`: read-only configuration interfaces and provider ownership.
@@ -114,7 +118,7 @@ parsing, or physical robot communication plugins.
 - `src/adapters`: adapter plugin implementations that depend on public adapter
   contracts and keep vendor SDK headers out of application-facing interfaces.
 - `src/factory`: robot factory registry.
-- `src/sdk`: vendor SDK wrappers hidden behind adapter implementations.
+- `src/sdk`: legacy adapter-facing SDK facades hidden behind adapter implementations.
 - `src/services`: vendor-independent runtime services such as telemetry
   publication.
 

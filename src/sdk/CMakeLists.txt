@@ -1,4 +1,4 @@
-if(HUMANOID_CORE_UNITREE_ENABLED)
+if(HUMANOID_CORE_UNITREE_ENABLED AND TARGET humanoid::unitree_sdk_abstraction)
   add_library(humanoid_core_unitree_loco_client LocoClientWrapper.cpp)
   add_library(humanoid::unitree_loco_client ALIAS humanoid_core_unitree_loco_client)
   set_target_properties(humanoid_core_unitree_loco_client PROPERTIES EXPORT_NAME unitree_loco_client)
@@ -12,11 +12,11 @@ if(HUMANOID_CORE_UNITREE_ENABLED)
   target_link_libraries(
     humanoid_core_unitree_loco_client
     INTERFACE humanoid::adapter_interfaces
-    PRIVATE unitree_sdk2)
+    PRIVATE humanoid::unitree_sdk_abstraction)
 
   set_target_properties(
     humanoid_core_unitree_loco_client
-    PROPERTIES CXX_STANDARD 17
+    PROPERTIES CXX_STANDARD 20
                CXX_STANDARD_REQUIRED ON
                CXX_EXTENSIONS OFF)
 
