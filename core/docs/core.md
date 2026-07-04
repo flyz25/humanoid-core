@@ -34,6 +34,12 @@ variable waiting, timeout enforcement, queued cancellation, and queue
 statistics. `CommandDispatcher` composes this queue for its asynchronous path;
 the queue itself has no adapter dependency.
 
+`humanoid::core::CommandExecutionPipeline` owns execution lifecycle
+infrastructure around an injected executor. It assigns execution IDs, emits
+queued/running/terminal callbacks, writes optional lifecycle logs, tracks
+metrics, and retains bounded execution history without depending on SDKs,
+adapters, or mission logic.
+
 The command model is documented in `docs/api/command_model.md`.
 
 ## Robot State Model

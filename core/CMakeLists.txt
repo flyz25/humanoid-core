@@ -3,6 +3,7 @@ add_library(
   src/CoreContext.cpp
   src/RuntimeMetadata.cpp
   ${PROJECT_SOURCE_DIR}/src/core/CommandDispatcher.cpp
+  ${PROJECT_SOURCE_DIR}/src/core/CommandExecutionPipeline.cpp
   ${PROJECT_SOURCE_DIR}/src/core/CommandQueue.cpp
   ${PROJECT_SOURCE_DIR}/src/core/RobotStateManager.cpp
   ${PROJECT_SOURCE_DIR}/src/core/SafetyValidator.cpp)

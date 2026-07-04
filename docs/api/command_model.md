@@ -9,6 +9,7 @@ execution, dispatch, or adapter behavior.
 ```cpp
 #include <humanoid/core/Command.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/CommandExecutionPipeline.h>
 #include <humanoid/core/CommandPriority.h>
 #include <humanoid/core/CommandQueue.h>
 #include <humanoid/core/CommandResult.h>
@@ -83,6 +84,51 @@ Application and future command services
 The model contains no Unitree SDK headers, vendor implementations, robot
 communication, or execution logic. Future adapters may consume validated
 commands, but vendor types must remain behind their SDK boundary.
+
+## Execution Pipeline
+
+`CommandExecutionPipeline` owns vendor-independent execution lifecycle
+infrastructure around an injected executor callback. It does not know about
+robot adapters, SDKs, mission logic, or behavior execution.
+
+```cpp
+humanoid::core::CommandExecutionPipeline pipeline{
+    [](const humanoid::core::Command& command) {
+      return ExecuteCommand(command);
+    },
+    humanoid::core::CommandExecutionPipelineOptions{
+        .maximumQueueSize = 1024,
+        .workerCount = 2,
+        .maximumHistorySize = 1024,
+    }};
+
+const auto subscription = pipeline.Subscribe(
+    [](const humanoid::core::CommandExecutionEvent& event) {
+      ObserveLifecycle(event);
+    });
+
+humanoid::core::CommandExecutionHandle handle =
+    pipeline.Submit(std::move(command));
+```
+
+The pipeline provides:
+
+- A pipeline-assigned `CommandExecutionId` for each submission.
+- Lifecycle events for `Queued`, `Running`, and terminal outcomes.
+- Callback subscription and unsubscription.
+- Optional logging through an injected `humanoid::logging::ILogger`.
+- Metrics for queued, running, completed, cancelled, timed-out, failed, and
+  rejected executions.
+- Bounded execution history with timestamps for submitted, queued, started, and
+  completed states.
+- Priority/FIFO worker selection, timeout enforcement, queued cancellation, and
+  idempotent shutdown.
+
+Executor exceptions are contained and translated to `CommandStatus::Failed`.
+Executor results with nonterminal statuses are normalized to `Failed`.
+Cancellation applies only while an execution is queued. Running executor
+callbacks are allowed to finish because the pipeline has no interruption
+contract with the injected executor.
 
 ## Command Queue
 

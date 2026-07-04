@@ -16,6 +16,7 @@
 #include <humanoid/configuration/Configuration.hpp>
 #include <humanoid/core/Command.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/CommandExecutionPipeline.h>
 #include <humanoid/core/CommandPriority.h>
 #include <humanoid/core/CommandQueue.h>
 #include <humanoid/core/CommandResult.h>

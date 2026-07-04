@@ -27,6 +27,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   validation for connection state, emergency stop, command capabilities,
   battery thresholds, robot faults, posture state, dispatcher integration, and
   hardware-free safety tests.
+- Milestone 5.5 Execution Pipeline: added vendor-independent command execution
+  lifecycle infrastructure with execution IDs, queued/running/terminal
+  callbacks, optional logging, metrics, bounded execution history, concurrent
+  worker execution, cancellation, timeout handling, and error propagation tests.
 
 ## [0.4.0-alpha] - 2026-07-04
 

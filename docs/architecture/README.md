@@ -113,24 +113,27 @@ Milestone 5 adds a vendor-independent command path:
 
 ```text
 Application or future command producer
-  -> CommandDispatcher
-    -> Command / CommandType / CommandPriority
-    -> SafetyValidator
-    -> CommandQueue
-      -> IRobotAdapter
+  -> CommandExecutionPipeline
+    -> injected executor
+      -> CommandDispatcher
+        -> SafetyValidator
+        -> IRobotAdapter
+  -> CommandQueue
   <- CommandResult / CommandStatus
 ```
 
 Command IDs are assigned by the producer, timestamps use a monotonic clock, and
 timeouts use `std::chrono`. Payload values and metadata contain framework-owned
-standard-library types only. `CommandQueue` owns bounded asynchronous priority
-scheduling, worker threads, timeout, cancellation, and statistics.
-`SafetyValidator` gates execution using generic state, capability, emergency
-stop, fault, battery, and posture data. `CommandDispatcher` composes the
-validator and queue, validates commands, serializes adapter access, and forwards
-through `IRobotAdapter`. These components have no SDK headers, concrete adapter
-dependencies, mission logic, or global state. See `docs/api/command_model.md`
-for the complete public contract.
+standard-library types only. `CommandExecutionPipeline` owns execution IDs,
+lifecycle callbacks, optional logging, metrics, and bounded history around an
+injected executor. `CommandQueue` owns bounded asynchronous priority scheduling,
+worker threads, timeout, cancellation, and statistics. `SafetyValidator` gates
+execution using generic state, capability, emergency stop, fault, battery, and
+posture data. `CommandDispatcher` composes the validator and queue, validates
+commands, serializes adapter access, and forwards through `IRobotAdapter`.
+These components have no SDK headers, concrete adapter dependencies, mission
+logic, or global state. See `docs/api/command_model.md` for the complete public
+contract.
 
 ## Plugin Infrastructure
 

@@ -15,6 +15,7 @@ humanoid-core skeleton.
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
+| `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
 | `CommandDispatcher` | Thread-safe synchronous execution, asynchronous queueing, queued-command cancellation, and idempotent shutdown. Adapter calls are serialized. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
@@ -47,6 +48,13 @@ is a runtime latest-state cache and protects its state with `std::shared_mutex`.
 Writers use `std::unique_lock`; readers use `std::shared_lock`.
 
 ## Services
+
+`CommandExecutionPipeline` protects queue state, execution records, metrics,
+history, callback subscriptions, and lifecycle state with one mutex. Workers
+select queued work under the mutex and invoke the injected executor after
+releasing it. Lifecycle callbacks are copied under lock and invoked after lock
+release. Running executor callbacks are not interrupted by cancellation or
+shutdown; cancellation applies only to queued executions.
 
 `CommandQueue` protects queue, outstanding-command indexes, statistics, and
 lifecycle state with one mutex. Workers select and remove work while holding the

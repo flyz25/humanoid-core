@@ -80,23 +80,26 @@ Milestone 5 adds the generic command path:
 
 ```text
 Command producer
-  -> CommandDispatcher
-    -> Command / CommandType / CommandPriority
-    -> SafetyValidator
-    -> CommandQueue
-      -> IRobotAdapter
+  -> CommandExecutionPipeline
+    -> injected executor
+      -> CommandDispatcher
+        -> SafetyValidator
+        -> IRobotAdapter
+  -> CommandQueue
   <- CommandResult / CommandStatus
 ```
 
 Commands carry producer-assigned IDs, monotonic timestamps, `std::chrono`
 timeouts, typed framework payload values, and non-operational metadata. The
-model, queue, and dispatcher are vendor independent. `CommandQueue` provides
-bounded priority/FIFO scheduling, configurable consumers, timeout, cancellation,
-statistics, and controlled shutdown. `SafetyValidator` rejects disconnected,
-faulted, emergency-stop, unsupported-capability, low-battery, and unsafe-state
-commands before adapter execution. The dispatcher composes the validator and
-queue for forwarding while keeping SDK and concrete adapter dependencies out of
-core.
+model, execution pipeline, queue, and dispatcher are vendor independent.
+`CommandExecutionPipeline` provides execution IDs, lifecycle callbacks, optional
+logging, metrics, and bounded history around injected executors. `CommandQueue`
+provides bounded priority/FIFO scheduling, configurable consumers, timeout,
+cancellation, statistics, and controlled shutdown. `SafetyValidator` rejects
+disconnected, faulted, emergency-stop, unsupported-capability, low-battery, and
+unsafe-state commands before adapter execution. The dispatcher composes the
+validator and queue for forwarding while keeping SDK and concrete adapter
+dependencies out of core.
 
 Milestone 4 adds a separate plugin infrastructure target:
 
