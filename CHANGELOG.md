@@ -32,6 +32,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   Linux runtime preflight before SDK client construction, optional
   `RobotStateManager` injection for Unitree adapters, and validation of
   communication type defaults without requiring physical robot hardware.
+- Milestone 4.7 Motion, Hand & Audio Adapters: added thread-safe Unitree SDK2
+  `LocoAdapter`, `HandAdapter`, and `AudioAdapter` command translation layers,
+  refactored `SdkWrapper` to delegate locomotion commands, and added
+  hardware-free adapter validation tests.
 
 ## [0.3.0-alpha] - 2026-07-04
 

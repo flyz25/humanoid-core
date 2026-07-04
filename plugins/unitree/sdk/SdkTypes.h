@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace humanoid::plugins::unitree::sdk {
 
@@ -136,6 +137,91 @@ enum class SdkMotionMode {
    * @brief Robot is faulted or emergency-stopped.
    */
   kFaulted
+};
+
+/**
+ * @brief Generic velocity command normalized before entering Unitree SDK2.
+ */
+struct SdkVelocityCommand final {
+  /**
+   * @brief Linear velocity along the robot forward X axis, in meters per second.
+   */
+  float linear_x{0.0F};
+
+  /**
+   * @brief Linear velocity along the robot lateral Y axis, in meters per second.
+   */
+  float linear_y{0.0F};
+
+  /**
+   * @brief Angular velocity around the robot vertical Z axis, in radians per second.
+   */
+  float angular_z{0.0F};
+};
+
+/**
+ * @brief Vendor-normalized hand and upper-body gesture command.
+ */
+enum class SdkHandGesture {
+  /**
+   * @brief Raise both hands.
+   */
+  kHandsUp,
+
+  /**
+   * @brief Clap hands.
+   */
+  kClap,
+
+  /**
+   * @brief High-five gesture.
+   */
+  kHighFive,
+
+  /**
+   * @brief Hug gesture.
+   */
+  kHug,
+
+  /**
+   * @brief Heart gesture.
+   */
+  kHeart,
+
+  /**
+   * @brief Reject gesture.
+   */
+  kReject,
+
+  /**
+   * @brief Wave gesture.
+   */
+  kWave,
+
+  /**
+   * @brief Shake-hand gesture.
+   */
+  kShakeHand
+};
+
+/**
+ * @brief Audio playback payload for the Unitree SDK audio stream API.
+ */
+struct SdkAudioPlayback final {
+  /**
+   * @brief Application name used by the Unitree audio service.
+   */
+  std::string app_name;
+
+  /**
+   * @brief Stream identifier used by the Unitree audio service.
+   */
+  std::string stream_id;
+
+  /**
+   * @brief PCM audio bytes passed to Unitree SDK2.
+   */
+  std::vector<std::uint8_t> pcm_data;
 };
 
 /**

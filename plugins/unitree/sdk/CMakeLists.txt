@@ -11,6 +11,9 @@ endif()
 
 add_library(
   humanoid_core_unitree_sdk_abstraction
+  AudioAdapter.cpp
+  HandAdapter.cpp
+  LocoAdapter.cpp
   SdkConverter.cpp
   SdkWrapper.cpp)
 
@@ -43,7 +46,10 @@ install(
   EXPORT humanoid_coreTargets)
 
 install(
-  FILES SdkConverter.h
+  FILES AudioAdapter.h
+        HandAdapter.h
+        LocoAdapter.h
+        SdkConverter.h
         SdkTypes.h
         SdkWrapper.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/humanoid/plugins/unitree/sdk)

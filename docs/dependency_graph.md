@@ -60,6 +60,9 @@ humanoid::unitree_loco_client
 
 humanoid::unitree_sdk_abstraction
   -> humanoid::core::RobotState
+  -> internal LocoAdapter
+  -> internal HandAdapter
+  -> internal AudioAdapter
   -> unitree_sdk2
 
 unitree_sdk2
@@ -96,5 +99,6 @@ unitree_sdk2
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - SDK-free plugin skeletons including vendor SDK headers.
 - SDK wrapper facades including vendor SDK headers directly.
+- Unitree SDK headers outside `plugins/unitree/sdk/*.cpp`.
 - Vendor SDK types in public interfaces.
 - Global singleton access as a framework dependency pattern.

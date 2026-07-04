@@ -43,10 +43,10 @@ C++ files outside the vendored SDK.
 
 ## Vendor SDK Boundary
 
-Unitree SDK2 headers and types are isolated to
-`plugins/unitree/sdk/SdkWrapper.cpp`. SDK exceptions are translated to normalized
-SDK abstraction results at that boundary and then to framework `Result` values
-by the adapter-facing facade.
+Unitree SDK2 headers and types are isolated to implementation files under
+`plugins/unitree/sdk/`. SDK exceptions are translated to normalized SDK
+abstraction results at that boundary and then to framework `Result` values by
+the adapter-facing facade.
 
 ## Known Limitations
 

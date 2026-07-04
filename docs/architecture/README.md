@@ -29,16 +29,16 @@ Application
         -> UnitreeG1Adapter
           -> LocoClientWrapper
             -> SdkWrapper
-              -> Unitree SDK2
+              -> LocoAdapter / HandAdapter / AudioAdapter
+                -> Unitree SDK2
 ```
 
 `IRobotAdapter` is the application-facing dependency. `UnitreeRobotFactory`
 creates `UnitreeG1Adapter` through the generic factory interface.
 `UnitreeG1Adapter` translates generic commands such as `Move`, `Stop`, `StandUp`,
 `BalanceStand`, and `EmergencyStop`. `LocoClientWrapper` is a compatibility
-facade over `plugins/unitree/sdk/SdkWrapper`. `SdkWrapper.cpp` is the only
-production translation unit that includes Unitree SDK2 headers and owns
-`unitree::robot::g1::LocoClient`.
+facade over `plugins/unitree/sdk/SdkWrapper`. Only implementation files under
+`plugins/unitree/sdk/` include Unitree SDK2 headers and own SDK client objects.
 
 Milestone 4.6 adds read-only SDK2 communication monitoring inside `SdkWrapper`.
 Heartbeat, timeout detection, reconnect attempts, and state synchronization use
@@ -49,6 +49,10 @@ audio, or actuator commands. When `UnitreeRobotFactory` receives an injected
 
 The Unitree adapter is optional at build time. When `UnitreeSDK2` is not found,
 the SDK-free core and adapter interface still build.
+
+Milestone 4.7 adds SDK-boundary command adapters for locomotion, hand/gesture,
+and audio commands. These adapters perform command translation only; they do not
+contain business logic, mission execution, planning, AI, or behavior sequencing.
 
 The core foundation modules do not implement ROS2, DDS participants, AI, OpenCV,
 GUI workflows, mission engines, or event controllers. Unitree SDK2 integration

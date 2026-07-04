@@ -265,16 +265,18 @@ Milestone 4.5 adds the internal Unitree SDK abstraction under
 UnitreeG1Adapter
   -> LocoClientWrapper
     -> SdkWrapper
+      -> LocoAdapter / HandAdapter / AudioAdapter
       -> Unitree SDK2
 ```
 
-`SdkWrapper.cpp` is the only production translation unit allowed to include
-Unitree SDK2 headers. It wraps SDK initialization, shutdown, discovery,
-connection, disconnection, read-only communication monitoring, state
-synchronization, and existing locomotion command methods. `SdkTypes.h` defines
-framework-owned normalized SDK boundary types, and `SdkConverter` converts
-those types into framework `Result`, adapter connection state, and
-`humanoid::core::RobotState`.
+Only implementation files under `plugins/unitree/sdk/` are allowed to include
+Unitree SDK2 headers. `SdkWrapper` wraps SDK initialization, shutdown,
+discovery, connection, disconnection, read-only communication monitoring, state
+synchronization, and command delegation. `LocoAdapter`, `HandAdapter`, and
+`AudioAdapter` translate SDK-boundary command types into SDK2 locomotion, arm
+action, and audio calls. `SdkTypes.h` defines framework-owned normalized SDK
+boundary types, and `SdkConverter` converts those types into framework
+`Result`, adapter connection state, and `humanoid::core::RobotState`.
 
 `LocoClientWrapper` remains as the existing adapter-facing facade so Milestone 2
 adapter code does not expose SDK details or change public behavior.

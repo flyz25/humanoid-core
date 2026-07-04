@@ -38,11 +38,12 @@ Application
           -> UnitreeG1Adapter
             -> LocoClientWrapper
               -> SdkWrapper
+                -> LocoAdapter / HandAdapter / AudioAdapter
                 -> Unitree SDK2
 ```
 
-Only `plugins/unitree/sdk/SdkWrapper.cpp` includes Unitree SDK2 headers.
-`src/sdk/LocoClientWrapper.cpp` is a compatibility facade over the SDK
+Only implementation files under `plugins/unitree/sdk/` include Unitree SDK2
+headers. `src/sdk/LocoClientWrapper.cpp` is a compatibility facade over the SDK
 abstraction layer and does not include vendor SDK headers.
 
 Milestone 4.6 adds read-only SDK2 communication monitoring inside the SDK
@@ -54,6 +55,13 @@ state is published as vendor-independent `humanoid::core::RobotState`.
 On Linux, SDK initialization also validates network-interface existence and
 route netlink socket access before constructing the Unitree SDK client, so
 restricted environments fail gracefully through `Result`.
+
+Milestone 4.7 adds vendor-specific SDK adapters inside the same boundary:
+`LocoAdapter`, `HandAdapter`, and `AudioAdapter`. They translate framework-owned
+motion, hand/gesture, and audio commands into SDK2 calls without adding mission
+logic, planning, AI, or behavior execution. Unitree G1 SDK2 exposes
+hand-related behavior through the arm action service; unsupported finger-level
+open, close, and grip commands are rejected explicitly instead of being faked.
 
 Milestone 3 adds a vendor-independent runtime state path:
 

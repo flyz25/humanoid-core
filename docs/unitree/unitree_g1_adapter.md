@@ -13,13 +13,13 @@ Application
       -> UnitreeG1Adapter
         -> LocoClientWrapper
           -> SdkWrapper
-            -> Unitree SDK2
+            -> LocoAdapter / HandAdapter / AudioAdapter
+              -> Unitree SDK2
 ```
 
 Applications depend on `IRobotFactory` and `IRobotAdapter`, not Unitree SDK2.
-`LocoClientWrapper` preserves the Milestone 2 adapter-facing API. The only
-component that includes Unitree SDK2 headers is
-`plugins/unitree/sdk/SdkWrapper.cpp`.
+`LocoClientWrapper` preserves the Milestone 2 adapter-facing API. Only
+implementation files under `plugins/unitree/sdk/` include Unitree SDK2 headers.
 
 ## SDK Source
 
@@ -86,6 +86,21 @@ Milestone 4.6 adds read-only communication monitoring to the SDK abstraction:
 The communication worker is intentionally read-only. It does not walk, stand,
 move hands, play audio, or command actuators. Existing command APIs remain
 separate and are not used by the heartbeat/reconnect path.
+
+## Motion, Hand, and Audio Adapters
+
+Milestone 4.7 adds SDK-boundary adapters for command translation:
+
+- `LocoAdapter` maps stand, sit, walk, velocity, stop, and emergency stop
+  requests to the Unitree G1 locomotion client.
+- `HandAdapter` maps supported hand and upper-body gestures to the Unitree G1
+  arm action client. Finger-level open, close, and grip commands are rejected
+  explicitly because they are not exposed by the SDK2 arm action client.
+- `AudioAdapter` maps PCM playback, stop, volume, and mute requests to the
+  Unitree G1 audio client.
+
+These adapters are vendor-specific and contain no mission logic, behavior
+sequencing, planning, AI, or application workflow decisions.
 
 On Linux, SDK initialization performs a preflight check for the configured
 network interface and route netlink socket access before constructing the
