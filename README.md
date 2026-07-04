@@ -68,6 +68,20 @@ The aggregate core target `humanoid::humanoid_core` does not link against
 lifecycle visibility, and `PluginFactory` for dependency-injected creator
 registration, creation, destruction, and enumeration.
 
+Milestone 4.4 adds the first concrete plugin package:
+
+```text
+Application or plugin host
+  -> PluginFactory
+    -> UnitreeG1Plugin
+      -> UnitreeG1Adapter
+        -> mock RobotState
+```
+
+The Unitree G1 plugin skeleton is SDK-free. It validates plugin packaging,
+metadata, lifecycle, adapter construction, and conservative mock state feedback.
+It does not communicate with Unitree SDK2 and does not command robot movement.
+
 ## Directory Structure
 
 ```text
@@ -86,11 +100,12 @@ humanoid-core/
   logging/                   Logging interfaces and routing manager
   motion/                    Motion interfaces and manager
   network/                   Network interfaces and endpoint metadata
-  plugins/                   Plugin interfaces, metadata, compatibility, registry, and factory
+  plugins/                   Plugin interfaces, registry, factory, and plugin packages
+  plugins/unitree/g1/        SDK-free Unitree G1 plugin skeleton
   robot/                     Robot interfaces plus manager
   safety/                    Safety interfaces and manager
   scripts/                   Build and formatting scripts
-  src/adapters/unitree/      Unitree adapter plugin
+  src/adapters/unitree/      Optional SDK-backed Unitree adapter target
   src/factory/               Robot factory registry
   src/sdk/                   Vendor SDK wrappers
   src/services/              Vendor-independent runtime services
@@ -125,6 +140,9 @@ ctest --test-dir build --output-on-failure
 
 If the SDK is unavailable, CMake disables only the Unitree adapter targets and
 continues building the vendor-independent framework.
+
+The SDK-free Unitree G1 plugin skeleton under `plugins/unitree/g1` is still
+built when `ENABLE_UNITREE=OFF`.
 
 Manual SDK override:
 

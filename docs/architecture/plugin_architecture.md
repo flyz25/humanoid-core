@@ -1,9 +1,9 @@
 # Plugin Architecture
 
-Milestone 4.3 defines the plugin infrastructure for humanoid-core. The design
-adds plugin contracts, a host registry, and a creator-based plugin factory
-without introducing vendor code, dynamic library loading, or dependencies from
-the core framework target to plugins.
+Milestone 4 defines the plugin infrastructure for humanoid-core. The design
+adds plugin contracts, a host registry, a creator-based plugin factory, and the
+first SDK-free plugin skeleton without dynamic library loading or dependencies
+from the core framework target to plugins.
 
 ## Goals
 
@@ -13,13 +13,14 @@ the core framework target to plugins.
 - Keep `humanoid::humanoid_core` independent of concrete plugins and plugin
   implementations.
 - Provide explicit lifecycle, metadata, compatibility, registration, and factory
-  contracts before adding any vendor plugin.
+  contracts before adding SDK-backed vendor plugins.
 
 ## Non-Goals
 
-Milestone 4.1 does not implement:
+Milestone 4 does not implement:
 
-- Unitree, simulator, or mock plugins.
+- SDK-backed Unitree communication plugins.
+- Simulator or mock robot plugins.
 - Dynamic shared-library loading.
 - Plugin manifest parsing.
 - ROS2, DDS integration, AI, mission execution, planning, navigation, behavior
@@ -82,7 +83,7 @@ or global registries.
 ### IPluginLoader
 
 `humanoid::plugins::IPluginLoader` defines the host-side loading abstraction for
-future platform-specific loaders. Milestone 4.3 intentionally provides only the
+future platform-specific loaders. Milestone 4.4 intentionally provides only the
 interface.
 
 Future loader responsibilities:
@@ -193,9 +194,10 @@ Discover metadata
                 -> Unload plugin
 ```
 
-Milestone 4.3 implements metadata registration, lifecycle state tracking, and a
-creator-based factory. It does not implement package discovery, binary loading,
-or unloading.
+Milestone 4.4 implements metadata registration, lifecycle state tracking, a
+creator-based factory, and an SDK-free Unitree G1 plugin skeleton. It does not
+implement package discovery, binary loading, SDK communication, physical robot
+control, or unloading.
 
 ## Registration Mechanism
 
@@ -230,6 +232,30 @@ Future plugin implementation steps:
 7. Return `humanoid::common::Status` for lifecycle failures.
 8. Ensure `Stop()` and `Shutdown()` are safe to call during host cleanup.
 
+## Unitree G1 Plugin Skeleton
+
+Milestone 4.4 adds the first concrete plugin package under
+`plugins/unitree/g1`.
+
+```text
+Plugin host
+  -> PluginFactory
+    -> UnitreeG1Plugin
+      -> UnitreeG1Adapter
+        -> mock RobotState
+```
+
+The Unitree G1 plugin skeleton provides:
+
+- `humanoid::plugins::unitree::g1::UnitreeG1Plugin`
+- `humanoid::plugins::unitree::g1::UnitreeG1Adapter`
+- `RegisterUnitreeG1Plugin(PluginFactory&)`
+- `plugins/unitree/g1/plugin_manifest.json`
+
+The skeleton is intentionally SDK-free. It returns conservative mock
+`RobotState` snapshots, reports `Connect()` as unavailable, and never commands
+robot movement. It builds whether `ENABLE_UNITREE` is `ON` or `OFF`.
+
 ## Forbidden Dependencies
 
 - Core framework modules depending on concrete plugins.
@@ -261,3 +287,13 @@ Milestone 4.3 also adds the always-built
 - Unregistration rejection while plugin instances are active.
 - Null and mismatched creator rejection.
 - Concurrent create/destroy operations.
+
+Milestone 4.4 adds the always-built
+`humanoid_core_unitree_g1_plugin_skeleton_test` CTest target. It validates:
+
+- Unitree G1 plugin metadata and manifest path.
+- Factory registration through `RegisterUnitreeG1Plugin`.
+- Plugin lifecycle transition to `Initialized`.
+- Adapter creation through the plugin instance.
+- SDK-free adapter capabilities.
+- Conservative mock robot state.

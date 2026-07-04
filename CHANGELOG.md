@@ -19,6 +19,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   factory, explicit plugin enumeration API, dependency-injected creator
   registration, lifecycle-aware instance destruction, and factory validation
   coverage.
+- Milestone 4.4 Unitree G1 Plugin Skeleton: added the SDK-free Unitree G1
+  plugin package, plugin-local adapter skeleton, manifest, factory registration
+  helper, mock state validation, and build coverage for Unitree-enabled and
+  Unitree-disabled configurations.
 
 ## [0.3.0-alpha] - 2026-07-04
 

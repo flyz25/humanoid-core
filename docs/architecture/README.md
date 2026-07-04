@@ -87,14 +87,18 @@ registration, and lifecycle state. Plugin hosts may use
 `humanoid::plugins::PluginFactory` to register creator callables, create plugin
 instances, destroy plugin instances, and enumerate registered plugin records.
 
-Milestone 4 does not implement vendor plugins, dynamic shared-library loading,
-manifest parsing, or robot communication plugins.
+Milestone 4.4 adds the SDK-free Unitree G1 plugin skeleton. It packages
+metadata, lifecycle, a plugin-local adapter skeleton, a manifest, and mock robot
+state feedback without communicating with Unitree SDK2 or commanding motion.
+Milestone 4 does not implement dynamic shared-library loading, manifest
+parsing, or physical robot communication plugins.
 
 ## Module Ownership
 
 - `common`: dependency-free lifecycle, status, and version primitives.
 - `plugins`: plugin interfaces, metadata, version compatibility, lifecycle
-  states, thread-safe registration registry, and thread-safe plugin factory.
+  states, thread-safe registration registry, thread-safe plugin factory, and
+  concrete plugin packages.
 - `utilities`: small implementation-agnostic helpers.
 - `logging`: logger and sink interfaces plus sink routing infrastructure.
 - `configuration`: read-only configuration interfaces and provider ownership.

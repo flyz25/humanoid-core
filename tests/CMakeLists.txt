@@ -45,6 +45,18 @@ humanoid_core_configure_target(humanoid_core_plugin_factory_unit_test)
 add_test(NAME humanoid_core_plugin_factory_unit_test
          COMMAND humanoid_core_plugin_factory_unit_test)
 
+add_executable(humanoid_core_unitree_g1_plugin_skeleton_test
+               unitree_g1_plugin_skeleton_test.cpp)
+
+target_link_libraries(
+  humanoid_core_unitree_g1_plugin_skeleton_test
+  PRIVATE humanoid::unitree_g1_plugin)
+
+humanoid_core_configure_target(humanoid_core_unitree_g1_plugin_skeleton_test)
+
+add_test(NAME humanoid_core_unitree_g1_plugin_skeleton_test
+         COMMAND humanoid_core_unitree_g1_plugin_skeleton_test)
+
 add_executable(humanoid_core_robot_adapter_interface_unit_test
                robot_adapter_interface_unit_test.cpp)
 

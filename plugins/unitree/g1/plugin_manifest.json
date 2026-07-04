@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "plugin_id": "com.unitree.g1",
+  "name": "Unitree G1 Plugin",
+  "vendor": "Unitree",
+  "model": "G1",
+  "description": "Unitree G1 plugin skeleton for humanoid-core without SDK communication.",
+  "version": "0.3.0-alpha",
+  "framework_api": {
+    "minimum": "0.3.0",
+    "maximum": "0.3.0"
+  },
+  "entry_point": {
+    "type": "static",
+    "target": "humanoid::unitree_g1_plugin",
+    "plugin_class": "humanoid::plugins::unitree::g1::UnitreeG1Plugin",
+    "adapter_class": "humanoid::plugins::unitree::g1::UnitreeG1Adapter"
+  },
+  "capabilities": {
+    "robot_adapter": true,
+    "mock_state_feedback": true,
+    "sdk_communication": false,
+    "robot_motion": false
+  }
+}

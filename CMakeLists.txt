@@ -69,6 +69,8 @@ target_link_libraries(
             humanoid::diagnostics
             humanoid::network)
 
+add_subdirectory(plugins/unitree)
+
 if(HUMANOID_CORE_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()

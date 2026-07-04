@@ -28,6 +28,10 @@ humanoid::humanoid_core
 humanoid::plugins
   -> humanoid::common
 
+humanoid::unitree_g1_plugin
+  -> humanoid::plugins
+  -> humanoid::humanoid_core
+
 humanoid::robot_factory
   -> humanoid::adapter_interfaces
 
@@ -65,6 +69,8 @@ unitree_sdk2
 - Factories may create concrete adapters.
 - Plugin hosts may depend on `humanoid::plugins`.
 - Plugin registry and factory infrastructure may depend on `common`.
+- Concrete plugin packages may depend on `humanoid::plugins` and public
+  framework interfaces.
 - Adapters may depend on SDK wrappers.
 - SDK wrappers may depend on vendor SDKs.
 - Managers may depend on module interfaces and `common`.
@@ -81,5 +87,6 @@ unitree_sdk2
   frameworks, mission engines, planners, navigation, or behavior trees.
 - Core framework modules depending on concrete plugins.
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
+- SDK-free plugin skeletons including vendor SDK headers.
 - Vendor SDK types in public interfaces.
 - Global singleton access as a framework dependency pattern.

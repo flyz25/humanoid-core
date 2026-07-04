@@ -5,8 +5,9 @@ humanoid-core. It contains only host contracts, metadata types, version
 compatibility rules, a thread-safe registration registry, and a thread-safe
 plugin factory.
 
-Milestone 4.3 intentionally does not implement vendor plugins or dynamic
-shared-library loading.
+Milestone 4.4 adds the SDK-free Unitree G1 plugin skeleton. It intentionally
+does not implement dynamic shared-library loading, SDK communication, or robot
+motion.
 
 ## Provided Contracts
 
@@ -24,18 +25,30 @@ shared-library loading.
   registry.
 - `humanoid::plugins::PluginFactory`: thread-safe creator registry and plugin
   instance factory.
+- `humanoid::plugins::unitree::g1::UnitreeG1Plugin`: first concrete plugin
+  skeleton package.
+- `humanoid::plugins::unitree::g1::UnitreeG1Adapter`: SDK-free adapter skeleton
+  returning conservative mock robot state.
 
 ## Dependency Rule
 
-The plugin infrastructure depends on `humanoid::common` only. The core framework
-target `humanoid::humanoid_core` does not link against `humanoid::plugins`, and
-no core module depends on plugin implementations.
+The plugin infrastructure target depends on `humanoid::common` only. Concrete
+plugin package targets are separate and may depend on plugin infrastructure plus
+public framework interfaces. The core framework target
+`humanoid::humanoid_core` does not link against `humanoid::plugins`, and no core
+module depends on plugin implementations.
 
 Applications or host executables that need plugin infrastructure should link it
 explicitly:
 
 ```cmake
 target_link_libraries(my_host PRIVATE humanoid::plugins)
+```
+
+Hosts that use the static Unitree G1 skeleton package should link it explicitly:
+
+```cmake
+target_link_libraries(my_host PRIVATE humanoid::unitree_g1_plugin)
 ```
 
 ## Lifecycle
@@ -55,9 +68,9 @@ load a plugin package or shared library, register a creator with
 `PluginFactory`, create a plugin instance, call `Initialize()`, and let the
 plugin update host-visible lifecycle state through `IPluginRegistrar`.
 
-Milestone 4.3 provides the interfaces, registry, and factory only. No
-platform-specific `dlopen`, `LoadLibrary`, manifest parser, vendor adapter
-plugin, or robot communication plugin is implemented.
+Milestone 4.4 provides the interfaces, registry, factory, and Unitree G1 plugin
+skeleton only. No platform-specific `dlopen`, `LoadLibrary`, manifest parser,
+SDK communication, or physical robot control is implemented.
 
 ## Documentation
 

@@ -10,6 +10,8 @@ humanoid-core skeleton.
 | `RobotFactoryRegistry` | Thread-safe registration, lookup, factory count, and vendor listing. |
 | `PluginRegistry` | Thread-safe plugin registration, unregistration, lifecycle updates, metadata lookup, and registry snapshots. |
 | `PluginFactory` | Thread-safe plugin creator registration, unregistration, creation, destruction, enumeration, and active-instance accounting. |
+| `UnitreeG1Plugin` | Thread-safe lifecycle state transitions through an internal mutex. |
+| `UnitreeG1Adapter` plugin skeleton | Thread-safe skeleton lifecycle and connection reads through atomics. |
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
@@ -68,6 +70,10 @@ updates use exclusive access. Enumeration is delegated to the injected
 invoked while the factory lock is held. Instance accounting includes plugin
 creation that is already in progress, so unregistration is rejected until
 in-flight creation or destruction has completed.
+
+`UnitreeG1Plugin` protects its skeleton lifecycle flags with a mutex.
+`UnitreeG1Adapter` uses atomics for initialized and connected state because the
+skeleton contains no SDK client, transport handle, or mutable robot state cache.
 
 ## Logging
 
