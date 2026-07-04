@@ -1,24 +1,23 @@
 #include <humanoid/core/CommandDispatcher.h>
 
-#include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <condition_variable>
 #include <cstdint>
-#include <deque>
 #include <exception>
+#include <future>
 #include <limits>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
-#include <thread>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/adapters/Result.h>
+#include <humanoid/core/CommandQueue.h>
 
 namespace humanoid::core {
 namespace {
@@ -26,6 +25,7 @@ namespace {
 constexpr std::string_view kLinearXKey{"linear_x"};
 constexpr std::string_view kLinearYKey{"linear_y"};
 constexpr std::string_view kAngularZKey{"angular_z"};
+constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
 
 [[nodiscard]] CommandResult Result(CommandStatus status, std::string message) {
   CommandResult result;
@@ -233,7 +233,8 @@ class CommandDispatcher::Impl final {
 public:
   explicit Impl(std::shared_ptr<adapters::IRobotAdapter> adapter)
       : adapter_(std::move(adapter)),
-        worker_([this](std::stop_token stop_token) { Run(std::move(stop_token)); }) {}
+        queue_([this](const Command& command) { return Dispatch(command); },
+               CommandQueueOptions{kDispatcherMaximumQueueSize, 1U}) {}
 
   ~Impl() noexcept {
     try {
@@ -257,7 +258,7 @@ public:
       if (!accepting_) {
         return Result(CommandStatus::Rejected, "Command dispatcher is shut down");
       }
-      if (synchronous_ids_.contains(command.id) || asynchronous_tasks_.contains(command.id)) {
+      if (synchronous_ids_.contains(command.id) || queue_.Contains(command.id)) {
         return Result(CommandStatus::Rejected, "Command identifier is already in flight");
       }
 
@@ -296,83 +297,29 @@ public:
       return ReadyFuture(*validation);
     }
 
-    auto task = std::make_shared<AsyncTask>(std::move(command));
-    std::future<CommandResult> future = task->promise.get_future();
-
-    CommandResult immediate_result;
-    bool rejected = false;
-    {
-      std::lock_guard<std::mutex> lock{state_mutex_};
-      if (!accepting_) {
-        immediate_result = Result(CommandStatus::Rejected, "Command dispatcher is shut down");
-        rejected = true;
-      } else if (synchronous_ids_.contains(task->command.id) ||
-                 asynchronous_tasks_.contains(task->command.id)) {
-        immediate_result =
-            Result(CommandStatus::Rejected, "Command identifier is already in flight");
-        rejected = true;
-      } else {
-        try {
-          asynchronous_tasks_.emplace(task->command.id, task);
-          queue_.push_back(task);
-        } catch (const std::exception& exception) {
-          asynchronous_tasks_.erase(task->command.id);
-          immediate_result = Result(CommandStatus::Failed,
-                                    std::string{"Unable to queue command: "} + exception.what());
-          rejected = true;
-        } catch (...) {
-          asynchronous_tasks_.erase(task->command.id);
-          immediate_result = Result(CommandStatus::Failed, "Unable to queue command");
-          rejected = true;
-        }
-      }
+    std::lock_guard<std::mutex> lock{state_mutex_};
+    if (!accepting_) {
+      return ReadyFuture(Result(CommandStatus::Rejected, "Command dispatcher is shut down"));
     }
-
-    if (rejected) {
-      task->promise.set_value(std::move(immediate_result));
-    } else {
-      state_condition_.notify_one();
+    if (synchronous_ids_.contains(command.id)) {
+      return ReadyFuture(
+          Result(CommandStatus::Rejected, "Command identifier is already in flight"));
     }
-
-    return future;
+    return queue_.Enqueue(std::move(command));
   }
 
   [[nodiscard]] CommandResult Cancel(CommandId command_id) {
-    if (command_id == 0U) {
-      return Result(CommandStatus::Rejected, "Command identifier must be nonzero");
-    }
-
-    std::shared_ptr<AsyncTask> cancelled_task;
     {
       std::lock_guard<std::mutex> lock{state_mutex_};
-      const auto task = asynchronous_tasks_.find(command_id);
-      if (task == asynchronous_tasks_.end()) {
-        if (synchronous_ids_.contains(command_id)) {
-          return Result(CommandStatus::Rejected,
-                        "A synchronously executing command cannot be cancelled");
-        }
-        return Result(CommandStatus::Rejected, "Command is not queued");
-      }
-      if (task->second->state == AsyncTaskState::Running) {
-        return Result(CommandStatus::Rejected, "A running adapter command cannot be cancelled");
-      }
-
-      cancelled_task = task->second;
-      asynchronous_tasks_.erase(task);
-      const auto queued = std::find(queue_.begin(), queue_.end(), cancelled_task);
-      if (queued != queue_.end()) {
-        queue_.erase(queued);
+      if (synchronous_ids_.contains(command_id)) {
+        return Result(CommandStatus::Rejected,
+                      "A synchronously executing command cannot be cancelled");
       }
     }
-
-    CommandResult result = Result(CommandStatus::Cancelled, "Command cancelled before execution");
-    cancelled_task->promise.set_value(result);
-    state_condition_.notify_all();
-    return result;
+    return queue_.Cancel(command_id);
   }
 
   [[nodiscard]] CommandResult Shutdown() {
-    std::deque<std::shared_ptr<AsyncTask>> cancelled_tasks;
     {
       std::unique_lock<std::mutex> lock{state_mutex_};
       if (shutdown_complete_) {
@@ -382,51 +329,27 @@ public:
         state_condition_.wait(lock, [this]() { return shutdown_complete_; });
         return Result(CommandStatus::Completed, "Command dispatcher is shut down");
       }
-
       shutdown_in_progress_ = true;
       accepting_ = false;
-      cancelled_tasks.swap(queue_);
-      for (const std::shared_ptr<AsyncTask>& task : cancelled_tasks) {
-        asynchronous_tasks_.erase(task->command.id);
-      }
     }
 
-    for (const std::shared_ptr<AsyncTask>& task : cancelled_tasks) {
-      try {
-        task->promise.set_value(
-            Result(CommandStatus::Cancelled, "Command cancelled during dispatcher shutdown"));
-      } catch (...) {
-      }
-    }
-
-    worker_.request_stop();
-    state_condition_.notify_all();
-    if (worker_.joinable()) {
-      worker_.join();
-    }
+    CommandResult queue_result = queue_.Shutdown();
 
     {
       std::unique_lock<std::mutex> lock{state_mutex_};
-      state_condition_.wait(
-          lock, [this]() { return synchronous_ids_.empty() && asynchronous_tasks_.empty(); });
+      state_condition_.wait(lock, [this]() { return synchronous_ids_.empty(); });
       shutdown_complete_ = true;
       shutdown_in_progress_ = false;
     }
     state_condition_.notify_all();
+
+    if (!queue_result.isSuccess()) {
+      return queue_result;
+    }
     return Result(CommandStatus::Completed, "Command dispatcher shut down");
   }
 
 private:
-  enum class AsyncTaskState : std::uint8_t { Queued, Running };
-
-  struct AsyncTask final {
-    explicit AsyncTask(Command command_value) : command(std::move(command_value)) {}
-
-    Command command;
-    std::promise<CommandResult> promise;
-    AsyncTaskState state{AsyncTaskState::Queued};
-  };
-
   class SynchronousRegistration final {
   public:
     SynchronousRegistration(Impl& owner, CommandId command_id) noexcept
@@ -450,62 +373,6 @@ private:
       synchronous_ids_.erase(command_id);
     }
     state_condition_.notify_all();
-  }
-
-  void Run(std::stop_token stop_token) noexcept {
-    while (true) {
-      std::shared_ptr<AsyncTask> task;
-      {
-        std::unique_lock<std::mutex> lock{state_mutex_};
-        state_condition_.wait(lock, [this, &stop_token]() {
-          return stop_token.stop_requested() || !queue_.empty() || !accepting_;
-        });
-
-        if (queue_.empty()) {
-          if (stop_token.stop_requested() || !accepting_) {
-            return;
-          }
-          continue;
-        }
-
-        const auto highest_priority =
-            std::max_element(queue_.begin(), queue_.end(), [](const auto& left, const auto& right) {
-              return static_cast<std::uint8_t>(left->command.priority) <
-                     static_cast<std::uint8_t>(right->command.priority);
-            });
-        task = *highest_priority;
-        queue_.erase(highest_priority);
-        task->state = AsyncTaskState::Running;
-      }
-
-      CommandResult result;
-      try {
-        result = Dispatch(task->command);
-      } catch (const std::exception& exception) {
-        result.status = CommandStatus::Failed;
-        try {
-          result.message = std::string{"Command dispatch failed: "} + exception.what();
-        } catch (...) {
-        }
-      } catch (...) {
-        result.status = CommandStatus::Failed;
-        try {
-          result.message = "Command dispatch failed with an unknown error";
-        } catch (...) {
-        }
-      }
-
-      {
-        std::lock_guard<std::mutex> lock{state_mutex_};
-        asynchronous_tasks_.erase(task->command.id);
-      }
-      state_condition_.notify_all();
-
-      try {
-        task->promise.set_value(std::move(result));
-      } catch (...) {
-      }
-    }
   }
 
   [[nodiscard]] CommandResult Dispatch(const Command& command) {
@@ -560,13 +427,11 @@ private:
   std::mutex adapter_mutex_;
   std::mutex state_mutex_;
   std::condition_variable state_condition_;
-  std::deque<std::shared_ptr<AsyncTask>> queue_;
-  std::unordered_map<CommandId, std::shared_ptr<AsyncTask>> asynchronous_tasks_;
   std::unordered_set<CommandId> synchronous_ids_;
   bool accepting_{true};
   bool shutdown_in_progress_{false};
   bool shutdown_complete_{false};
-  std::jthread worker_;
+  CommandQueue queue_;
 };
 
 CommandDispatcher::CommandDispatcher(std::shared_ptr<adapters::IRobotAdapter> adapter)

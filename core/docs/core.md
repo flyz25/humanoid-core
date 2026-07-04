@@ -22,6 +22,12 @@ serializes adapter access, provides synchronous and priority-aware asynchronous
 execution, cancels queued commands, and shuts down without owning the adapter
 lifecycle. Unsupported commands are rejected explicitly.
 
+`humanoid::core::CommandQueue` owns bounded asynchronous scheduling. It uses
+one or more `std::jthread` consumers, priority/FIFO dequeue ordering, condition
+variable waiting, timeout enforcement, queued cancellation, and queue
+statistics. `CommandDispatcher` composes this queue for its asynchronous path;
+the queue itself has no adapter dependency.
+
 The command model is documented in `docs/api/command_model.md`.
 
 ## Robot State Model

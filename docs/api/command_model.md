@@ -10,6 +10,7 @@ execution, dispatch, or adapter behavior.
 #include <humanoid/core/Command.h>
 #include <humanoid/core/CommandDispatcher.h>
 #include <humanoid/core/CommandPriority.h>
+#include <humanoid/core/CommandQueue.h>
 #include <humanoid/core/CommandResult.h>
 #include <humanoid/core/CommandStatus.h>
 #include <humanoid/core/CommandType.h>
@@ -82,6 +83,52 @@ The model contains no Unitree SDK headers, vendor implementations, robot
 communication, or execution logic. Future adapters may consume validated
 commands, but vendor types must remain behind their SDK boundary.
 
+## Command Queue
+
+`CommandQueue` is a bounded asynchronous execution service. It receives a
+framework-owned executor callback and contains no adapter, SDK, mission, or
+business logic.
+
+```cpp
+humanoid::core::CommandQueue queue{
+    [](const humanoid::core::Command& command) {
+      return ExecuteValidatedCommand(command);
+    },
+    humanoid::core::CommandQueueOptions{
+        .maximumQueueSize = 1024,
+        .workerCount = 2,
+    }};
+
+std::future<humanoid::core::CommandResult> result =
+    queue.Enqueue(std::move(command));
+```
+
+The queue provides:
+
+- Descending command-priority selection.
+- FIFO dequeue order among commands with equal priority.
+- Configurable maximum waiting-command count.
+- Configurable `std::jthread` consumer count.
+- Condition-variable worker sleep with no busy waiting.
+- Duplicate command-ID rejection across queued and active work.
+- Queued-command cancellation and idempotent shutdown.
+- Timeout checks before acceptance, before execution, and after execution.
+- Consistent current and cumulative statistics snapshots.
+
+`maximumQueueSize` limits commands waiting for workers; active commands are
+reported separately and are bounded by `workerCount`. With multiple workers,
+dequeue order remains deterministic, but completion order depends on executor
+duration.
+
+`CommandQueueStatistics` reports current queued and active counts, configured
+capacity and worker count, queue high-water mark, and cumulative accepted,
+completed, cancelled, failed, timed-out, and rejected counts.
+
+`Cancel()` only interrupts work that remains queued. Active executor callbacks
+must return normally. `Shutdown()` rejects new submissions, cancels queued
+commands, and joins workers after active callbacks finish. Calling `Shutdown()`
+from an executor callback is rejected because a worker cannot join itself.
+
 ## Command Dispatcher
 
 `CommandDispatcher` receives a dependency-injected
@@ -113,6 +160,11 @@ The dispatcher exposes:
 `Shutdown()` controls dispatcher resources only. Adapter lifecycle remains
 owned by the application composition root, so dispatcher shutdown does not call
 `IRobotAdapter::Shutdown()`.
+
+The asynchronous dispatcher path delegates queue ownership, scheduling,
+timeout, cancellation, and worker lifecycle to `CommandQueue`. The dispatcher
+retains command-specific validation, adapter translation, and serialized adapter
+access.
 
 ### Adapter Mapping
 

@@ -17,6 +17,7 @@
 #include <humanoid/core/Command.h>
 #include <humanoid/core/CommandDispatcher.h>
 #include <humanoid/core/CommandPriority.h>
+#include <humanoid/core/CommandQueue.h>
 #include <humanoid/core/CommandResult.h>
 #include <humanoid/core/CommandStatus.h>
 #include <humanoid/core/CommandType.h>

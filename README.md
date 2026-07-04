@@ -82,15 +82,17 @@ Milestone 5 adds the generic command path:
 Command producer
   -> CommandDispatcher
     -> Command / CommandType / CommandPriority
+    -> CommandQueue
       -> IRobotAdapter
   <- CommandResult / CommandStatus
 ```
 
 Commands carry producer-assigned IDs, monotonic timestamps, `std::chrono`
 timeouts, typed framework payload values, and non-operational metadata. The
-model and dispatcher are vendor independent. The dispatcher provides
-synchronous and priority-aware asynchronous forwarding, queued cancellation,
-and controlled shutdown while keeping SDK and concrete adapter dependencies out
+model, queue, and dispatcher are vendor independent. `CommandQueue` provides
+bounded priority/FIFO scheduling, configurable consumers, timeout, cancellation,
+statistics, and controlled shutdown. The dispatcher composes the queue for
+asynchronous forwarding while keeping SDK and concrete adapter dependencies out
 of core.
 
 Milestone 4 adds a separate plugin infrastructure target:
@@ -307,6 +309,10 @@ The always-built `humanoid_core_command_dispatcher_unit_test` validates command
 forwarding, payload rejection, timeout and exception translation, asynchronous
 priority, cancellation, duplicate IDs, and concurrent shutdown without robot
 hardware.
+
+The always-built `humanoid_core_command_queue_unit_test` validates bounded
+capacity, priority/FIFO ordering, timeout, cancellation, statistics, and stress
+execution with concurrent producers and consumers.
 
 API-level documentation:
 

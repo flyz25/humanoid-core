@@ -56,6 +56,7 @@ Robot state flow
 Command flow
   -> humanoid::core::CommandDispatcher
   -> humanoid::core::Command
+  -> humanoid::core::CommandQueue
   -> injected humanoid::adapters::IRobotAdapter
   -> concrete adapter
   -> SDK wrapper

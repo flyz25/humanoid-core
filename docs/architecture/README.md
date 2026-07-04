@@ -115,16 +115,18 @@ Milestone 5 adds a vendor-independent command path:
 Application or future command producer
   -> CommandDispatcher
     -> Command / CommandType / CommandPriority
+    -> CommandQueue
       -> IRobotAdapter
   <- CommandResult / CommandStatus
 ```
 
 Command IDs are assigned by the producer, timestamps use a monotonic clock, and
 timeouts use `std::chrono`. Payload values and metadata contain framework-owned
-standard-library types only. `CommandDispatcher` validates commands, serializes
-adapter access, and supports synchronous and priority-aware asynchronous
-forwarding. It depends only on `IRobotAdapter`; it has no SDK headers, concrete
-adapter dependencies, mission logic, or global state. See
+standard-library types only. `CommandQueue` owns bounded asynchronous priority
+scheduling, worker threads, timeout, cancellation, and statistics.
+`CommandDispatcher` composes the queue, validates commands, serializes adapter
+access, and forwards through `IRobotAdapter`. Neither component has SDK headers,
+concrete adapter dependencies, mission logic, or global state. See
 `docs/api/command_model.md` for the complete public contract.
 
 ## Plugin Infrastructure

@@ -18,6 +18,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   priority-aware queueing, queued-command cancellation, timeout and adapter
   failure translation, serialized adapter access, controlled shutdown, and
   hardware-free dispatcher tests.
+- Milestone 5.3 Command Queue: added a bounded asynchronous command queue with
+  priority/FIFO scheduling, configurable `std::jthread` consumers,
+  condition-variable waiting, timeout enforcement, cancellation, duplicate-ID
+  rejection, queue statistics, dispatcher integration, and concurrent
+  producer/consumer stress coverage.
 
 ## [0.4.0-alpha] - 2026-07-04
 
