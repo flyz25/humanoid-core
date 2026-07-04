@@ -64,7 +64,7 @@ unitree_sdk2
 - Factory registry may depend on factory interfaces.
 - Factories may create concrete adapters.
 - Plugin hosts may depend on `humanoid::plugins`.
-- Plugin infrastructure may depend on `common`.
+- Plugin registry and factory infrastructure may depend on `common`.
 - Adapters may depend on SDK wrappers.
 - SDK wrappers may depend on vendor SDKs.
 - Managers may depend on module interfaces and `common`.

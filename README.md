@@ -55,7 +55,7 @@ Robot adapter or state producer
 The state and telemetry path remains SDK-free. `RobotStateManager` is injected
 through `CoreContext`, and `TelemetryService` receives that manager explicitly.
 
-Milestone 4.1 adds a separate plugin infrastructure target:
+Milestone 4 adds a separate plugin infrastructure target:
 
 ```text
 Application or plugin host
@@ -64,7 +64,9 @@ Application or plugin host
 ```
 
 The aggregate core target `humanoid::humanoid_core` does not link against
-`humanoid::plugins`.
+`humanoid::plugins`. Plugin hosts can use `PluginRegistry` for metadata and
+lifecycle visibility, and `PluginFactory` for dependency-injected creator
+registration, creation, destruction, and enumeration.
 
 ## Directory Structure
 
@@ -84,7 +86,7 @@ humanoid-core/
   logging/                   Logging interfaces and routing manager
   motion/                    Motion interfaces and manager
   network/                   Network interfaces and endpoint metadata
-  plugins/                   Plugin interfaces, metadata, compatibility, and registry
+  plugins/                   Plugin interfaces, metadata, compatibility, registry, and factory
   robot/                     Robot interfaces plus manager
   safety/                    Safety interfaces and manager
   scripts/                   Build and formatting scripts

@@ -1,9 +1,9 @@
 # Plugin Architecture
 
-Milestone 4.1 defines the plugin infrastructure for humanoid-core. The design
-adds plugin contracts and a host registry without introducing vendor code,
-runtime behavior changes, dynamic library loading, or dependencies from the core
-framework target to plugins.
+Milestone 4.3 defines the plugin infrastructure for humanoid-core. The design
+adds plugin contracts, a host registry, and a creator-based plugin factory
+without introducing vendor code, dynamic library loading, or dependencies from
+the core framework target to plugins.
 
 ## Goals
 
@@ -12,7 +12,7 @@ framework target to plugins.
 - Keep applications dependent on framework interfaces, not vendor SDKs.
 - Keep `humanoid::humanoid_core` independent of concrete plugins and plugin
   implementations.
-- Provide explicit lifecycle, metadata, compatibility, and registration
+- Provide explicit lifecycle, metadata, compatibility, registration, and factory
   contracts before adding any vendor plugin.
 
 ## Non-Goals
@@ -82,7 +82,7 @@ or global registries.
 ### IPluginLoader
 
 `humanoid::plugins::IPluginLoader` defines the host-side loading abstraction for
-future platform-specific loaders. Milestone 4.1 intentionally provides only the
+future platform-specific loaders. Milestone 4.3 intentionally provides only the
 interface.
 
 Future loader responsibilities:
@@ -94,6 +94,44 @@ Future loader responsibilities:
 - Create the plugin instance.
 - Drive `Initialize()`, `Start()`, `Stop()`, and `Shutdown()`.
 - Unload only after plugin shutdown has completed.
+
+### PluginRegistry
+
+`humanoid::plugins::PluginRegistry` implements `IPluginRegistrar` and stores
+metadata plus host-visible lifecycle state. It owns no plugin implementation
+objects and performs no dynamic loading.
+
+Registry functions:
+
+- `RegisterPlugin(PluginMetadata)`
+- `UnregisterPlugin(std::string_view)`
+- `SetLifecycleState(std::string_view, PluginLifecycleState)`
+- `Contains(std::string_view)`
+- `Metadata(std::string_view)`
+- `LifecycleState(std::string_view)`
+- `EnumeratePlugins()`
+- `PluginCount()`
+
+### PluginFactory
+
+`humanoid::plugins::PluginFactory` stores plugin creator functions and delegates
+metadata and lifecycle visibility to an injected `PluginRegistry`. It is
+thread-safe, owns no global state, and is intended to be constructed by an
+application or future plugin host composition root.
+
+Factory functions:
+
+- `RegisterPlugin(PluginMetadata, PluginCreator)`
+- `UnregisterPlugin(std::string_view)`
+- `CreatePlugin(std::string_view)`
+- `DestroyPlugin(std::unique_ptr<IPlugin>&)`
+- `EnumeratePlugins()`
+- `RegisteredPluginCount()`
+
+`CreatePlugin()` returns a `PluginCreationResult`, which contains a
+`humanoid::common::Status` and an optional `std::unique_ptr<IPlugin>`. Plugin
+creation failures are reported through `Status`; creator exceptions are caught
+and translated to an internal error status.
 
 ## Metadata
 
@@ -122,7 +160,7 @@ minimumFrameworkVersion <= humanoid-core API version <= maximumFrameworkVersion
 The registry rejects incompatible plugins before registration. This makes
 version failures deterministic and visible before plugin runtime startup.
 
-Milestone 4.1 compatibility targets humanoid-core `0.3.0-alpha` through the
+Milestone 4.x compatibility targets humanoid-core `0.3.0-alpha` through the
 numeric API version `0.3.0`.
 
 ## Lifecycle
@@ -155,8 +193,9 @@ Discover metadata
                 -> Unload plugin
 ```
 
-Milestone 4.1 implements metadata registration and lifecycle state tracking. It
-does not implement package discovery, binary loading, or unloading.
+Milestone 4.3 implements metadata registration, lifecycle state tracking, and a
+creator-based factory. It does not implement package discovery, binary loading,
+or unloading.
 
 ## Registration Mechanism
 
@@ -171,8 +210,10 @@ Registry guarantees:
 - No ownership of plugin implementation objects.
 - No dynamic loader behavior.
 
-The registry stores metadata and lifecycle state only. Plugin instances remain
-owned by the host or future loader.
+The registry stores metadata and lifecycle state only. `PluginFactory` stores
+creator callables and returns plugin instances to the host as
+`std::unique_ptr<IPlugin>`. Plugin instances remain owned by the host or future
+loader and must be returned to `DestroyPlugin()` for lifecycle-aware shutdown.
 
 ## Adding Future Plugins
 
@@ -182,9 +223,12 @@ Future plugin implementation steps:
 2. Provide complete `PluginMetadata`.
 3. Declare a compatible framework API version range.
 4. Keep vendor SDK headers inside the plugin implementation or SDK wrapper.
-5. Register through `IPluginRegistrar` during `Initialize()`.
-6. Return `humanoid::common::Status` for lifecycle failures.
-7. Ensure `Stop()` and `Shutdown()` are safe to call during host cleanup.
+5. Register a creator with `PluginFactory` from the plugin host composition
+   root.
+6. Register or update lifecycle state through `IPluginRegistrar` during
+   `Initialize()`.
+7. Return `humanoid::common::Status` for lifecycle failures.
+8. Ensure `Stop()` and `Shutdown()` are safe to call during host cleanup.
 
 ## Forbidden Dependencies
 
@@ -197,7 +241,7 @@ Future plugin implementation steps:
 
 ## Validation
 
-Milestone 4.1 adds the always-built
+Milestone 4.3 keeps the always-built
 `humanoid_core_plugin_registry_unit_test` CTest target. It validates:
 
 - Plugin metadata validation.
@@ -207,3 +251,13 @@ Milestone 4.1 adds the always-built
 - Registration through `IPluginRegistrar`.
 - Concurrent registry registration.
 - Lifecycle state string conversion.
+
+Milestone 4.3 also adds the always-built
+`humanoid_core_plugin_factory_unit_test` CTest target. It validates:
+
+- Creator registration and duplicate rejection.
+- Plugin creation and lifecycle transition to `Loaded`.
+- Lifecycle-aware destruction and transition to `Shutdown`.
+- Unregistration rejection while plugin instances are active.
+- Null and mismatched creator rejection.
+- Concurrent create/destroy operations.

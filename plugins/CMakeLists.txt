@@ -1,5 +1,6 @@
 add_library(
   humanoid_core_plugins
+  src/PluginFactory.cpp
   src/PluginLifecycleState.cpp
   src/PluginMetadata.cpp
   src/PluginRegistry.cpp)

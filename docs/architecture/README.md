@@ -70,7 +70,7 @@ mission orchestration.
 
 ## Plugin Infrastructure
 
-Milestone 4.1 adds plugin infrastructure as a separate exported module:
+Milestone 4 adds plugin infrastructure as a separate exported module:
 
 ```text
 Application or plugin host
@@ -83,16 +83,18 @@ The aggregate core target `humanoid::humanoid_core` does not link against
 plugin hosts may use `humanoid::plugins::IPlugin`,
 `humanoid::plugins::IPluginRegistrar`, `humanoid::plugins::IPluginLoader`, and
 `humanoid::plugins::PluginRegistry` to manage metadata, version compatibility,
-registration, and lifecycle state.
+registration, and lifecycle state. Plugin hosts may use
+`humanoid::plugins::PluginFactory` to register creator callables, create plugin
+instances, destroy plugin instances, and enumerate registered plugin records.
 
-Milestone 4.1 does not implement vendor plugins, dynamic shared-library loading,
+Milestone 4 does not implement vendor plugins, dynamic shared-library loading,
 manifest parsing, or robot communication plugins.
 
 ## Module Ownership
 
 - `common`: dependency-free lifecycle, status, and version primitives.
 - `plugins`: plugin interfaces, metadata, version compatibility, lifecycle
-  states, and thread-safe registration registry.
+  states, thread-safe registration registry, and thread-safe plugin factory.
 - `utilities`: small implementation-agnostic helpers.
 - `logging`: logger and sink interfaces plus sink routing infrastructure.
 - `configuration`: read-only configuration interfaces and provider ownership.

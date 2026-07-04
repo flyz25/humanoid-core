@@ -115,6 +115,10 @@ PluginRegistry::LifecycleState(std::string_view plugin_id) const {
 }
 
 std::vector<PluginRecord> PluginRegistry::Plugins() const {
+  return EnumeratePlugins();
+}
+
+std::vector<PluginRecord> PluginRegistry::EnumeratePlugins() const {
   std::shared_lock<std::shared_mutex> lock{mutex_};
   std::vector<PluginRecord> records;
   records.reserve(plugins_.size());

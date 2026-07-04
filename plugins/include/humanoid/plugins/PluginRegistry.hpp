@@ -121,6 +121,13 @@ public:
   [[nodiscard]] std::vector<PluginRecord> Plugins() const;
 
   /**
+   * @brief Enumerates all registered plugin records.
+   *
+   * @return Snapshot of all registered plugin records.
+   */
+  [[nodiscard]] std::vector<PluginRecord> EnumeratePlugins() const;
+
+  /**
    * @brief Returns the number of registered plugins.
    *
    * @return Registered plugin count.

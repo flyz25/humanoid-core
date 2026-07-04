@@ -9,6 +9,7 @@ humanoid-core skeleton.
 | --- | --- |
 | `RobotFactoryRegistry` | Thread-safe registration, lookup, factory count, and vendor listing. |
 | `PluginRegistry` | Thread-safe plugin registration, unregistration, lifecycle updates, metadata lookup, and registry snapshots. |
+| `PluginFactory` | Thread-safe plugin creator registration, unregistration, creation, destruction, enumeration, and active-instance accounting. |
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
@@ -59,6 +60,14 @@ preserve their own thread-safety guarantees.
 Registration, unregistration, and lifecycle updates use exclusive access.
 Metadata lookup, lifecycle lookup, registry snapshots, and count reads use
 shared access. The registry does not own plugin implementation objects.
+
+`PluginFactory` protects creator storage and active-instance accounting with
+`std::shared_mutex`. Creator registration, unregistration, and instance-count
+updates use exclusive access. Enumeration is delegated to the injected
+`PluginRegistry`. Plugin creator callbacks and plugin `Shutdown()` calls are not
+invoked while the factory lock is held. Instance accounting includes plugin
+creation that is already in progress, so unregistration is rejected until
+in-flight creation or destruction has completed.
 
 ## Logging
 

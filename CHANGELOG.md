@@ -15,6 +15,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 4.2 RobotAdapter Interface: added the vendor-independent core robot
   adapter contract, robot information and capability metadata, and interface
   validation coverage.
+- Milestone 4.3 Plugin Registry & Factory: added the thread-safe plugin
+  factory, explicit plugin enumeration API, dependency-injected creator
+  registration, lifecycle-aware instance destruction, and factory validation
+  coverage.
 
 ## [0.3.0-alpha] - 2026-07-04
 

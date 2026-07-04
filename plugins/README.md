@@ -2,9 +2,10 @@
 
 The plugins module defines the vendor-independent plugin infrastructure for
 humanoid-core. It contains only host contracts, metadata types, version
-compatibility rules, and a thread-safe registration registry.
+compatibility rules, a thread-safe registration registry, and a thread-safe
+plugin factory.
 
-Milestone 4.1 intentionally does not implement vendor plugins or dynamic
+Milestone 4.3 intentionally does not implement vendor plugins or dynamic
 shared-library loading.
 
 ## Provided Contracts
@@ -21,6 +22,8 @@ shared-library loading.
   version range accepted by a plugin.
 - `humanoid::plugins::PluginRegistry`: thread-safe metadata and lifecycle
   registry.
+- `humanoid::plugins::PluginFactory`: thread-safe creator registry and plugin
+  instance factory.
 
 ## Dependency Rule
 
@@ -48,12 +51,13 @@ Failure is represented by `PluginLifecycleState::kFailed`.
 ## Loading Architecture
 
 Future loaders will discover plugin metadata, validate version compatibility,
-load a plugin package or shared library, create a plugin instance, call
-`Initialize()`, and let the plugin register itself through `IPluginRegistrar`.
+load a plugin package or shared library, register a creator with
+`PluginFactory`, create a plugin instance, call `Initialize()`, and let the
+plugin update host-visible lifecycle state through `IPluginRegistrar`.
 
-Milestone 4.1 provides the interfaces and registry only. No platform-specific
-`dlopen`, `LoadLibrary`, manifest parser, vendor adapter plugin, or robot
-communication plugin is implemented.
+Milestone 4.3 provides the interfaces, registry, and factory only. No
+platform-specific `dlopen`, `LoadLibrary`, manifest parser, vendor adapter
+plugin, or robot communication plugin is implemented.
 
 ## Documentation
 
