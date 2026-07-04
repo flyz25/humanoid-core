@@ -15,10 +15,10 @@ humanoid-core skeleton.
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
-| `SdkWrapper` | Thread-safe public methods through internal serialization of Unitree SDK2 access. |
-| `LocoClientWrapper` | Thread-safe public methods through internal serialization of SDK access. |
+| `SdkWrapper` | Thread-safe public methods through internal serialization of Unitree SDK2 access. The read-only heartbeat worker shares the same mutex and invokes state callbacks outside the SDK lock. |
+| `LocoClientWrapper` | Thread-safe public methods through internal serialization of SDK access. State-manager callback installation delegates to `SdkWrapper`. |
 | `UnitreeG1Adapter` | Thread-safe public methods through adapter-level serialization. |
-| `UnitreeRobotFactory` | Stateless; safe to share between threads. |
+| `UnitreeRobotFactory` | Immutable after construction; safe to share between threads. |
 | Managers in `robot`, `motion`, `gesture`, `safety`, `diagnostics`, and `configuration` | Not internally synchronized; require external synchronization if mutated or queried concurrently. |
 | Value types and enums | Safe to copy and read concurrently after construction. |
 
@@ -86,10 +86,11 @@ for their own thread-safety.
 ## SDK Wrapper and Adapter
 
 `SdkWrapper` serializes Unitree SDK2 calls and is the only production component
-that owns Unitree SDK client types. `LocoClientWrapper` is a compatibility
-facade over `SdkWrapper`. `UnitreeG1Adapter` serializes adapter state changes
-and wrapper access. This prevents concurrent command interleaving inside one
-adapter instance.
+that owns Unitree SDK client types. Its communication worker uses a condition
+variable and SDK timeout settings rather than busy waiting. `LocoClientWrapper`
+is a compatibility facade over `SdkWrapper`. `UnitreeG1Adapter` serializes
+adapter state changes and wrapper access. This prevents concurrent command
+interleaving inside one adapter instance.
 
 The Unitree SDK may own process-level transport state internally. Applications
 should avoid creating multiple active Unitree SDK wrapper instances for the same

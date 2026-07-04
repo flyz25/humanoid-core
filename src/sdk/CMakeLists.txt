@@ -12,7 +12,8 @@ if(HUMANOID_CORE_UNITREE_ENABLED AND TARGET humanoid::unitree_sdk_abstraction)
   target_link_libraries(
     humanoid_core_unitree_loco_client
     INTERFACE humanoid::adapter_interfaces
-    PRIVATE humanoid::unitree_sdk_abstraction)
+    PRIVATE humanoid::core
+            humanoid::unitree_sdk_abstraction)
 
   set_target_properties(
     humanoid_core_unitree_loco_client

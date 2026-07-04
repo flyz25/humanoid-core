@@ -5,7 +5,10 @@
  * @brief Defines the only Unitree SDK2 wrapper boundary.
  */
 
+#include <functional>
 #include <memory>
+
+#include <humanoid/core/RobotState.hpp>
 
 #include "SdkTypes.h"
 
@@ -21,12 +24,17 @@ namespace humanoid::plugins::unitree::sdk {
 class SdkWrapper final {
 public:
   /**
+   * @brief Callback invoked after read-only SDK state synchronization.
+   */
+  using StateUpdateCallback = std::function<void(const humanoid::core::RobotState&)>;
+
+  /**
    * @brief Constructs an uninitialized SDK wrapper.
    */
   SdkWrapper();
 
   /**
-   * @brief Stops motion and releases wrapper-owned SDK state.
+   * @brief Stops communication monitoring and releases wrapper-owned SDK state.
    */
   ~SdkWrapper() noexcept;
 
@@ -58,11 +66,36 @@ public:
   [[nodiscard]] SdkResult Connect();
 
   /**
-   * @brief Stops active motion and marks robot communication disconnected.
+   * @brief Stops read-only communication monitoring and marks robot communication disconnected.
    *
    * @return Operation result.
    */
   [[nodiscard]] SdkResult Disconnect();
+
+  /**
+   * @brief Starts read-only heartbeat and state synchronization.
+   *
+   * The worker uses read-only SDK queries only. It does not command motion,
+   * posture, hands, audio, or any robot actuator behavior.
+   *
+   * @param options Communication timing options.
+   * @return Operation result.
+   */
+  [[nodiscard]] SdkResult StartCommunication(const SdkCommunicationOptions& options = {});
+
+  /**
+   * @brief Stops the read-only communication worker.
+   *
+   * @return Operation result.
+   */
+  [[nodiscard]] SdkResult StopCommunication();
+
+  /**
+   * @brief Performs one read-only heartbeat/state synchronization cycle.
+   *
+   * @return Operation result.
+   */
+  [[nodiscard]] SdkResult SynchronizeState();
 
   /**
    * @brief Sends a velocity command.
@@ -117,6 +150,20 @@ public:
   [[nodiscard]] SdkRobotState ReadRobotState() const;
 
   /**
+   * @brief Installs a callback invoked when SDK state is synchronized.
+   *
+   * @param callback State update callback; an empty callback disables notifications.
+   */
+  void SetStateUpdateCallback(StateUpdateCallback callback);
+
+  /**
+   * @brief Returns a snapshot of the read-only communication worker status.
+   *
+   * @return Communication worker status.
+   */
+  [[nodiscard]] SdkCommunicationStatus CommunicationStatus() const;
+
+  /**
    * @brief Reports whether SDK transport and client are initialized.
    *
    * @return True when initialized.
@@ -130,8 +177,16 @@ public:
    */
   [[nodiscard]] bool IsConnected() const noexcept;
 
+  /**
+   * @brief Reports whether the read-only communication worker is running.
+   *
+   * @return True when the worker is active.
+   */
+  [[nodiscard]] bool IsCommunicationRunning() const noexcept;
+
 private:
   class Impl;
+  void RunCommunicationLoop() noexcept;
   std::unique_ptr<Impl> impl_;
 };
 

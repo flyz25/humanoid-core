@@ -7,6 +7,10 @@
 
 #include <humanoid/adapters/IRobotFactory.h>
 
+namespace humanoid::core {
+class RobotStateManager;
+} // namespace humanoid::core
+
 namespace humanoid::adapters::unitree {
 
 /**
@@ -14,6 +18,18 @@ namespace humanoid::adapters::unitree {
  */
 class UnitreeRobotFactory final : public IRobotFactory {
 public:
+  /**
+   * @brief Constructs a factory without state-manager injection.
+   */
+  UnitreeRobotFactory() noexcept = default;
+
+  /**
+   * @brief Constructs a factory that injects a shared robot state manager into adapters.
+   *
+   * @param state_manager Optional state manager updated by read-only SDK communication.
+   */
+  explicit UnitreeRobotFactory(std::shared_ptr<core::RobotStateManager> state_manager) noexcept;
+
   /**
    * @brief Returns the Unitree vendor name.
    *
@@ -46,6 +62,9 @@ public:
    */
   [[nodiscard]] std::unique_ptr<IRobotAdapter>
   CreateAdapter(const RobotConfig& config, std::shared_ptr<logging::ILogger> logger) const override;
+
+private:
+  std::shared_ptr<core::RobotStateManager> state_manager_;
 };
 
 } // namespace humanoid::adapters::unitree

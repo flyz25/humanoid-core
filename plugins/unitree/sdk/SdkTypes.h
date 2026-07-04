@@ -234,6 +234,71 @@ struct SdkDiscoveryResult final {
 };
 
 /**
+ * @brief Runtime options for read-only SDK communication monitoring.
+ */
+struct SdkCommunicationOptions final {
+  /**
+   * @brief Period between read-only heartbeat/state synchronization attempts.
+   */
+  std::chrono::milliseconds heartbeat_interval{500};
+
+  /**
+   * @brief Minimum delay between automatic reconnection attempts.
+   */
+  std::chrono::milliseconds reconnect_interval{1000};
+
+  /**
+   * @brief Maximum age of the last successful heartbeat before the link is marked disconnected.
+   */
+  std::chrono::milliseconds connection_timeout{1500};
+};
+
+/**
+ * @brief Snapshot of the SDK communication worker status.
+ */
+struct SdkCommunicationStatus final {
+  /**
+   * @brief True when the communication worker thread is active.
+   */
+  bool running{false};
+
+  /**
+   * @brief True when SDK transport and the locomotion client have been initialized.
+   */
+  bool initialized{false};
+
+  /**
+   * @brief True when the latest read-only heartbeat verified robot communication.
+   */
+  bool connected{false};
+
+  /**
+   * @brief Latest normalized connection state.
+   */
+  SdkConnectionState connection_state{SdkConnectionState::kUninitialized};
+
+  /**
+   * @brief Number of heartbeat synchronization attempts performed by the worker.
+   */
+  std::uint64_t heartbeat_count{0};
+
+  /**
+   * @brief Number of automatic reconnect attempts performed after heartbeat loss.
+   */
+  std::uint64_t reconnect_attempt_count{0};
+
+  /**
+   * @brief Monotonic time of the last successful heartbeat.
+   */
+  std::chrono::steady_clock::time_point last_successful_heartbeat{};
+
+  /**
+   * @brief Monotonic time of the last reconnect attempt.
+   */
+  std::chrono::steady_clock::time_point last_reconnect_attempt{};
+};
+
+/**
  * @brief Normalized robot state sample captured at the SDK abstraction boundary.
  */
 struct SdkRobotState final {
@@ -311,6 +376,11 @@ struct SdkRobotState final {
    * @brief Vendor-normalized fault code; zero means no reported fault.
    */
   std::int32_t fault_code{0};
+
+  /**
+   * @brief Last read-only Unitree FSM identifier observed by the communication heartbeat.
+   */
+  std::int32_t fsm_id{-1};
 
   /**
    * @brief Monotonic timestamp for this state sample.

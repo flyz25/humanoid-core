@@ -270,7 +270,8 @@ UnitreeG1Adapter
 
 `SdkWrapper.cpp` is the only production translation unit allowed to include
 Unitree SDK2 headers. It wraps SDK initialization, shutdown, discovery,
-connection, disconnection, and locomotion commands. `SdkTypes.h` defines
+connection, disconnection, read-only communication monitoring, state
+synchronization, and existing locomotion command methods. `SdkTypes.h` defines
 framework-owned normalized SDK boundary types, and `SdkConverter` converts
 those types into framework `Result`, adapter connection state, and
 `humanoid::core::RobotState`.
@@ -323,3 +324,9 @@ Milestone 4.4 adds the always-built
 Milestone 4.5 adds `humanoid_core_unitree_sdk_converter_test` when Unitree SDK2
 is enabled. It validates normalized SDK result, connection state, string, and
 robot state conversions without connecting to physical hardware.
+
+Milestone 4.6 extends the same SDK abstraction with read-only communication
+contracts. The test now also validates conservative communication type defaults
+without requiring physical hardware. Physical online and reconnect validation
+must be performed on a Unitree G1 EDU network because the worker intentionally
+uses the official SDK transport.

@@ -51,12 +51,15 @@ humanoid::unitree_adapter
   -> humanoid::adapter_interfaces
   -> humanoid::logging
   -> humanoid::unitree_loco_client
+  -> injected humanoid::core::RobotStateManager
 
 humanoid::unitree_loco_client
   -> humanoid::adapter_interfaces
+  -> humanoid::core
   -> humanoid::unitree_sdk_abstraction
 
 humanoid::unitree_sdk_abstraction
+  -> humanoid::core::RobotState
   -> unitree_sdk2
 
 unitree_sdk2

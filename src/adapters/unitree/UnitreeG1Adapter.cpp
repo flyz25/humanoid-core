@@ -8,8 +8,8 @@
 #include <string>
 #include <utility>
 
-#include <humanoid/logging/Logger.hpp>
 #include <humanoid/logging/LogMessage.hpp>
+#include <humanoid/logging/Logger.hpp>
 
 #include <sdk/LocoClientWrapper.h>
 
@@ -112,9 +112,22 @@ UnitreeG1Adapter::UnitreeG1Adapter(RobotConfig config, std::shared_ptr<logging::
     : config_(std::move(config)), logger_(std::move(logger)) {}
 
 UnitreeG1Adapter::UnitreeG1Adapter(RobotConfig config,
+                                   std::shared_ptr<core::RobotStateManager> state_manager,
+                                   std::shared_ptr<logging::ILogger> logger)
+    : config_(std::move(config)), state_manager_(std::move(state_manager)),
+      logger_(std::move(logger)) {}
+
+UnitreeG1Adapter::UnitreeG1Adapter(RobotConfig config,
                                    std::unique_ptr<sdk::LocoClientWrapper> client,
                                    std::shared_ptr<logging::ILogger> logger)
     : config_(std::move(config)), client_(std::move(client)), logger_(std::move(logger)) {}
+
+UnitreeG1Adapter::UnitreeG1Adapter(RobotConfig config,
+                                   std::unique_ptr<sdk::LocoClientWrapper> client,
+                                   std::shared_ptr<core::RobotStateManager> state_manager,
+                                   std::shared_ptr<logging::ILogger> logger)
+    : config_(std::move(config)), client_(std::move(client)),
+      state_manager_(std::move(state_manager)), logger_(std::move(logger)) {}
 
 UnitreeG1Adapter::~UnitreeG1Adapter() noexcept {
   try {
@@ -144,13 +157,16 @@ Result UnitreeG1Adapter::Initialize() {
       Log(logging::LogLevel::kError, "Initialize", result.message);
       return result;
     } catch (...) {
-      Result result =
-          Failure(ErrorCode::kSDKUnavailable,
-                  "Unitree SDK wrapper construction failed with an unknown exception");
+      Result result = Failure(ErrorCode::kSDKUnavailable,
+                              "Unitree SDK wrapper construction failed with an unknown exception");
       MarkFailureIfNeeded(result);
       Log(logging::LogLevel::kError, "Initialize", result.message);
       return result;
     }
+  }
+
+  if (state_manager_) {
+    client_->SetRobotStateManager(state_manager_);
   }
 
   Result result = client_->Initialize(config_);
@@ -178,6 +194,15 @@ Result UnitreeG1Adapter::Connect() {
   }
 
   Result result = client_->Connect();
+  Result communication_result = client_->StartCommunication();
+  if (!communication_result.Succeeded()) {
+    Log(logging::LogLevel::kError, "Connect", communication_result.message);
+  }
+
+  if (result.Succeeded() && !communication_result.Succeeded()) {
+    result = communication_result;
+  }
+
   if (result.Succeeded()) {
     initialized_ = true;
     connected_ = true;
@@ -277,8 +302,7 @@ Result UnitreeG1Adapter::Move(float vx, float vy, float omega) {
   Log(logging::LogLevel::kInfo, "Move", "command received");
 
   if (!IsValidVelocity(vx, vy, omega)) {
-    Result result =
-        Failure(ErrorCode::kUnknown, "velocity command is invalid or out of range");
+    Result result = Failure(ErrorCode::kUnknown, "velocity command is invalid or out of range");
     Log(logging::LogLevel::kError, "Move", result.message);
     return result;
   }

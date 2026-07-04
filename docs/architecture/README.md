@@ -40,6 +40,13 @@ facade over `plugins/unitree/sdk/SdkWrapper`. `SdkWrapper.cpp` is the only
 production translation unit that includes Unitree SDK2 headers and owns
 `unitree::robot::g1::LocoClient`.
 
+Milestone 4.6 adds read-only SDK2 communication monitoring inside `SdkWrapper`.
+Heartbeat, timeout detection, reconnect attempts, and state synchronization use
+the SDK locomotion service query path and do not issue movement, posture, hand,
+audio, or actuator commands. When `UnitreeRobotFactory` receives an injected
+`RobotStateManager`, synchronized state is converted into
+`humanoid::core::RobotState` before it leaves the SDK boundary.
+
 The Unitree adapter is optional at build time. When `UnitreeSDK2` is not found,
 the SDK-free core and adapter interface still build.
 

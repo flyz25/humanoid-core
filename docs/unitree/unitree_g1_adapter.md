@@ -69,3 +69,35 @@ robot:
 `SdkWrapper` initializes Unitree SDK2 communication through a network interface.
 The `ip` value is retained as robot connection metadata and validated by the
 adapter.
+
+## Read-Only SDK2 Communication
+
+Milestone 4.6 adds read-only communication monitoring to the SDK abstraction:
+
+- `Connect()` verifies the locomotion service with a read-only FSM query.
+- `StartCommunication()` starts a heartbeat worker after `Connect()` is called.
+- `SynchronizeState()` refreshes the cached normalized SDK state.
+- Automatic reconnect attempts run after heartbeat failures.
+- Connection timeout is derived from `RobotConfig::timeout` through the
+  adapter-facing `LocoClientWrapper`.
+- `Disconnect()` and `Shutdown()` stop the heartbeat worker without issuing
+  `StopMove()` or any other motion command.
+
+The communication worker is intentionally read-only. It does not walk, stand,
+move hands, play audio, or command actuators. Existing command APIs remain
+separate and are not used by the heartbeat/reconnect path.
+
+On Linux, SDK initialization performs a preflight check for the configured
+network interface and route netlink socket access before constructing the
+Unitree SDK client. If the process is running in a restricted WSL2, container,
+or sandbox environment, initialization returns a framework `Result` failure
+rather than entering the vendor SDK runtime.
+
+## Robot State Synchronization
+
+`UnitreeRobotFactory` may be constructed with a shared
+`humanoid::core::RobotStateManager`. When provided, the factory injects the
+manager into created `UnitreeG1Adapter` instances. The adapter passes it to
+`LocoClientWrapper`, which installs a callback on `SdkWrapper`. Each successful
+or failed synchronization publishes a converted, vendor-independent
+`humanoid::core::RobotState` snapshot.

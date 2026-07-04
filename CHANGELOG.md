@@ -27,6 +27,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   boundary under `plugins/unitree/sdk`, normalized SDK result/state conversion,
   SDK converter tests, and refactored the legacy locomotion wrapper so Unitree
   SDK2 headers are included only by the SDK abstraction implementation.
+- Milestone 4.6 SDK2 Communication: added read-only SDK2 heartbeat monitoring,
+  timeout handling, automatic reconnect attempts, cached state synchronization,
+  Linux runtime preflight before SDK client construction, optional
+  `RobotStateManager` injection for Unitree adapters, and validation of
+  communication type defaults without requiring physical robot hardware.
 
 ## [0.3.0-alpha] - 2026-07-04
 

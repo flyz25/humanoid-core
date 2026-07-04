@@ -11,6 +11,7 @@ add_executable(humanoid_core_basic_robot_connection basic_robot_connection/main.
 target_link_libraries(
   humanoid_core_basic_robot_connection
   PRIVATE humanoid::adapter_interfaces
+          humanoid::core
           humanoid::robot_factory
           humanoid::logging)
 

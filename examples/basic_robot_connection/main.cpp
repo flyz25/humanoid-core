@@ -1,4 +1,5 @@
 #include <humanoid/adapters/IRobotAdapter.h>
+#include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/logging/LoggerManager.hpp>
 
 #include <factory/RobotFactoryRegistry.h>
@@ -179,13 +180,13 @@ void RequireSuccess(const humanoid::adapters::Result& result, const std::string&
 }
 
 /**
- * @brief Reports whether physical robot commands should be executed.
+ * @brief Reports whether read-only physical robot communication should be executed.
  *
  * @param argc Argument count.
  * @param argv Argument vector.
  * @return True when --execute is present.
  */
-bool ShouldExecuteRobotCommands(int argc, char* argv[]) {
+bool ShouldOpenPhysicalCommunication(int argc, char* argv[]) {
   for (int index = 1; index < argc; ++index) {
     if (std::string{argv[index]} == "--execute") {
       return true;
@@ -219,13 +220,15 @@ int main(int argc, char* argv[]) {
   try {
     const humanoid::adapters::RobotConfig config = LoadRobotConfig(ConfigPath(argc, argv));
     auto logger = std::make_shared<humanoid::logging::LoggerManager>();
+    auto state_manager = std::make_shared<humanoid::core::RobotStateManager>();
 
     humanoid::factory::RobotFactoryRegistry registry;
 
 #if HUMANOID_CORE_HAS_UNITREE
-    RequireSuccess(registry.RegisterFactory(
-                       std::make_shared<humanoid::adapters::unitree::UnitreeRobotFactory>()),
-                   "RegisterFactory");
+    RequireSuccess(
+        registry.RegisterFactory(
+            std::make_shared<humanoid::adapters::unitree::UnitreeRobotFactory>(state_manager)),
+        "RegisterFactory");
 #endif
 
     std::unique_ptr<humanoid::adapters::IRobotAdapter> adapter =
@@ -236,20 +239,30 @@ int main(int argc, char* argv[]) {
       return EXIT_SUCCESS;
     }
 
-    if (!ShouldExecuteRobotCommands(argc, argv)) {
+    if (!ShouldOpenPhysicalCommunication(argc, argv)) {
       std::cout << "Robot adapter created for " << config.vendor << ' ' << config.model
-                << ". Pass --execute to command physical hardware." << '\n';
+                << ". Pass --execute to open read-only physical communication." << '\n';
       return EXIT_SUCCESS;
     }
 
-    RequireSuccess(adapter->Initialize(), "Initialize");
-    RequireSuccess(adapter->Connect(), "Connect");
-    RequireSuccess(adapter->StandUp(), "StandUp");
-    RequireSuccess(adapter->BalanceStand(), "BalanceStand");
+    const humanoid::adapters::Result initialize_result = adapter->Initialize();
+    if (!initialize_result.Succeeded()) {
+      std::cout << "Read-only robot communication unavailable: " << initialize_result.message
+                << '\n';
+      return EXIT_SUCCESS;
+    }
+
+    const humanoid::adapters::Result connect_result = adapter->Connect();
+    if (!connect_result.Succeeded()) {
+      static_cast<void>(adapter->Shutdown());
+      std::cout << "Read-only robot communication unavailable: " << connect_result.message << '\n';
+      return EXIT_SUCCESS;
+    }
+
     RequireSuccess(adapter->Disconnect(), "Disconnect");
     RequireSuccess(adapter->Shutdown(), "Shutdown");
 
-    std::cout << "Robot connection workflow completed" << '\n';
+    std::cout << "Read-only robot communication workflow completed" << '\n';
     return EXIT_SUCCESS;
   } catch (const std::exception& exception) {
     std::cerr << exception.what() << '\n';

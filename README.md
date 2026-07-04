@@ -45,6 +45,16 @@ Only `plugins/unitree/sdk/SdkWrapper.cpp` includes Unitree SDK2 headers.
 `src/sdk/LocoClientWrapper.cpp` is a compatibility facade over the SDK
 abstraction layer and does not include vendor SDK headers.
 
+Milestone 4.6 adds read-only SDK2 communication monitoring inside the SDK
+abstraction. Heartbeats, connection timeout handling, automatic reconnect, and
+state synchronization use read-only SDK queries. The monitoring path does not
+issue walking, standing, hand, audio, or other actuator commands. A
+`RobotStateManager` can be injected through `UnitreeRobotFactory` so synchronized
+state is published as vendor-independent `humanoid::core::RobotState`.
+On Linux, SDK initialization also validates network-interface existence and
+route netlink socket access before constructing the Unitree SDK client, so
+restricted environments fail gracefully through `Result`.
+
 Milestone 3 adds a vendor-independent runtime state path:
 
 ```text
@@ -170,16 +180,17 @@ Factory-based robot connection example:
 
 By default, the connection example validates configuration, registers available
 factories, creates the adapter through the registry, and exits without
-commanding physical hardware. To execute the physical robot workflow:
+opening physical robot communication. To execute the read-only physical
+communication workflow:
 
 ```bash
 ./build/examples/humanoid_core_basic_robot_connection config/robot.yaml --execute
 ```
 
-The hardware workflow is:
+The read-only hardware workflow is:
 
 ```text
-Initialize -> Connect -> StandUp -> BalanceStand -> Disconnect -> Shutdown
+Initialize -> Connect -> Disconnect -> Shutdown
 ```
 
 ## Configuration

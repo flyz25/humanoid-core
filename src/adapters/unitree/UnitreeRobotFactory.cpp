@@ -9,6 +9,10 @@
 
 namespace humanoid::adapters::unitree {
 
+UnitreeRobotFactory::UnitreeRobotFactory(
+    std::shared_ptr<core::RobotStateManager> state_manager) noexcept
+    : state_manager_(std::move(state_manager)) {}
+
 std::string_view UnitreeRobotFactory::Vendor() const noexcept { return "Unitree"; }
 
 std::vector<std::string> UnitreeRobotFactory::SupportedModels() const { return {"G1"}; }
@@ -24,7 +28,7 @@ UnitreeRobotFactory::CreateAdapter(const RobotConfig& config,
     return nullptr;
   }
 
-  return std::make_unique<UnitreeG1Adapter>(config, std::move(logger));
+  return std::make_unique<UnitreeG1Adapter>(config, state_manager_, std::move(logger));
 }
 
 } // namespace humanoid::adapters::unitree

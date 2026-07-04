@@ -1,6 +1,7 @@
 #include <SdkConverter.h>
 #include <SdkTypes.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <string_view>
@@ -98,14 +99,37 @@ namespace unitree_sdk = humanoid::plugins::unitree::sdk;
   return true;
 }
 
+[[nodiscard]] bool TestCommunicationTypeDefaults() {
+  constexpr std::string_view kTestName{"Unitree SDK communication defaults"};
+
+  const unitree_sdk::SdkCommunicationOptions options;
+  if (options.heartbeat_interval <= std::chrono::milliseconds{0} ||
+      options.reconnect_interval <= std::chrono::milliseconds{0} ||
+      options.connection_timeout <= std::chrono::milliseconds{0}) {
+    return Fail(kTestName, "communication timing defaults are not positive");
+  }
+
+  const unitree_sdk::SdkCommunicationStatus status;
+  if (status.running || status.initialized || status.connected ||
+      status.connection_state != unitree_sdk::SdkConnectionState::kUninitialized ||
+      status.heartbeat_count != 0U || status.reconnect_attempt_count != 0U) {
+    return Fail(kTestName, "communication status defaults are not conservative");
+  }
+
+  const unitree_sdk::SdkRobotState state;
+  if (state.fsm_id != -1) {
+    return Fail(kTestName, "robot state FSM id default is not unknown");
+  }
+
+  return true;
+}
+
 } // namespace
 
 int main() {
   const std::vector<bool (*)()> tests{
-      TestResultConversion,
-      TestConnectionStateConversion,
-      TestRobotStateConversion,
-      TestStringConversion,
+      TestResultConversion, TestConnectionStateConversion, TestRobotStateConversion,
+      TestStringConversion, TestCommunicationTypeDefaults,
   };
 
   for (const auto test : tests) {

@@ -9,6 +9,10 @@
 
 #include <humanoid/adapters/IRobotAdapter.h>
 
+namespace humanoid::core {
+class RobotStateManager;
+} // namespace humanoid::core
+
 namespace humanoid::sdk {
 
 /**
@@ -26,7 +30,7 @@ public:
   LocoClientWrapper();
 
   /**
-   * @brief Stops active motion and releases wrapper-owned state.
+   * @brief Stops communication monitoring and releases wrapper-owned state.
    */
   ~LocoClientWrapper();
 
@@ -51,11 +55,39 @@ public:
   adapters::Result Connect();
 
   /**
-   * @brief Stops active motion and marks communication disconnected.
+   * @brief Stops read-only communication monitoring and marks communication disconnected.
    *
    * @return Command result.
    */
   adapters::Result Disconnect();
+
+  /**
+   * @brief Starts read-only heartbeat and state synchronization.
+   *
+   * @return Command result.
+   */
+  adapters::Result StartCommunication();
+
+  /**
+   * @brief Stops read-only heartbeat and state synchronization.
+   *
+   * @return Command result.
+   */
+  adapters::Result StopCommunication();
+
+  /**
+   * @brief Performs one read-only state synchronization cycle.
+   *
+   * @return Command result.
+   */
+  adapters::Result SynchronizeState();
+
+  /**
+   * @brief Injects the state manager updated by read-only SDK synchronization.
+   *
+   * @param state_manager Shared state manager; null disables state updates.
+   */
+  void SetRobotStateManager(std::shared_ptr<core::RobotStateManager> state_manager);
 
   /**
    * @brief Sends a velocity command.
@@ -96,7 +128,7 @@ public:
   adapters::Result EmergencyStop();
 
   /**
-   * @brief Stops active motion and releases wrapper state.
+   * @brief Stops communication monitoring and releases wrapper state.
    *
    * @return Command result.
    */
