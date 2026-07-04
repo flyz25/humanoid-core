@@ -107,6 +107,25 @@ This layer remains SDK-free and vendor independent. It does not perform robot
 communication, command execution, planning, navigation, AI, behavior trees, or
 mission orchestration.
 
+## Generic Command Model
+
+Milestone 5.1 adds a vendor-independent command value model without adding a
+command execution service:
+
+```text
+Application or future command producer
+  -> Command
+    -> CommandType / CommandPriority
+    -> CommandPayload / CommandMetadata
+  <- CommandResult / CommandStatus
+```
+
+Command IDs are assigned by the producer, timestamps use a monotonic clock, and
+timeouts use `std::chrono`. Payload values and metadata contain framework-owned
+standard-library types only. The model has no SDK headers, vendor enums,
+communication behavior, scheduler, or global ID generator. See
+`docs/api/command_model.md` for the public API contract.
+
 ## Plugin Infrastructure
 
 Milestone 4 adds plugin infrastructure as a separate exported module:
@@ -148,8 +167,8 @@ parsing, or physical robot communication plugins.
 - `safety`: safety state and safety controller abstractions.
 - `diagnostics`: diagnostic records and diagnostic controller abstractions.
 - `network`: transport metadata and network manager abstraction.
-- `core`: package metadata, application-facing interface context, and generic
-  robot state model.
+- `core`: package metadata, application-facing interface context, generic robot
+  state model, and generic command value model.
 - `include/humanoid/adapters`: public robot adapter and factory contracts.
 - `src/adapters`: adapter plugin implementations that depend on public adapter
   contracts and keep vendor SDK headers out of application-facing interfaces.

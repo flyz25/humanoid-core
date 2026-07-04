@@ -9,6 +9,15 @@ application logic.
 Applications should depend on core interfaces and managers. Robot-specific
 implementation details must stay behind adapter boundaries.
 
+## Generic Command Model
+
+`humanoid::core::Command` describes command identity, creation time, type,
+priority, timeout, operational payload, and metadata using framework-owned C++
+types. `CommandStatus` and `CommandResult` describe processing outcomes without
+introducing a scheduler, executor, or vendor dependency.
+
+The command model is documented in `docs/api/command_model.md`.
+
 ## Robot State Model
 
 `humanoid::core::RobotState` is the canonical generic state snapshot for future

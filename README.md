@@ -76,6 +76,19 @@ Robot adapter or state producer
 The state and telemetry path remains SDK-free. `RobotStateManager` is injected
 through `CoreContext`, and `TelemetryService` receives that manager explicitly.
 
+Milestone 5.1 adds the generic command value model:
+
+```text
+Command producer
+  -> Command / CommandType / CommandPriority
+  <- CommandResult / CommandStatus
+```
+
+Commands carry producer-assigned IDs, monotonic timestamps, `std::chrono`
+timeouts, typed framework payload values, and non-operational metadata. The
+model is vendor independent and does not add scheduling, execution, robot
+communication, or global state.
+
 Milestone 4 adds a separate plugin infrastructure target:
 
 ```text
@@ -119,7 +132,7 @@ humanoid-core/
   common/                    Shared status, lifecycle, and version primitives
   config/                    Robot configuration examples
   configuration/             Configuration interfaces and manager
-  core/                      Core context, runtime metadata, and state model
+  core/                      Core context, metadata, state, and command models
   diagnostics/               Diagnostic interfaces and manager
   docs/                      Architecture and engineering documentation
   examples/                  Buildable examples
@@ -282,8 +295,13 @@ state updates, reset behavior, concurrent manager access, telemetry subscriber
 callbacks, unsubscribe behavior, invalid telemetry startup, and a bounded
 state-manager performance sanity check.
 
+The always-built `humanoid_core_command_model_unit_test` validates command
+defaults, identity and timeout rules, typed payload values, metadata, lifecycle
+results, and stable enum names without requiring robot hardware.
+
 API-level documentation:
 
+- `docs/api/command_model.md`
 - `docs/api/robot_state_and_telemetry.md`
 - `docs/api/plugin_integration.md`
 - `docs/services/telemetry_service.md`

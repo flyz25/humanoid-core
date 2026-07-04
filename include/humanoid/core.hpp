@@ -14,6 +14,11 @@
 #include <humanoid/configuration/ConfigManager.hpp>
 #include <humanoid/configuration/ConfigValue.hpp>
 #include <humanoid/configuration/Configuration.hpp>
+#include <humanoid/core/Command.h>
+#include <humanoid/core/CommandPriority.h>
+#include <humanoid/core/CommandResult.h>
+#include <humanoid/core/CommandStatus.h>
+#include <humanoid/core/CommandType.h>
 #include <humanoid/core/CoreContext.hpp>
 #include <humanoid/core/RobotAdapter.h>
 #include <humanoid/core/RobotState.hpp>

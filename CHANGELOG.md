@@ -7,7 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
-No unreleased changes.
+### Added
+
+- Milestone 5.1 Generic Command Model: added vendor-independent command type,
+  priority, lifecycle status, result, payload, metadata, monotonic timestamp,
+  timeout, and command identity value types with API documentation and
+  hardware-free validation coverage.
 
 ## [0.4.0-alpha] - 2026-07-04
 

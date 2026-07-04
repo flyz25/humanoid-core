@@ -23,6 +23,14 @@ humanoid_core_configure_target(humanoid_core_robot_state_unit_test)
 
 add_test(NAME humanoid_core_robot_state_unit_test COMMAND humanoid_core_robot_state_unit_test)
 
+add_executable(humanoid_core_command_model_unit_test command_model_unit_test.cpp)
+
+target_link_libraries(humanoid_core_command_model_unit_test PRIVATE humanoid::core)
+
+humanoid_core_configure_target(humanoid_core_command_model_unit_test)
+
+add_test(NAME humanoid_core_command_model_unit_test COMMAND humanoid_core_command_model_unit_test)
+
 add_executable(humanoid_core_plugin_registry_unit_test plugin_registry_unit_test.cpp)
 
 target_link_libraries(
