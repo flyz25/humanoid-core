@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+No unreleased changes.
+
+## [0.4.0-alpha] - 2026-07-04
+
 ### Added
 
 - Milestone 4.1 Plugin Infrastructure: added plugin interfaces, lifecycle
@@ -40,6 +44,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   for plugin loading, full framework composition, robot connection, telemetry,
   capability queries, and Unitree SDK-boundary command-adapter validation, plus
   the Milestone 4.8 integration report.
+- Milestone 4.9 Validation & Release: completed full Milestone 4 validation,
+  refreshed release documentation, and added the Milestone 4 completion report.
 
 ## [0.3.0-alpha] - 2026-07-04
 
@@ -84,6 +90,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.3.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.4.0-alpha...HEAD
+[0.4.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.3.0-alpha...v0.4.0-alpha
 [0.3.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.1.0-alpha...v0.3.0-alpha
 [0.1.0-alpha]: https://github.com/humanoid-core/humanoid-core/releases/tag/v0.1.0-alpha

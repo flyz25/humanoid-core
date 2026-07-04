@@ -161,8 +161,8 @@ minimumFrameworkVersion <= humanoid-core API version <= maximumFrameworkVersion
 The registry rejects incompatible plugins before registration. This makes
 version failures deterministic and visible before plugin runtime startup.
 
-Milestone 4.x compatibility targets humanoid-core `0.3.0-alpha` through the
-numeric API version `0.3.0`.
+Milestone 4.x compatibility targets humanoid-core `0.4.0-alpha` through the
+numeric API version `0.4.0`.
 
 ## Lifecycle
 

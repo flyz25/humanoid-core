@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.3.0-alpha`
+Current release: `0.4.0-alpha`
 
 ## Architecture
 
@@ -285,6 +285,7 @@ state-manager performance sanity check.
 API-level documentation:
 
 - `docs/api/robot_state_and_telemetry.md`
+- `docs/api/plugin_integration.md`
 - `docs/services/telemetry_service.md`
 
 ## Install and Export
@@ -368,7 +369,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.3.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.4.0-alpha`.
 
 Release tags use:
 
@@ -390,6 +391,7 @@ Production hardening documentation:
 
 - `docs/Production_Hardening_Report.md`
 - `docs/Repository_Governance_Report.md`
+- `docs/Milestone_4_Report.md`
 - `docs/integration/Milestone_4_8_Integration_Report.md`
 - `docs/architecture/plugin_architecture.md`
 - `docs/thread_safety.md`

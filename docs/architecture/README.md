@@ -76,6 +76,9 @@ libraries do not link concrete plugins, plugin infrastructure does not link
 vendor SDKs, and SDK-boundary examples are built only when the Unitree SDK
 abstraction target exists.
 
+See `docs/api/plugin_integration.md` for the public plugin integration API
+summary and example target list.
+
 The core foundation modules do not implement ROS2, DDS participants, AI, OpenCV,
 GUI workflows, mission engines, or event controllers. Unitree SDK2 integration
 is isolated in the optional adapter and SDK wrapper targets.

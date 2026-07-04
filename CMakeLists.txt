@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(
   humanoid-core
-  VERSION 0.3.0
+  VERSION 0.4.0
   DESCRIPTION "Clean architecture C++20 framework foundation for humanoid robotics"
   LANGUAGES CXX)
 

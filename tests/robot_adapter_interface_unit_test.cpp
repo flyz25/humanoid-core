@@ -24,9 +24,8 @@ public:
 
   [[nodiscard]] humanoid::common::Status Connect() override {
     if (!initialized_) {
-      return humanoid::common::Status::error(
-          humanoid::common::StatusCode::kFailedPrecondition,
-          "adapter is not initialized");
+      return humanoid::common::Status::error(humanoid::common::StatusCode::kFailedPrecondition,
+                                             "adapter is not initialized");
     }
 
     connected_ = true;
@@ -136,15 +135,13 @@ private:
     return Fail(kTestName, "robot information values were not preserved");
   }
 
-  if (!information.adapterApiVersion.toString().starts_with("0.3.0")) {
+  if (information.adapterApiVersion.toString() != humanoid::common::apiVersion().toString()) {
     return Fail(kTestName, "adapter API version did not match framework version");
   }
 
   const humanoid::core::RobotCapabilities capabilities = adapter.GetCapabilities();
-  if (!capabilities.supportsLifecycle ||
-      !capabilities.supportsConnectionManagement ||
-      !capabilities.supportsStateFeedback ||
-      !capabilities.supportsRobotInformation ||
+  if (!capabilities.supportsLifecycle || !capabilities.supportsConnectionManagement ||
+      !capabilities.supportsStateFeedback || !capabilities.supportsRobotInformation ||
       !capabilities.supportsPeriodicUpdate) {
     return Fail(kTestName, "expected capabilities were not declared");
   }
