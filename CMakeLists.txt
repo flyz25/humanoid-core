@@ -3,16 +3,20 @@ cmake_minimum_required(VERSION 3.22)
 project(
   humanoid-core
   VERSION 0.1.0
-  DESCRIPTION "Clean architecture C++17 framework foundation for humanoid robotics"
+  DESCRIPTION "Clean architecture C++20 framework foundation for humanoid robotics"
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(HUMANOID_CORE_VERSION_PRERELEASE "alpha")
+set(HUMANOID_CORE_SEMANTIC_VERSION "${PROJECT_VERSION}-${HUMANOID_CORE_VERSION_PRERELEASE}")
+
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(HUMANOID_CORE_BUILD_EXAMPLES "Build humanoid-core examples" ON)
 option(HUMANOID_CORE_BUILD_TESTS "Build humanoid-core tests when GoogleTest is available" ON)
+option(ENABLE_UNITREE "Enable Unitree SDK2 adapter targets when Unitree SDK2 is available" ON)
 option(HUMANOID_CORE_REQUIRE_GTEST "Fail configuration if GoogleTest is unavailable" OFF)
 option(HUMANOID_CORE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
@@ -35,6 +39,7 @@ add_subdirectory(safety)
 add_subdirectory(diagnostics)
 add_subdirectory(network)
 add_subdirectory(core)
+add_subdirectory(src)
 add_subdirectory(apps)
 
 add_library(humanoid_core INTERFACE)
@@ -51,6 +56,9 @@ target_link_libraries(
   INTERFACE humanoid::core
             humanoid::common
             humanoid::utilities
+            humanoid::adapter_interfaces
+            humanoid::robot_factory
+            humanoid::telemetry_service
             humanoid::logging
             humanoid::configuration
             humanoid::robot
@@ -71,6 +79,7 @@ endif()
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY docs/ DESTINATION ${CMAKE_INSTALL_DOCDIR})
 install(TARGETS humanoid_core humanoid_core_options EXPORT humanoid_coreTargets)
+install(FILES cmake/FindUnitreeSDK2.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/humanoid_core)
 
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/humanoid_coreConfigVersion.cmake"

@@ -10,6 +10,6 @@ if ! command -v clang-format >/dev/null 2>&1; then
 fi
 
 find "${repo_root}" \
-  \( -path "${repo_root}/build" -o -path "${repo_root}/.git" \) -prune \
-  -o \( -name '*.hpp' -o -name '*.cpp' \) -print0 \
+  \( -path "${repo_root}/build" -o -path "${repo_root}/build-*" -o -path "${repo_root}/cmake-build-*" -o -path "${repo_root}/third_party/unitree_sdk2" -o -path "${repo_root}/.git" \) -prune \
+  -o \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print0 \
   | xargs -0 -r clang-format -i

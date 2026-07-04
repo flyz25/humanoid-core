@@ -1,0 +1,25 @@
+set(HUMANOID_CORE_UNITREE_ENABLED OFF)
+set(HUMANOID_CORE_CONFIG_REQUIRES_UNITREE_SDK2 OFF PARENT_SCOPE)
+
+if(ENABLE_UNITREE)
+  find_package(UnitreeSDK2 QUIET MODULE)
+
+  if(TARGET unitree_sdk2)
+    set(HUMANOID_CORE_UNITREE_ENABLED ON)
+    set(HUMANOID_CORE_CONFIG_REQUIRES_UNITREE_SDK2 ON PARENT_SCOPE)
+    message(STATUS "Unitree SDK2 found at ${UnitreeSDK2_ROOT}; building Unitree adapter targets")
+  else()
+    message(STATUS "Unitree SDK2 not found; Unitree adapter targets are disabled")
+  endif()
+else()
+  message(STATUS "ENABLE_UNITREE=OFF; Unitree adapter targets are disabled")
+endif()
+
+add_subdirectory(adapters)
+add_subdirectory(sdk)
+add_subdirectory(factory)
+add_subdirectory(services)
+
+if(HUMANOID_CORE_UNITREE_ENABLED)
+  add_subdirectory(adapters/unitree)
+endif()

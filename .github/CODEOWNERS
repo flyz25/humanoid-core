@@ -1,0 +1,31 @@
+# Repository-wide ownership.
+* @humanoid-core/maintainers
+
+# Public API and architecture boundaries require senior review.
+/include/ @humanoid-core/api-reviewers
+/common/include/ @humanoid-core/api-reviewers
+/core/include/ @humanoid-core/api-reviewers
+/robot/include/ @humanoid-core/api-reviewers
+/motion/include/ @humanoid-core/api-reviewers
+/gesture/include/ @humanoid-core/api-reviewers
+/safety/include/ @humanoid-core/api-reviewers
+/diagnostics/include/ @humanoid-core/api-reviewers
+/network/include/ @humanoid-core/api-reviewers
+
+# Build, packaging, and CI ownership.
+/.github/ @humanoid-core/maintainers
+/cmake/ @humanoid-core/build-reviewers
+/CMakeLists.txt @humanoid-core/build-reviewers
+/**/CMakeLists.txt @humanoid-core/build-reviewers
+
+# Vendor integration ownership.
+/src/adapters/ @humanoid-core/vendor-adapter-reviewers
+/src/sdk/ @humanoid-core/vendor-adapter-reviewers
+/third_party/ @humanoid-core/vendor-adapter-reviewers
+
+# Documentation and governance ownership.
+/docs/ @humanoid-core/maintainers
+/README.md @humanoid-core/maintainers
+/CONTRIBUTING.md @humanoid-core/maintainers
+/SECURITY.md @humanoid-core/maintainers
+/CHANGELOG.md @humanoid-core/maintainers

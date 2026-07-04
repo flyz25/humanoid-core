@@ -40,25 +40,44 @@ common::Status LoggerManager::addSink(std::shared_ptr<LogSink> sink) {
     return common::Status::error(common::StatusCode::kInvalidArgument, "log sink is null");
   }
 
+  std::lock_guard<std::mutex> lock{mutex_};
   sinks_.push_back(std::move(sink));
   return common::Status::ok();
 }
 
-void LoggerManager::clearSinks() noexcept { sinks_.clear(); }
+void LoggerManager::clearSinks() noexcept {
+  std::lock_guard<std::mutex> lock{mutex_};
+  sinks_.clear();
+}
 
-std::size_t LoggerManager::sinkCount() const noexcept { return sinks_.size(); }
+std::size_t LoggerManager::sinkCount() const noexcept {
+  std::lock_guard<std::mutex> lock{mutex_};
+  return sinks_.size();
+}
 
-void LoggerManager::setMinimumLevel(LogLevel level) noexcept { minimum_level_ = level; }
+void LoggerManager::setMinimumLevel(LogLevel level) noexcept {
+  std::lock_guard<std::mutex> lock{mutex_};
+  minimum_level_ = level;
+}
 
-LogLevel LoggerManager::minimumLevel() const noexcept { return minimum_level_; }
+LogLevel LoggerManager::minimumLevel() const noexcept {
+  std::lock_guard<std::mutex> lock{mutex_};
+  return minimum_level_;
+}
 
 common::Status LoggerManager::log(const LogMessage& message) {
-  if (!passesMinimumLevel(message.level())) {
-    return common::Status::ok();
+  std::vector<std::shared_ptr<LogSink>> sinks;
+  {
+    std::lock_guard<std::mutex> lock{mutex_};
+    if (!passesMinimumLevelUnlocked(message.level())) {
+      return common::Status::ok();
+    }
+
+    sinks = sinks_;
   }
 
   common::Status first_error = common::Status::ok();
-  for (const auto& sink : sinks_) {
+  for (const auto& sink : sinks) {
     if (sink && sink->accepts(message.level())) {
       const common::Status status = sink->write(message);
       if (!status.isOk() && first_error.isOk()) {
@@ -71,7 +90,8 @@ common::Status LoggerManager::log(const LogMessage& message) {
 }
 
 bool LoggerManager::isEnabled(LogLevel level) const noexcept {
-  if (!passesMinimumLevel(level)) {
+  std::lock_guard<std::mutex> lock{mutex_};
+  if (!passesMinimumLevelUnlocked(level)) {
     return false;
   }
 
@@ -81,6 +101,11 @@ bool LoggerManager::isEnabled(LogLevel level) const noexcept {
 }
 
 bool LoggerManager::passesMinimumLevel(LogLevel level) const noexcept {
+  std::lock_guard<std::mutex> lock{mutex_};
+  return passesMinimumLevelUnlocked(level);
+}
+
+bool LoggerManager::passesMinimumLevelUnlocked(LogLevel level) const noexcept {
   return severityRank(level) >= severityRank(minimum_level_);
 }
 

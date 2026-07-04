@@ -5,6 +5,9 @@
  * @brief Public umbrella header for humanoid-core.
  */
 
+#include <humanoid/adapters/IRobotAdapter.h>
+#include <humanoid/adapters/IRobotFactory.h>
+#include <humanoid/adapters/Result.h>
 #include <humanoid/common/LifecycleState.hpp>
 #include <humanoid/common/Status.hpp>
 #include <humanoid/common/Version.hpp>
@@ -12,6 +15,8 @@
 #include <humanoid/configuration/ConfigValue.hpp>
 #include <humanoid/configuration/Configuration.hpp>
 #include <humanoid/core/CoreContext.hpp>
+#include <humanoid/core/RobotState.hpp>
+#include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/core/RuntimeMetadata.hpp>
 #include <humanoid/diagnostics/DiagnosticController.hpp>
 #include <humanoid/diagnostics/DiagnosticManager.hpp>
@@ -36,6 +41,7 @@
 #include <humanoid/safety/SafetyController.hpp>
 #include <humanoid/safety/SafetyManager.hpp>
 #include <humanoid/safety/SafetyState.hpp>
+#include <humanoid/services/TelemetryService.h>
 #include <humanoid/utilities/Filesystem.hpp>
 #include <humanoid/utilities/ScopeExit.hpp>
 #include <humanoid/utilities/Time.hpp>

@@ -1,11 +1,16 @@
 build/
 build-*/
 cmake-build-*/
+install/
+install-*/
+out/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 compile_commands.json
 Testing/
+.ninja_deps
+.ninja_log
 
 *.o
 *.a
@@ -13,10 +18,16 @@ Testing/
 *.dylib
 *.dll
 *.exe
+*.gcda
+*.gcno
+*.profraw
+*.profdata
 
 .cache/
+.pytest_cache/
 .idea/
 .vscode/
+.DS_Store
 
 logs/*
 !logs/README.md

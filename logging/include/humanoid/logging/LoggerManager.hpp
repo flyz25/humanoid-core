@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include <humanoid/common/Status.hpp>
@@ -90,6 +91,15 @@ private:
    */
   [[nodiscard]] bool passesMinimumLevel(LogLevel level) const noexcept;
 
+  /**
+   * @brief Reports whether a level passes the manager severity filter while locked.
+   *
+   * @param level Severity to evaluate.
+   * @return True when the level is at least the configured minimum.
+   */
+  [[nodiscard]] bool passesMinimumLevelUnlocked(LogLevel level) const noexcept;
+
+  mutable std::mutex mutex_;
   std::vector<std::shared_ptr<LogSink>> sinks_;
   LogLevel minimum_level_;
 };

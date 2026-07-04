@@ -6,9 +6,13 @@ interfaces.
 Allowed dependency direction:
 
 ```text
+applications -> managers, interfaces, factory registry
+factory registry -> robot factory interfaces
+robot factories -> robot adapter implementations
+robot adapters -> SDK wrappers
+SDK wrappers -> vendor SDKs
 core -> logging, configuration, common
 managers -> module interfaces, common
-module interfaces -> common when status or lifecycle types are required
 utilities -> common
 common -> standard library only
 ```
@@ -16,6 +20,7 @@ common -> standard library only
 Forbidden dependencies:
 
 - Applications directly including vendor SDK headers.
+- Applications directly constructing concrete robot adapters.
 - Managers depending on concrete adapters or communication backends.
 - Core modules depending on ROS2, OpenCV, AI runtimes, GUI frameworks, or Unitree
   SDKs.

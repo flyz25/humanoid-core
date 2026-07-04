@@ -1,0 +1,14 @@
+--enable=warning,style,performance,portability
+--std=c++17
+--language=c++
+--inline-suppr
+--suppress=missingIncludeSystem
+--suppress=unmatchedSuppression
+--suppress=unusedFunction:tests/*
+--suppress=unusedFunction:examples/*
+--exclude=third_party/unitree_sdk2
+--exclude=build
+--exclude=build-operational
+--exclude=build-operational-release
+--exclude=build-no-unitree
+--error-exitcode=1

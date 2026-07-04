@@ -1,0 +1,9 @@
+Unitree SDK2
+============
+
+Repository: https://github.com/unitreerobotics/unitree_sdk2.git
+Pinned tag: 2.0.2
+Pinned commit: 811bc77
+
+The repository uses a detached submodule checkout at the pinned tag. Do not track
+floating branch heads for production builds.

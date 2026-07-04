@@ -8,6 +8,12 @@ CoreContext::CoreContext(std::shared_ptr<logging::ILogger> logger,
                          std::shared_ptr<const configuration::Configuration> configuration)
     : logger_(std::move(logger)), configuration_(std::move(configuration)) {}
 
+CoreContext::CoreContext(std::shared_ptr<logging::ILogger> logger,
+                         std::shared_ptr<const configuration::Configuration> configuration,
+                         std::shared_ptr<RobotStateManager> robot_state_manager)
+    : logger_(std::move(logger)), configuration_(std::move(configuration)),
+      robot_state_manager_(std::move(robot_state_manager)) {}
+
 void CoreContext::setLogger(std::shared_ptr<logging::ILogger> logger) noexcept {
   logger_ = std::move(logger);
 }
@@ -17,14 +23,27 @@ void CoreContext::setConfiguration(
   configuration_ = std::move(configuration);
 }
 
+void CoreContext::setRobotStateManager(
+    std::shared_ptr<RobotStateManager> robot_state_manager) noexcept {
+  robot_state_manager_ = std::move(robot_state_manager);
+}
+
 bool CoreContext::hasLogger() const noexcept { return static_cast<bool>(logger_); }
 
 bool CoreContext::hasConfiguration() const noexcept { return static_cast<bool>(configuration_); }
+
+bool CoreContext::hasRobotStateManager() const noexcept {
+  return static_cast<bool>(robot_state_manager_);
+}
 
 std::shared_ptr<logging::ILogger> CoreContext::logger() const noexcept { return logger_; }
 
 std::shared_ptr<const configuration::Configuration> CoreContext::configuration() const noexcept {
   return configuration_;
+}
+
+std::shared_ptr<RobotStateManager> CoreContext::robotStateManager() const noexcept {
+  return robot_state_manager_;
 }
 
 } // namespace humanoid::core

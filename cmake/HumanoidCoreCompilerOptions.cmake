@@ -2,11 +2,9 @@ add_library(humanoid_core_options INTERFACE)
 add_library(humanoid::compiler_options ALIAS humanoid_core_options)
 set_target_properties(humanoid_core_options PROPERTIES EXPORT_NAME compiler_options)
 
-target_compile_features(humanoid_core_options INTERFACE cxx_std_17)
+target_compile_features(humanoid_core_options INTERFACE cxx_std_20)
 
-function(humanoid_core_configure_target target_name)
-  target_link_libraries(${target_name} PUBLIC humanoid::compiler_options)
-
+function(humanoid_core_configure_warnings target_name)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(
       ${target_name}
@@ -26,4 +24,9 @@ function(humanoid_core_configure_target target_name)
       target_compile_options(${target_name} PRIVATE /WX)
     endif()
   endif()
+endfunction()
+
+function(humanoid_core_configure_target target_name)
+  target_link_libraries(${target_name} PUBLIC humanoid::compiler_options)
+  humanoid_core_configure_warnings(${target_name})
 endfunction()

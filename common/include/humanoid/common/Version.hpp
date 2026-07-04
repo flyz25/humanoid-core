@@ -6,8 +6,34 @@
  */
 
 #include <string>
+#include <string_view>
 
 namespace humanoid::common {
+
+/**
+ * @brief Major version component for the humanoid-core public API.
+ */
+inline constexpr int kVersionMajor = 0;
+
+/**
+ * @brief Minor version component for the humanoid-core public API.
+ */
+inline constexpr int kVersionMinor = 1;
+
+/**
+ * @brief Patch version component for the humanoid-core public API.
+ */
+inline constexpr int kVersionPatch = 0;
+
+/**
+ * @brief Prerelease identifier for the current humanoid-core package.
+ */
+inline constexpr std::string_view kVersionPrerelease = "alpha";
+
+/**
+ * @brief Full semantic version string for the current humanoid-core package.
+ */
+inline constexpr std::string_view kVersionString = "0.1.0-alpha";
 
 /**
  * @brief Represents a semantic version.
@@ -71,6 +97,15 @@ private:
  *
  * @return Semantic version for the installed public API.
  */
-[[nodiscard]] constexpr SemanticVersion apiVersion() noexcept { return SemanticVersion{0, 1, 0}; }
+[[nodiscard]] constexpr SemanticVersion apiVersion() noexcept {
+  return SemanticVersion{kVersionMajor, kVersionMinor, kVersionPatch};
+}
+
+/**
+ * @brief Returns the full semantic version string for this framework package.
+ *
+ * @return Full semantic version string.
+ */
+[[nodiscard]] constexpr std::string_view apiVersionString() noexcept { return kVersionString; }
 
 } // namespace humanoid::common

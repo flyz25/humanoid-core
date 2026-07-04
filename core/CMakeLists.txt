@@ -1,7 +1,8 @@
 add_library(
   humanoid_core_core
   src/CoreContext.cpp
-  src/RuntimeMetadata.cpp)
+  src/RuntimeMetadata.cpp
+  ${PROJECT_SOURCE_DIR}/src/core/RobotStateManager.cpp)
 
 add_library(humanoid::core ALIAS humanoid_core_core)
 set_target_properties(humanoid_core_core PROPERTIES EXPORT_NAME core)

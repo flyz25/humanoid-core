@@ -1,6 +1,8 @@
 # Coding Style
 
-humanoid-core uses modern C++17 with LLVM formatting.
+humanoid-core uses modern C++20 with LLVM formatting. Vendor SDK wrapper
+translation units may use a vendor-compatible dialect when required to compile
+official SDK headers.
 
 Required practices:
 

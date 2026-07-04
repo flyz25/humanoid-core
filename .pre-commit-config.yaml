@@ -1,0 +1,36 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^third_party/unitree_sdk2/
+      - id: end-of-file-fixer
+        exclude: ^third_party/unitree_sdk2/
+      - id: check-yaml
+        exclude: ^third_party/unitree_sdk2/
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format
+        entry: clang-format --dry-run --Werror
+        language: system
+        types_or: [c++, c]
+        exclude: ^third_party/unitree_sdk2/
+
+      - id: clang-tidy
+        name: clang-tidy
+        entry: scripts/run_clang_tidy.sh
+        language: system
+        pass_filenames: false
+        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
+        exclude: ^third_party/unitree_sdk2/
+
+      - id: markdownlint
+        name: markdownlint
+        entry: scripts/run_markdownlint.sh
+        language: system
+        types: [markdown]
+        exclude: ^third_party/unitree_sdk2/

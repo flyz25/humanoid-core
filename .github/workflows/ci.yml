@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  linux:
+    name: Ubuntu ${{ matrix.build_type }} Unitree=${{ matrix.enable_unitree }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type:
+          - Debug
+          - Release
+        enable_unitree:
+          - ON
+          - OFF
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ git
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DENABLE_UNITREE=${{ matrix.enable_unitree }} \
+            -DHUMANOID_CORE_BUILD_EXAMPLES=ON \
+            -DHUMANOID_CORE_BUILD_TESTS=ON \
+            -DHUMANOID_CORE_WARNINGS_AS_ERRORS=ON \
+            -DUNITREE_SDK2_ROOT=${{ github.workspace }}/third_party/unitree_sdk2
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Install
+        run: cmake --install build --prefix install
+
+      - name: Validate package config
+        run: |
+          cmake --find-package \
+            -DNAME=humanoid_core \
+            -DCOMPILER_ID=GNU \
+            -DLANGUAGE=CXX \
+            -DMODE=EXIST \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/install \
+            -DUNITREE_SDK2_ROOT=${{ github.workspace }}/third_party/unitree_sdk2
+
+      - name: Upload install tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: humanoid-core-${{ matrix.build_type }}-unitree-${{ matrix.enable_unitree }}
+          path: install
+          if-no-files-found: error
