@@ -69,6 +69,26 @@ humanoid_core_add_example(
   humanoid::core
   humanoid::telemetry_service)
 
+humanoid_core_add_example(
+  humanoid_core_command_execution_example
+  command_execution/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_command_queue_example
+  command_queue/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_command_cancellation_example
+  command_cancellation/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_capability_validation_example
+  capability_validation/main.cpp
+  humanoid::core)
+
 if(TARGET humanoid::unitree_sdk_abstraction)
   humanoid_core_add_example(
     humanoid_core_unitree_sdk_boundary_example

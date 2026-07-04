@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.4.0-alpha`
+Current release: `0.5.0-alpha`
 
 ## Architecture
 
@@ -260,6 +260,15 @@ Capability query example:
 ./build/examples/humanoid_core_capability_query_example
 ```
 
+Command framework examples:
+
+```bash
+./build/examples/humanoid_core_command_execution_example
+./build/examples/humanoid_core_command_queue_example
+./build/examples/humanoid_core_command_cancellation_example
+./build/examples/humanoid_core_capability_validation_example
+```
+
 When Unitree SDK2 is available and `ENABLE_UNITREE=ON`, the SDK-boundary command
 adapter validation example is also built:
 
@@ -319,6 +328,14 @@ hardware.
 The always-built `humanoid_core_command_queue_unit_test` validates bounded
 capacity, priority/FIFO ordering, timeout, cancellation, statistics, and stress
 execution with concurrent producers and consumers.
+
+The always-built `humanoid_core_safety_validator_unit_test` validates
+vendor-independent connection, emergency-stop, fault, battery, posture, and
+capability safety rejection rules.
+
+The always-built `humanoid_core_command_execution_pipeline_unit_test` validates
+execution IDs, lifecycle callbacks, cancellation, shutdown, metrics, bounded
+history, timeout, exception propagation, logging, and concurrent submissions.
 
 API-level documentation:
 
@@ -408,7 +425,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.4.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.5.0-alpha`.
 
 Release tags use:
 
@@ -430,6 +447,7 @@ Production hardening documentation:
 
 - `docs/Production_Hardening_Report.md`
 - `docs/Repository_Governance_Report.md`
+- `docs/Milestone_5_Report.md`
 - `docs/Milestone_4_Report.md`
 - `docs/integration/Milestone_4_8_Integration_Report.md`
 - `docs/architecture/plugin_architecture.md`

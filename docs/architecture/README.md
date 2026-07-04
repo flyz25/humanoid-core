@@ -135,6 +135,11 @@ These components have no SDK headers, concrete adapter dependencies, mission
 logic, or global state. See `docs/api/command_model.md` for the complete public
 contract.
 
+Milestone 5.6 adds buildable command examples for execution, queueing,
+cancellation, and capability validation. The examples validate composition from
+application code into the command framework without introducing SDK, vendor, or
+mission-engine dependencies.
+
 ## Plugin Infrastructure
 
 Milestone 4 adds plugin infrastructure as a separate exported module:

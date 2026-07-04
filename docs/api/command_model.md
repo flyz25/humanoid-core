@@ -281,3 +281,22 @@ Cancellation is deterministic for queued commands. Running and synchronous
 commands cannot be interrupted because `IRobotAdapter` has no cancellation
 contract; cancellation attempts for them return `CommandStatus::Rejected`.
 Adapter exceptions are contained and translated to `CommandStatus::Failed`.
+
+## Integration Examples
+
+Milestone 5.6 adds buildable, hardware-free examples for the public command
+framework:
+
+- `humanoid_core_command_execution_example`: submits a command through
+  `CommandExecutionPipeline`, observes lifecycle callbacks, checks metrics, and
+  shuts down cleanly.
+- `humanoid_core_command_queue_example`: enqueues multiple commands through
+  `CommandQueue`, validates successful execution, and prints execution order.
+- `humanoid_core_command_cancellation_example`: blocks one execution, cancels a
+  queued command, then verifies terminal cancellation status.
+- `humanoid_core_capability_validation_example`: validates a supported command
+  and rejects the same command after the required capability is disabled.
+
+These examples exercise integration points only. They do not include SDK
+headers, instantiate concrete robot adapters, send robot commands, or implement
+mission behavior.

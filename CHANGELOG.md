@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.5.0-alpha] - 2026-07-04
+
 ### Added
 
 - Milestone 5.1 Generic Command Model: added vendor-independent command type,
@@ -31,6 +33,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   lifecycle infrastructure with execution IDs, queued/running/terminal
   callbacks, optional logging, metrics, bounded execution history, concurrent
   worker execution, cancellation, timeout handling, and error propagation tests.
+- Milestone 5.6 Integration & Validation: completed command framework
+  integration, added runnable command execution, queue, cancellation, and
+  capability-validation examples, refreshed architecture and API documentation,
+  and prepared the Milestone 5 validation report.
 
 ## [0.4.0-alpha] - 2026-07-04
 
@@ -113,7 +119,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.4.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.5.0-alpha...HEAD
+[0.5.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.4.0-alpha...v0.5.0-alpha
 [0.4.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.3.0-alpha...v0.4.0-alpha
 [0.3.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.1.0-alpha...v0.3.0-alpha
 [0.1.0-alpha]: https://github.com/humanoid-core/humanoid-core/releases/tag/v0.1.0-alpha
