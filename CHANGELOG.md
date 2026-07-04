@@ -13,6 +13,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   priority, lifecycle status, result, payload, metadata, monotonic timestamp,
   timeout, and command identity value types with API documentation and
   hardware-free validation coverage.
+- Milestone 5.2 Command Dispatcher: added dependency-injected synchronous and
+  asynchronous command forwarding, command and payload validation,
+  priority-aware queueing, queued-command cancellation, timeout and adapter
+  failure translation, serialized adapter access, controlled shutdown, and
+  hardware-free dispatcher tests.
 
 ## [0.4.0-alpha] - 2026-07-04
 

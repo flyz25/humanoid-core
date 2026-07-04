@@ -109,22 +109,23 @@ mission orchestration.
 
 ## Generic Command Model
 
-Milestone 5.1 adds a vendor-independent command value model without adding a
-command execution service:
+Milestone 5 adds a vendor-independent command path:
 
 ```text
 Application or future command producer
-  -> Command
-    -> CommandType / CommandPriority
-    -> CommandPayload / CommandMetadata
+  -> CommandDispatcher
+    -> Command / CommandType / CommandPriority
+      -> IRobotAdapter
   <- CommandResult / CommandStatus
 ```
 
 Command IDs are assigned by the producer, timestamps use a monotonic clock, and
 timeouts use `std::chrono`. Payload values and metadata contain framework-owned
-standard-library types only. The model has no SDK headers, vendor enums,
-communication behavior, scheduler, or global ID generator. See
-`docs/api/command_model.md` for the public API contract.
+standard-library types only. `CommandDispatcher` validates commands, serializes
+adapter access, and supports synchronous and priority-aware asynchronous
+forwarding. It depends only on `IRobotAdapter`; it has no SDK headers, concrete
+adapter dependencies, mission logic, or global state. See
+`docs/api/command_model.md` for the complete public contract.
 
 ## Plugin Infrastructure
 

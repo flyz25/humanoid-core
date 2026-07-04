@@ -14,6 +14,7 @@ humanoid-core skeleton.
 | `UnitreeG1Adapter` plugin skeleton | Thread-safe skeleton lifecycle and connection reads through atomics. |
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
+| `CommandDispatcher` | Thread-safe synchronous execution, asynchronous queueing, queued-command cancellation, and idempotent shutdown. Adapter calls are serialized. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
 | `SdkWrapper` | Thread-safe public methods through internal serialization of Unitree SDK2 access. The read-only heartbeat worker shares the same mutex and invokes state callbacks outside the SDK lock. |
 | `LocoAdapter`, `HandAdapter`, `AudioAdapter` | Thread-safe public methods through per-adapter mutexes around owned Unitree SDK2 clients. |
@@ -44,6 +45,13 @@ is a runtime latest-state cache and protects its state with `std::shared_mutex`.
 Writers use `std::unique_lock`; readers use `std::shared_lock`.
 
 ## Services
+
+`CommandDispatcher` protects queue and lifecycle state with a mutex and
+serializes all calls to its injected `IRobotAdapter` with a separate adapter
+mutex. Its worker sleeps on a condition variable when no asynchronous work is
+available. `Cancel()` removes only queued work; running calls require the
+adapter to return. `Shutdown()` rejects new work, cancels queued work, and waits
+for synchronous and asynchronous calls already in progress.
 
 `TelemetryService` owns a `std::jthread` while running and sleeps on a condition
 variable between state samples. `Stop()` requests cooperative cancellation and

@@ -8,6 +8,7 @@ execution, dispatch, or adapter behavior.
 
 ```cpp
 #include <humanoid/core/Command.h>
+#include <humanoid/core/CommandDispatcher.h>
 #include <humanoid/core/CommandPriority.h>
 #include <humanoid/core/CommandResult.h>
 #include <humanoid/core/CommandStatus.h>
@@ -80,3 +81,72 @@ Application and future command services
 The model contains no Unitree SDK headers, vendor implementations, robot
 communication, or execution logic. Future adapters may consume validated
 commands, but vendor types must remain behind their SDK boundary.
+
+## Command Dispatcher
+
+`CommandDispatcher` receives a dependency-injected
+`std::shared_ptr<humanoid::adapters::IRobotAdapter>`. It validates generic
+commands and forwards supported operations through that interface. It never
+includes an SDK header or depends on a concrete adapter.
+
+```cpp
+auto dispatcher = humanoid::core::CommandDispatcher{adapter};
+
+humanoid::core::Command stop;
+stop.id = 1;
+stop.timestamp = std::chrono::time_point_cast<std::chrono::nanoseconds>(
+    std::chrono::steady_clock::now());
+stop.type = humanoid::core::CommandType::Stop;
+
+const humanoid::core::CommandResult result = dispatcher.Execute(stop);
+```
+
+The dispatcher exposes:
+
+- `Execute(const Command&)` for synchronous execution on the calling thread.
+- `ExecuteAsync(Command)` for priority-aware queued execution through a
+  `std::future<CommandResult>`.
+- `Cancel(CommandId)` for commands that remain queued.
+- `Shutdown()` to reject new work, cancel queued work, and wait for active
+  adapter calls.
+
+`Shutdown()` controls dispatcher resources only. Adapter lifecycle remains
+owned by the application composition root, so dispatcher shutdown does not call
+`IRobotAdapter::Shutdown()`.
+
+### Adapter Mapping
+
+The current `IRobotAdapter` contract supports the following mappings:
+
+| Command type | Adapter operation | Required payload |
+| --- | --- | --- |
+| `Stand` | `StandUp()` | Empty |
+| `Walk` | `Move(vx, vy, omega)` | `linear_x`, `linear_y`, `angular_z` |
+| `Move` | `Move(vx, vy, omega)` | `linear_x`, `linear_y`, `angular_z` |
+| `Rotate` | `Move(0, 0, omega)` | `angular_z` |
+| `Stop` | `Stop()` | Empty |
+
+Velocity payload values must be finite `double` or `std::int64_t` values that
+fit in the adapter's `float` parameter range. Capability limits remain the
+adapter's responsibility.
+
+`Sit`, hand, audio, and custom commands are rejected because the current
+adapter interface has no corresponding operation. The dispatcher does not fake
+support or call vendor APIs directly.
+
+### Execution Semantics
+
+Synchronous and asynchronous adapter calls are serialized. The asynchronous
+queue selects the highest command priority and preserves FIFO order among
+commands with equal priority. Priority does not preempt an adapter call that has
+already started and never bypasses validation or robot safety policy.
+
+Command IDs must be nonzero and unique among in-flight commands. A positive
+timeout requires a valid monotonic creation timestamp. Expired commands return
+`CommandStatus::Timeout` before adapter execution; operations that finish after
+their deadline also report timeout.
+
+Cancellation is deterministic for queued commands. Running and synchronous
+commands cannot be interrupted because `IRobotAdapter` has no cancellation
+contract; cancellation attempts for them return `CommandStatus::Rejected`.
+Adapter exceptions are contained and translated to `CommandStatus::Failed`.

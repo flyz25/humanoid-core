@@ -14,7 +14,13 @@ implementation details must stay behind adapter boundaries.
 `humanoid::core::Command` describes command identity, creation time, type,
 priority, timeout, operational payload, and metadata using framework-owned C++
 types. `CommandStatus` and `CommandResult` describe processing outcomes without
-introducing a scheduler, executor, or vendor dependency.
+introducing a vendor dependency.
+
+`humanoid::core::CommandDispatcher` validates commands and forwards supported
+operations to a dependency-injected `humanoid::adapters::IRobotAdapter`. It
+serializes adapter access, provides synchronous and priority-aware asynchronous
+execution, cancels queued commands, and shuts down without owning the adapter
+lifecycle. Unsupported commands are rejected explicitly.
 
 The command model is documented in `docs/api/command_model.md`.
 

@@ -2,6 +2,7 @@ add_library(
   humanoid_core_core
   src/CoreContext.cpp
   src/RuntimeMetadata.cpp
+  ${PROJECT_SOURCE_DIR}/src/core/CommandDispatcher.cpp
   ${PROJECT_SOURCE_DIR}/src/core/RobotStateManager.cpp)
 
 add_library(humanoid::core ALIAS humanoid_core_core)
@@ -17,7 +18,8 @@ target_link_libraries(
   humanoid_core_core
   PUBLIC humanoid::common
          humanoid::configuration
-         humanoid::logging)
+         humanoid::logging
+  PRIVATE humanoid::adapter_interfaces)
 
 humanoid_core_configure_target(humanoid_core_core)
 

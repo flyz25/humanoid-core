@@ -38,6 +38,12 @@ humanoid::robot_factory
 humanoid::telemetry_service
   -> humanoid::core
 
+humanoid::core
+  -> humanoid::common
+  -> humanoid::configuration
+  -> humanoid::logging
+  -> humanoid::adapter_interfaces
+
 humanoid::core::CoreContext
   -> injected RobotStateManager
 
@@ -46,6 +52,13 @@ Robot state flow
   -> humanoid::core::RobotStateManager
   -> humanoid::telemetry_service
   -> subscriber callbacks
+
+Command flow
+  -> humanoid::core::CommandDispatcher
+  -> humanoid::core::Command
+  -> injected humanoid::adapters::IRobotAdapter
+  -> concrete adapter
+  -> SDK wrapper
 
 humanoid::unitree_adapter
   -> humanoid::adapter_interfaces
@@ -86,6 +99,7 @@ unitree_sdk2
 - Managers may depend on module interfaces and `common`.
 - Runtime services may depend on core state models and managers.
 - Runtime services receive core services through dependency injection.
+- Command dispatch may depend on the abstract robot adapter interface.
 - `common` depends only on the C++ standard library.
 
 ## Forbidden Dependencies
