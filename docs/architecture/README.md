@@ -107,6 +107,21 @@ This layer remains SDK-free and vendor independent. It does not perform robot
 communication, command execution, planning, navigation, AI, behavior trees, or
 mission orchestration.
 
+## Mission Model
+
+Milestone 6.1 adds a declarative vendor-independent mission model:
+
+```text
+Mission
+  -> MissionStep
+    -> Command
+```
+
+`Mission` and `MissionStep` are value types for describing ordered command
+collections. They do not execute commands, parse YAML, schedule work, manage
+robot state, instantiate adapters, or include vendor SDK headers. See
+`docs/api/mission_model.md` for the public contract.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

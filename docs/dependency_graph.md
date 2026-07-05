@@ -53,6 +53,11 @@ Robot state flow
   -> humanoid::telemetry_service
   -> subscriber callbacks
 
+Mission model flow
+  -> humanoid::mission::Mission
+  -> humanoid::mission::MissionStep
+  -> humanoid::core::Command
+
 Command execution flow
   -> humanoid::core::CommandExecutionPipeline
   -> injected executor callback
@@ -103,6 +108,7 @@ unitree_sdk2
 - Managers may depend on module interfaces and `common`.
 - Runtime services may depend on core state models and managers.
 - Runtime services receive core services through dependency injection.
+- Mission models may depend on generic command value types.
 - Command execution lifecycle infrastructure may depend on generic commands,
   command results, logging interfaces, and injected executor callbacks.
 - Command dispatch may depend on the abstract robot adapter interface.

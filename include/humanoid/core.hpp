@@ -39,6 +39,11 @@
 #include <humanoid/logging/LogSink.hpp>
 #include <humanoid/logging/Logger.hpp>
 #include <humanoid/logging/LoggerManager.hpp>
+#include <humanoid/mission/Mission.h>
+#include <humanoid/mission/MissionMetadata.h>
+#include <humanoid/mission/MissionResult.h>
+#include <humanoid/mission/MissionStatus.h>
+#include <humanoid/mission/MissionStep.h>
 #include <humanoid/motion/MotionController.hpp>
 #include <humanoid/motion/MotionManager.hpp>
 #include <humanoid/motion/MotionMode.hpp>

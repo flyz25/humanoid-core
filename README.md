@@ -135,6 +135,18 @@ command adapters. These examples do not change dependency direction: core still
 does not depend on plugins, and application-facing examples never include
 Unitree SDK2 headers.
 
+Milestone 6.1 adds a vendor-independent mission model:
+
+```text
+Mission
+  -> MissionStep
+    -> Command
+```
+
+The model is declarative only. It does not implement a mission engine,
+scheduler, YAML parser, behavior tree, planner, navigation stack, or robot
+adapter integration.
+
 ## Directory Structure
 
 ```text
@@ -150,6 +162,7 @@ humanoid-core/
   examples/                  Buildable examples
   gesture/                   Gesture interfaces and manager
   include/humanoid/adapters/ Public robot adapter and factory contracts
+  include/humanoid/mission/ Public mission model contracts
   logging/                   Logging interfaces and routing manager
   motion/                    Motion interfaces and manager
   network/                   Network interfaces and endpoint metadata
@@ -337,9 +350,14 @@ The always-built `humanoid_core_command_execution_pipeline_unit_test` validates
 execution IDs, lifecycle callbacks, cancellation, shutdown, metrics, bounded
 history, timeout, exception propagation, logging, and concurrent submissions.
 
+The always-built `humanoid_core_mission_model_unit_test` validates mission
+defaults, embedded command steps, metadata, enabled-step validity rules,
+mission status names, terminal status detection, and mission results.
+
 API-level documentation:
 
 - `docs/api/command_model.md`
+- `docs/api/mission_model.md`
 - `docs/api/robot_state_and_telemetry.md`
 - `docs/api/plugin_integration.md`
 - `docs/services/telemetry_service.md`

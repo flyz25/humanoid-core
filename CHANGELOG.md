@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- Milestone 6.1 Mission Model: added vendor-independent mission, mission step,
+  mission status, mission result, and mission metadata value types with
+  hardware-free validation coverage and API documentation.
+
 ## [0.5.0-alpha] - 2026-07-04
 
 ### Added
