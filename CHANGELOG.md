@@ -12,6 +12,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 9.1 Goal Model: added vendor-independent planner goal, goal type,
   priority, status, planning request, planning result, and diagnostics value
   types, plus API documentation and always-built validation coverage.
+- Milestone 9.2 Planner Interface: added the pure abstract planner interface,
+  planner capability metadata, thread-safe planner registry, dependency-injected
+  planner factory, and validation coverage without adding concrete planner
+  implementations.
 
 ## [0.8.0-alpha] - 2026-07-05
 

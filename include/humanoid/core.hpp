@@ -93,6 +93,9 @@
 #include <humanoid/planner/GoalPriority.h>
 #include <humanoid/planner/GoalStatus.h>
 #include <humanoid/planner/GoalType.h>
+#include <humanoid/planner/IPlanner.h>
+#include <humanoid/planner/PlannerFactory.h>
+#include <humanoid/planner/PlannerRegistry.h>
 #include <humanoid/planner/PlanningRequest.h>
 #include <humanoid/planner/PlanningResult.h>
 #include <humanoid/robot/Robot.hpp>

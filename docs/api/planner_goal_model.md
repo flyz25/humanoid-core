@@ -12,6 +12,9 @@ execution policy, or behavior tree execution policy.
 #include <humanoid/planner/GoalPriority.h>
 #include <humanoid/planner/GoalStatus.h>
 #include <humanoid/planner/GoalType.h>
+#include <humanoid/planner/IPlanner.h>
+#include <humanoid/planner/PlannerFactory.h>
+#include <humanoid/planner/PlannerRegistry.h>
 #include <humanoid/planner/PlanningRequest.h>
 #include <humanoid/planner/PlanningResult.h>
 ```
@@ -100,3 +103,41 @@ The planner goal model contains no Unitree SDK headers, robot SDK headers, LLM
 SDK headers, OpenAI API integration, Claude API integration, parser
 implementation, planning engine, mission execution, behavior tree execution, or
 robot communication.
+
+## Planner Interface
+
+Milestone 9.2 adds the abstract planner boundary and discovery infrastructure:
+
+```text
+Application or future planner host
+  -> IPlanner
+  -> PlannerFactory
+    -> injected PlannerRegistry
+      -> PlannerCapabilities
+```
+
+`IPlanner` is a pure abstract interface with:
+
+- `Plan()`
+- `ValidatePlan()`
+- `CancelPlan()`
+- `GetCapabilities()`
+
+The interface contains no concrete rule planner, LLM planner, symbolic planner,
+robot adapter, robot SDK, LLM SDK, OpenAI API, Claude API, parser, or execution
+engine. Implementations are future outer-layer components that must translate
+their internal failures into `PlanningResult` diagnostics or `Status` values.
+
+`PlannerCapabilities` describes planner identity, implementation family, goal
+types, output types, validation support, and cancellation support. The
+implementation family can describe rule, LLM, symbolic, or custom planners
+without exposing concrete classes.
+
+`PlannerRegistry` stores capability metadata behind `std::shared_mutex`.
+Readers use shared locks and writes use exclusive locks. The registry owns no
+planner instances and performs no dynamic loading.
+
+`PlannerFactory` stores creator callables behind `std::shared_mutex`, delegates
+capability discovery to an injected `PlannerRegistry`, tracks active instances,
+and refuses unregistration while created planners are still active. It is
+dependency-injection friendly, owns no global state, and is not a singleton.

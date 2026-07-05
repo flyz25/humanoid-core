@@ -342,6 +342,21 @@ planner engine, LLM integration, OpenAI or Claude APIs, robot SDK calls, mission
 execution, behavior tree execution, or adapter communication. See
 `docs/api/planner_goal_model.md`.
 
+Milestone 9.2 adds the abstract planner interface and planner discovery
+infrastructure:
+
+```text
+Application or future planner host
+  -> IPlanner
+  -> PlannerFactory
+    -> injected PlannerRegistry
+```
+
+`IPlanner` exposes only `Plan()`, `ValidatePlan()`, `CancelPlan()`, and
+`GetCapabilities()`. `PlannerFactory` and `PlannerRegistry` support multiple
+future planner families such as rule planners, LLM planners, and symbolic
+planners without adding any concrete planner implementation or SDK dependency.
+
 ## Directory Structure
 
 ```text
@@ -535,6 +550,11 @@ The always-built `humanoid_core_planner_goal_model_unit_test` validates goal
 defaults, minimum validity rules, typed constraints and context, planning
 request capability input, move-only planning results, diagnostics, and stable
 enum names without requiring robot hardware.
+
+The always-built `humanoid_core_planner_interface_unit_test` validates the
+abstract planner interface, dependency-injected factory and registry,
+capability lookup, active-instance tracking, invalid creator rejection, and
+concurrent registry access without adding a concrete production planner.
 
 The always-built `humanoid_core_execution_context_unit_test` validates runtime
 identity, scope and state values, timestamps, current-step tracking, metadata

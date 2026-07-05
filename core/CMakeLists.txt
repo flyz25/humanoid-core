@@ -37,6 +37,8 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/mission/MissionLoader.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionParser.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionValidator.cpp
+  ${PROJECT_SOURCE_DIR}/src/planner/PlannerFactory.cpp
+  ${PROJECT_SOURCE_DIR}/src/planner/PlannerRegistry.cpp
   ${PROJECT_SOURCE_DIR}/src/runtime/Blackboard.cpp
   ${PROJECT_SOURCE_DIR}/src/runtime/Cancellation.cpp
   ${PROJECT_SOURCE_DIR}/src/runtime/ExecutionContext.cpp

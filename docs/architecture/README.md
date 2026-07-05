@@ -395,6 +395,26 @@ navigation, or AI. Future planners may consume the model, but those planners
 must remain outside the model boundary and keep robot execution behind the
 existing command, mission, runtime, and adapter interfaces.
 
+Milestone 9.2 adds planner discovery and creation infrastructure under the same
+vendor-independent boundary:
+
+```text
+Application or future planner host
+  -> PlannerFactory
+    -> PlannerRegistry
+      -> PlannerCapabilities
+  -> IPlanner
+    -> PlanningRequest
+    -> PlanningResult
+```
+
+`IPlanner` is pure abstract and exposes planning, plan validation, cooperative
+cancellation, and capability discovery only. `PlannerFactory` stores injected
+creator callables and tracks active instances; `PlannerRegistry` stores
+capability metadata. Both are thread-safe, non-singleton components. No rule,
+LLM, symbolic, vendor, or robot-specific planner implementation is introduced
+in this milestone.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:
