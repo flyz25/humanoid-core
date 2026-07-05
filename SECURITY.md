@@ -6,7 +6,7 @@ humanoid-core is currently pre-1.0 production framework infrastructure.
 
 | Version | Supported |
 | --- | --- |
-| `0.1.x-alpha` | Yes |
+| `0.8.x-alpha` | Yes |
 | Older snapshots | No |
 
 Security fixes are applied to the active development line until the first stable

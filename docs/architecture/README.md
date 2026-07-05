@@ -363,6 +363,11 @@ tracking remain owned by `RuntimeScheduler`. Optional logical resource leases
 remain owned by `ResourceManager` and are released through RAII when tree
 execution ends.
 
+Milestone 8.8 releases this complete behavior tree boundary as
+`0.8.0-alpha`. The runtime layer remains independent of behavior tree policy,
+and behavior tree leaves continue to reach robot operations only through the
+existing command and mission framework interfaces.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

@@ -335,3 +335,9 @@ Milestone 8.7 provides four runnable application-layer compositions under
 sequence, selector, retry, parallel, mission, and command nodes. Command and
 mission leaves execute through `CommandDispatcher` and `MissionExecutor`, and
 the complete trees execute through `BehaviorTreeRuntime`.
+
+## Release
+
+Milestone 8.8 releases the Behavior Tree Framework in humanoid-core
+`0.8.0-alpha`. The public API includes the core lifecycle, composite, decorator,
+leaf, loading, factory, context, and runtime integration types documented above.

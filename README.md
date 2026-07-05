@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.7.0-alpha`
+Current release: `0.8.0-alpha`
 
 ## Architecture
 
@@ -320,6 +320,11 @@ Milestone 8.7 adds runnable Greeting, Flag Ceremony, Inspection, and Patrol
 behavior tree examples. Together they demonstrate sequence, selector, retry,
 parallel, mission, and command nodes through the existing runtime, command, and
 mission framework boundaries without robot hardware.
+
+Milestone 8.8 releases the integrated Behavior Tree Framework as
+`0.8.0-alpha`. Core lifecycle, composites, decorators, leaves, loaders, runtime
+integration, and hardware-free examples are validated across Debug/Release and
+Unitree-enabled/disabled configurations. See `docs/Milestone_8_Report.md`.
 
 ## Directory Structure
 
@@ -644,7 +649,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.7.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.8.0-alpha`.
 
 Release tags use:
 

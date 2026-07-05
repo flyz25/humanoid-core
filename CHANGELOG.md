@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.0-alpha] - 2026-07-05
+
 ### Added
 
 - Milestone 8.1 Behavior Tree Core: added vendor-independent behavior tree
@@ -36,6 +38,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   Flag Ceremony, Inspection, and Patrol applications demonstrating sequence,
   selector, retry, parallel, mission, and command nodes through existing
   framework boundaries.
+- Milestone 8.8 Behavior Tree Release: completed Behavior Tree Framework
+  integration, release documentation, version metadata, build matrix, examples,
+  install, and package validation.
 
 ## [0.7.0-alpha] - 2026-07-05
 
@@ -209,7 +214,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.7.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.8.0-alpha...HEAD
+[0.8.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.7.0-alpha...v0.8.0-alpha
 [0.7.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.6.0-alpha...v0.7.0-alpha
 [0.6.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.5.0-alpha...v0.6.0-alpha
 [0.5.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.4.0-alpha...v0.5.0-alpha

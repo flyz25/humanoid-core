@@ -5,18 +5,18 @@ humanoid-core uses Semantic Versioning.
 Current semantic version:
 
 ```text
-0.7.0-alpha
+0.8.0-alpha
 ```
 
 ## Version Fields
 
 - Major: `0`
-- Minor: `7`
+- Minor: `8`
 - Patch: `0`
 - Prerelease: `alpha`
 
-CMake package compatibility uses the numeric project version `0.7.0`. The full
-semantic version string is exposed separately as `0.7.0-alpha`.
+CMake package compatibility uses the numeric project version `0.8.0`. The full
+semantic version string is exposed separately as `0.8.0-alpha`.
 
 ## Tag Format
 
@@ -29,7 +29,7 @@ vMAJOR.MINOR.PATCH[-PRERELEASE]
 Examples:
 
 ```text
-v0.7.0-alpha
+v0.8.0-alpha
 v0.5.0
 v1.0.0
 ```
