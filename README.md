@@ -293,6 +293,12 @@ memory sequence, memory selector, and parallel nodes. Composite nodes own child
 nodes, use the runtime-backed `BTContext`, support cooperative cancellation,
 and remain vendor independent.
 
+Milestone 8.3 adds standard behavior tree decorators: inverter, repeat, retry,
+succeeder, failer, limiter, and timeout nodes. Decorators own one child node,
+transform child status or local execution policy, observe cooperative
+cancellation, and remain independent of missions, adapters, plugins, SDKs,
+ROS2, planners, navigation, and AI.
+
 ## Directory Structure
 
 ```text

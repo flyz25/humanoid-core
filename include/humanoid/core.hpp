@@ -14,9 +14,17 @@
 #include <humanoid/bt/BehaviorTree.h>
 #include <humanoid/bt/BehaviorTreeFactory.h>
 #include <humanoid/bt/CompositeNode.h>
+#include <humanoid/bt/DecoratorNode.h>
+#include <humanoid/bt/FailerNode.h>
+#include <humanoid/bt/InverterNode.h>
+#include <humanoid/bt/LimiterNode.h>
 #include <humanoid/bt/ParallelNode.h>
+#include <humanoid/bt/RepeatNode.h>
+#include <humanoid/bt/RetryNode.h>
 #include <humanoid/bt/SelectorNode.h>
 #include <humanoid/bt/SequenceNode.h>
+#include <humanoid/bt/SucceederNode.h>
+#include <humanoid/bt/TimeoutNode.h>
 #include <humanoid/common/LifecycleState.hpp>
 #include <humanoid/common/Status.hpp>
 #include <humanoid/common/Version.hpp>

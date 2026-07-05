@@ -295,6 +295,20 @@ CompositeNode
 Composite nodes provide child traversal and aggregation only. They do not call
 commands, missions, adapters, plugins, SDK wrappers, or vendor SDKs.
 
+Milestone 8.3 adds decorator node policy under the same boundary:
+
+```text
+DecoratorNode
+  -> InverterNode / RepeatNode / RetryNode
+  -> SucceederNode / FailerNode / LimiterNode / TimeoutNode
+  -> owned BTNode child
+  -> BTContext
+```
+
+Decorator nodes transform child status or local execution policy only. They do
+not issue commands, evaluate missions, instantiate adapters, load plugins,
+include SDK wrappers, or depend on vendor SDKs.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

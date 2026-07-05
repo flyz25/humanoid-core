@@ -60,6 +60,9 @@ Behavior tree core
   -> humanoid::bt::BTNode
   -> humanoid::bt::CompositeNode
   -> humanoid::bt::SequenceNode / SelectorNode / ParallelNode
+  -> humanoid::bt::DecoratorNode
+  -> humanoid::bt::InverterNode / RepeatNode / RetryNode
+  -> humanoid::bt::SucceederNode / FailerNode / LimiterNode / TimeoutNode
   -> humanoid::bt::BTContext
   -> humanoid::runtime::ExecutionContext
   -> humanoid::runtime::Blackboard
@@ -149,6 +152,10 @@ unitree_sdk2
 - Behavior tree composite nodes may own and tick child `BTNode` instances and
   may use `BTContext`; they must not perform robot, mission, parser, adapter,
   plugin, SDK, ROS2, planner, navigation, or AI work.
+- Behavior tree decorator nodes may own one child `BTNode`, transform child
+  status, and enforce local repeat, retry, limit, or timeout policy; they must
+  not perform robot, mission, parser, adapter, plugin, SDK, ROS2, planner,
+  navigation, or AI work.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic

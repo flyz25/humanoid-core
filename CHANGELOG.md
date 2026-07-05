@@ -17,6 +17,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   memory sequence, memory selector, and parallel behavior tree composites with
   nested composite validation, concurrent parallel tick validation, runtime
   cancellation handling, and updated documentation.
+- Milestone 8.3 Decorator Nodes: added vendor-independent inverter, repeat,
+  retry, succeeder, failer, limiter, and timeout behavior tree decorators with
+  retry, timeout, loop, limit, cancellation, and documentation coverage.
 
 ## [0.7.0-alpha] - 2026-07-05
 

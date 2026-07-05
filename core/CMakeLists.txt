@@ -11,9 +11,17 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/bt/BehaviorTree.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/BehaviorTreeFactory.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/CompositeNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/DecoratorNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/FailerNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/InverterNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/LimiterNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/ParallelNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/RepeatNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/RetryNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/SelectorNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/SequenceNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/SucceederNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/TimeoutNode.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/ConditionEvaluator.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionExecutor.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionLoader.cpp

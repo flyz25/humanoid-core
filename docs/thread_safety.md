@@ -23,6 +23,7 @@ humanoid-core skeleton.
 | `BehaviorTree` | Thread-safe serialized lifecycle, tick, reset, shutdown, status, and root queries. Node callbacks execute under tree serialization. |
 | `BehaviorTreeFactory` | Thread-safe node creator registration, unregistration, lookup, enumeration, node creation, and tree creation. Creator callbacks run outside factory locks. |
 | `CompositeNode`, `SequenceNode`, `SelectorNode`, `ParallelNode` | Thread-safe child ownership, lifecycle propagation, traversal state, and tick operations. Parallel node ticks different child nodes concurrently while serializing access to its own child collection. |
+| `DecoratorNode`, `InverterNode`, `RepeatNode`, `RetryNode`, `SucceederNode`, `FailerNode`, `LimiterNode`, `TimeoutNode` | Thread-safe child ownership, lifecycle propagation, local policy state, and tick operations for one owned child node. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
@@ -177,6 +178,12 @@ mutex. `SequenceNode` and `SelectorNode` protect memory traversal indexes with
 the same lock. `ParallelNode` serializes access to its child collection while
 dispatching one asynchronous tick per child; each child node is responsible for
 the thread-safety of its own internals.
+
+`DecoratorNode` protects child ownership and lifecycle propagation with one
+mutex. Concrete decorators use the same lock for local policy state such as
+repeat counts, retry attempts, tick limits, and timeout start times. Decorators
+tick only their owned child and do not share mutable child ownership with other
+nodes.
 
 ## Registry
 

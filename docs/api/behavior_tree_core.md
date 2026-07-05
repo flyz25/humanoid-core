@@ -15,6 +15,14 @@ on top of the execution runtime primitives added in Milestone 7.
 #include <humanoid/bt/SequenceNode.h>
 #include <humanoid/bt/SelectorNode.h>
 #include <humanoid/bt/ParallelNode.h>
+#include <humanoid/bt/DecoratorNode.h>
+#include <humanoid/bt/InverterNode.h>
+#include <humanoid/bt/RepeatNode.h>
+#include <humanoid/bt/RetryNode.h>
+#include <humanoid/bt/SucceederNode.h>
+#include <humanoid/bt/FailerNode.h>
+#include <humanoid/bt/LimiterNode.h>
+#include <humanoid/bt/TimeoutNode.h>
 ```
 
 All behavior tree types are in `humanoid::bt`. The headers are also available
@@ -26,6 +34,7 @@ through `<humanoid/core.hpp>`.
 BehaviorTree
   -> BTNode
   -> CompositeNode
+  -> DecoratorNode
   -> BTContext
     -> runtime::ExecutionContext
     -> runtime::Blackboard
@@ -128,3 +137,44 @@ without introducing robot or mission dependencies.
 
 All composite nodes check cooperative cancellation through `BTContext` before
 executing child ticks.
+
+## Decorator Nodes
+
+Milestone 8.3 adds standard decorator nodes:
+
+- `InverterNode`
+- `RepeatNode`
+- `RetryNode`
+- `SucceederNode`
+- `FailerNode`
+- `LimiterNode`
+- `TimeoutNode`
+
+`DecoratorNode` owns one optional child node with `std::unique_ptr<BTNode>`.
+It serializes child replacement, lifecycle propagation, reset, shutdown, and
+decorator-specific state. Null child ownership is rejected by `SetChild()`.
+
+`InverterNode` maps child success to failure and child failure to success.
+Running, idle, and aborted statuses pass through as running or aborted policy
+requires.
+
+`RepeatNode` repeats a successful child for a configured number of completions.
+A repeat count of zero means repeat indefinitely. It performs one child tick per
+decorator tick and never busy-loops.
+
+`RetryNode` retries a failing child up to the configured attempt count. It
+resets the child between failed attempts and returns failure only after the
+retry budget is exhausted.
+
+`SucceederNode` forces non-running, non-aborted child results to success.
+`FailerNode` forces non-running, non-aborted child results to failure.
+
+`LimiterNode` permits only a configured number of child ticks before reset.
+Once the limit is exhausted, it returns failure without ticking the child.
+
+`TimeoutNode` fails a running child when a steady-clock timeout expires. It
+checks the deadline before and after each child tick. It cannot preempt a
+blocking child call; cancellation remains cooperative through `BTContext`.
+
+All decorator nodes are vendor-independent and contain no mission, command,
+adapter, plugin, SDK, XML parser, ROS2, planner, navigation, or AI logic.
