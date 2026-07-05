@@ -327,3 +327,11 @@ Tree status maps to runtime lifecycle as follows:
 | `Failure` | `Failed` |
 | `Aborted` | `Aborted` |
 | Scheduler cancellation | `Cancelled` |
+
+## Examples
+
+Milestone 8.7 provides four runnable application-layer compositions under
+`examples/`: Greeting, Flag Ceremony, Inspection, and Patrol. They demonstrate
+sequence, selector, retry, parallel, mission, and command nodes. Command and
+mission leaves execute through `CommandDispatcher` and `MissionExecutor`, and
+the complete trees execute through `BehaviorTreeRuntime`.

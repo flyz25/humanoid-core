@@ -316,6 +316,11 @@ cooperative cancellation, and an optional RAII resource lease from the shared
 `ResourceManager`. The integration owns no scheduler, worker queue, blackboard,
 or resource registry implementation of its own.
 
+Milestone 8.7 adds runnable Greeting, Flag Ceremony, Inspection, and Patrol
+behavior tree examples. Together they demonstrate sequence, selector, retry,
+parallel, mission, and command nodes through the existing runtime, command, and
+mission framework boundaries without robot hardware.
+
 ## Directory Structure
 
 ```text

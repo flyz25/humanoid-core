@@ -32,6 +32,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   execution through the shared runtime scheduler, execution context,
   blackboard, cancellation framework, and resource manager, with concurrent
   tree, multiple-runtime, resource exclusion, and cancellation validation.
+- Milestone 8.7 Behavior Tree Examples: added runnable hardware-free Greeting,
+  Flag Ceremony, Inspection, and Patrol applications demonstrating sequence,
+  selector, retry, parallel, mission, and command nodes through existing
+  framework boundaries.
 
 ## [0.7.0-alpha] - 2026-07-05
 

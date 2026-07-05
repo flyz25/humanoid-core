@@ -119,6 +119,26 @@ humanoid_core_add_example(
   runtime_scheduler/main.cpp
   humanoid::core)
 
+humanoid_core_add_example(
+  humanoid_core_bt_greeting_example
+  bt_greeting/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_bt_flag_ceremony_example
+  bt_flag_ceremony/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_bt_inspection_example
+  bt_inspection/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_bt_patrol_example
+  bt_patrol/main.cpp
+  humanoid::core)
+
 install(
   FILES
     mission_execution/simple.yaml

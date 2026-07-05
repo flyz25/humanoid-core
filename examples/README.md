@@ -30,3 +30,30 @@ Build the project, then run the examples from the build directory:
 
 These examples require no robot hardware, Unitree SDK calls, mission execution,
 behavior trees, ROS2, planners, navigation, or AI systems.
+
+## Behavior Tree Examples
+
+Milestone 8.7 adds hardware-free behavior tree applications:
+
+- `bt_greeting`: a sequence that stands through `CommandNode` before running a
+  greeting action.
+- `bt_flag_ceremony`: a preparation `MissionNode` followed by parallel flag and
+  anthem actions.
+- `bt_inspection`: a selector that falls back from a condition to a retrying
+  inspection action.
+- `bt_patrol`: a sequence of movement, observation, and stop nodes using the
+  command framework.
+
+Run the examples from the build directory:
+
+```bash
+./examples/humanoid_core_bt_greeting_example
+./examples/humanoid_core_bt_flag_ceremony_example
+./examples/humanoid_core_bt_inspection_example
+./examples/humanoid_core_bt_patrol_example
+```
+
+All robot commands use a process-local `IRobotAdapter` implementation and pass
+through `CommandDispatcher`. Mission execution passes through
+`MissionExecutor`, and every tree executes through `BehaviorTreeRuntime` and
+the shared runtime services. No vendor SDK or robot hardware is required.
