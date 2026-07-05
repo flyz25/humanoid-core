@@ -343,6 +343,26 @@ TreeLoader
 state. Loading is an outer composition concern that produces an already-owned
 `BehaviorTree` from registered node factories.
 
+Milestone 8.6 binds behavior tree execution to the existing runtime services:
+
+```text
+BehaviorTreeRuntime
+  -> BehaviorTreeFactory / loaded BehaviorTree
+  -> RuntimeScheduler
+    -> scheduler-owned ExecutionContext
+  -> shared Blackboard
+  -> shared ResourceManager
+  -> shared CancellationToken
+```
+
+`BehaviorTreeRuntime` is a dependency-injected integration layer. It creates no
+worker threads, scheduler, blackboard, cancellation source, or resource
+registry. Factory-created and loader-created trees execute as runtime jobs;
+pause, cancellation, priority, parallel/sequential policy, and lifecycle
+tracking remain owned by `RuntimeScheduler`. Optional logical resource leases
+remain owned by `ResourceManager` and are released through RAII when tree
+execution ends.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

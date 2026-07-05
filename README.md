@@ -309,6 +309,13 @@ behavior trees from JSON or YAML documents. Parsing remains outside
 `BehaviorTree`; documents are validated against registered node types and then
 constructed through `BehaviorTreeFactory`.
 
+Milestone 8.6 adds `BehaviorTreeRuntime`, which submits factory-created or
+loader-created trees to the existing `RuntimeScheduler`. Each tree receives the
+scheduler-owned `ExecutionContext`, the injected shared `Blackboard`,
+cooperative cancellation, and an optional RAII resource lease from the shared
+`ResourceManager`. The integration owns no scheduler, worker queue, blackboard,
+or resource registry implementation of its own.
+
 ## Directory Structure
 
 ```text

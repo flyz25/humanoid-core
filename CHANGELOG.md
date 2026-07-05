@@ -28,6 +28,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   parsing, validation against registered node types, recursive tree
   construction through `BehaviorTreeFactory`, optional XML rejection, file
   loading, and invalid/missing/unknown-node validation coverage.
+- Milestone 8.6 Runtime Integration: added dependency-injected behavior tree
+  execution through the shared runtime scheduler, execution context,
+  blackboard, cancellation framework, and resource manager, with concurrent
+  tree, multiple-runtime, resource exclusion, and cancellation validation.
 
 ## [0.7.0-alpha] - 2026-07-05
 

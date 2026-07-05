@@ -114,6 +114,17 @@ public:
   [[nodiscard]] ExecutionContext& Execution() const;
 
   /**
+   * @brief Returns shared ownership of the runtime execution context.
+   *
+   * The returned aliasing pointer keeps the scheduler job control alive. It is
+   * intended for execution engines whose contexts require shared ownership.
+   *
+   * @return Shared execution context.
+   * @throws std::logic_error if the context is invalid.
+   */
+  [[nodiscard]] std::shared_ptr<ExecutionContext> SharedExecution() const;
+
+  /**
    * @brief Returns a cooperative cancellation token for this job.
    *
    * @return Runtime cancellation token.

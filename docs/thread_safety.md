@@ -22,6 +22,7 @@ humanoid-core skeleton.
 | `BTContext` | Thread-safe replacement and retrieval of shared runtime execution context and blackboard dependencies. |
 | `BehaviorTree` | Thread-safe serialized lifecycle, tick, reset, shutdown, status, and root queries. Node callbacks execute under tree serialization. |
 | `BehaviorTreeFactory` | Thread-safe node creator registration, unregistration, lookup, enumeration, node creation, and tree creation. Creator callbacks run outside factory locks. |
+| `BehaviorTreeRuntime` | Immutable after construction and safe for concurrent submissions. Submitted callbacks use injected thread-safe runtime services and execute separate tree instances. |
 | `CompositeNode`, `SequenceNode`, `SelectorNode`, `ParallelNode` | Thread-safe child ownership, lifecycle propagation, traversal state, and tick operations. Parallel node ticks different child nodes concurrently while serializing access to its own child collection. |
 | `DecoratorNode`, `InverterNode`, `RepeatNode`, `RetryNode`, `SucceederNode`, `FailerNode`, `LimiterNode`, `TimeoutNode` | Thread-safe child ownership, lifecycle propagation, local policy state, and tick operations for one owned child node. |
 | `ActionNode`, `ConditionNode`, `WaitNode`, `DelayNode`, `CommandNode`, `MissionNode` | Thread-safe leaf lifecycle, local state, and tick operations. Command and mission nodes delegate concurrency to injected framework services. |
@@ -198,6 +199,15 @@ their own synchronization for state they capture outside the node.
 stores shared ownership of the injected `BehaviorTreeFactory` and immutable
 parser/validator values. Each load operation builds a new `BehaviorTree`; the
 returned tree owns its root and has the normal tree serialization guarantees.
+
+`BehaviorTreeRuntime` stores shared ownership of the injected scheduler,
+blackboard, resource manager, and node factory. Its submission methods mutate
+no local state and may be called concurrently. Each submitted tree is bound to
+the scheduler-owned execution context inside its worker callback. Different
+trees may run concurrently according to scheduler policy; one tree remains
+serialized by `BehaviorTree`. Optional resource conflicts are synchronized by
+`ResourceManager`, and scheduler stop requests wake tick waits through the
+shared cancellation framework.
 
 ## Registry
 

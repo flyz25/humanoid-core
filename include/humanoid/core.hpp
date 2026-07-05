@@ -14,6 +14,7 @@
 #include <humanoid/bt/BTStatus.h>
 #include <humanoid/bt/BehaviorTree.h>
 #include <humanoid/bt/BehaviorTreeFactory.h>
+#include <humanoid/bt/BehaviorTreeRuntime.h>
 #include <humanoid/bt/CommandNode.h>
 #include <humanoid/bt/CompositeNode.h>
 #include <humanoid/bt/ConditionNode.h>

@@ -11,6 +11,7 @@ on top of the execution runtime primitives added in Milestone 7.
 #include <humanoid/bt/BTContext.h>
 #include <humanoid/bt/BehaviorTree.h>
 #include <humanoid/bt/BehaviorTreeFactory.h>
+#include <humanoid/bt/BehaviorTreeRuntime.h>
 #include <humanoid/bt/CompositeNode.h>
 #include <humanoid/bt/SequenceNode.h>
 #include <humanoid/bt/SelectorNode.h>
@@ -48,6 +49,7 @@ BehaviorTree
   -> CommandNode -> core::CommandDispatcher
   -> MissionNode -> mission::MissionExecutor
   -> TreeLoader -> TreeParser / TreeValidator / BehaviorTreeFactory
+  -> BehaviorTreeRuntime -> runtime::RuntimeScheduler / runtime::ResourceManager
   -> BTContext
     -> runtime::ExecutionContext
     -> runtime::Blackboard
@@ -289,3 +291,39 @@ root:
 
 Parser and loader code is separate from `BehaviorTree`; the core tree lifecycle
 does not know about JSON, YAML, XML, files, or parser state.
+
+## Runtime Integration
+
+Milestone 8.6 adds `BehaviorTreeRuntime` and `BehaviorTreeJobOptions`.
+`BehaviorTreeRuntime` requires shared instances of:
+
+- `runtime::RuntimeScheduler`
+- `runtime::Blackboard`
+- `runtime::ResourceManager`
+- `BehaviorTreeFactory`
+
+`Submit(rootNodeType, options)` creates a root through the injected factory.
+`Submit(tree, options)` accepts an already constructed tree, including output
+from `TreeLoader`. Both overloads return the existing `RuntimeJobHandle` and do
+not create an additional scheduler or execution queue.
+
+The runtime callback binds the tree's `BTContext` to the scheduler-owned
+`ExecutionContext` through shared aliasing ownership and to the injected
+blackboard. Nonterminal ticks are separated by a positive steady-clock
+interval. Scheduler pause and stop remain cooperative. Stop requests propagate
+through the runtime cancellation token and wake an interval wait immediately.
+
+When `resourceId` is non-empty, the callback acquires a shared or exclusive
+`ResourceLock` before tree initialization. A zero resource timeout performs a
+nonblocking acquisition; a positive timeout uses the existing timed resource
+manager API. The move-only lock is released automatically on every terminal,
+failure, cancellation, or exception path.
+
+Tree status maps to runtime lifecycle as follows:
+
+| Behavior tree | Runtime |
+| --- | --- |
+| `Success` | `Completed` |
+| `Failure` | `Failed` |
+| `Aborted` | `Aborted` |
+| Scheduler cancellation | `Cancelled` |

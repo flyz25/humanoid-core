@@ -11,6 +11,7 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/bt/BTContext.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/BehaviorTree.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/BehaviorTreeFactory.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/BehaviorTreeRuntime.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/CommandNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/CompositeNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/ConditionNode.cpp

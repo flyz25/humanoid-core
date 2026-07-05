@@ -144,6 +144,13 @@ ExecutionContext& RuntimeJobContext::Execution() const {
   return control_->Execution();
 }
 
+std::shared_ptr<ExecutionContext> RuntimeJobContext::SharedExecution() const {
+  if (!control_) {
+    throw std::logic_error{"RuntimeJobContext is invalid"};
+  }
+  return std::shared_ptr<ExecutionContext>{control_, &control_->Execution()};
+}
+
 CancellationToken RuntimeJobContext::Cancellation() const noexcept {
   return control_ ? control_->Cancellation() : CancellationToken{};
 }
