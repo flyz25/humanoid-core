@@ -8,6 +8,11 @@
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/adapters/IRobotFactory.h>
 #include <humanoid/adapters/Result.h>
+#include <humanoid/bt/BTContext.h>
+#include <humanoid/bt/BTNode.h>
+#include <humanoid/bt/BTStatus.h>
+#include <humanoid/bt/BehaviorTree.h>
+#include <humanoid/bt/BehaviorTreeFactory.h>
 #include <humanoid/common/LifecycleState.hpp>
 #include <humanoid/common/Status.hpp>
 #include <humanoid/common/Version.hpp>

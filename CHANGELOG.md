@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- Milestone 8.1 Behavior Tree Core: added vendor-independent behavior tree
+  status, node, runtime context, tree lifecycle, node factory registration,
+  thread-safe lifecycle validation, and API documentation on top of the
+  execution runtime.
+
 ## [0.7.0-alpha] - 2026-07-05
 
 ### Added

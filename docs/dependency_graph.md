@@ -55,6 +55,14 @@ Future execution engines
   -> humanoid::runtime::RuntimeScheduler
   -> C++ standard library
 
+Behavior tree core
+  -> humanoid::bt::BehaviorTree
+  -> humanoid::bt::BTNode
+  -> humanoid::bt::BTContext
+  -> humanoid::runtime::ExecutionContext
+  -> humanoid::runtime::Blackboard
+  -> C++ standard library
+
 Robot state flow
   -> humanoid::core::RobotState
   -> humanoid::core::RobotStateManager
@@ -132,6 +140,10 @@ unitree_sdk2
   and future behavior-tree layers, but must not depend on those layers.
 - Runtime scheduler may depend on runtime context and cancellation primitives,
   and may execute injected callbacks only.
+- Behavior tree core may depend on execution runtime context and blackboard,
+  but must not depend on mission execution, command dispatch, robot adapters,
+  plugins, SDK wrappers, vendor SDKs, XML parsers, ROS2, planners, navigation,
+  or AI.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic
@@ -163,6 +175,8 @@ unitree_sdk2
 - Runtime scheduler depending on mission execution, behavior-tree
   implementation, command dispatch, robot adapters, plugins, SDK wrappers, or
   vendor SDKs.
+- Behavior tree core depending on mission execution, robot adapters, plugins,
+  SDK wrappers, vendor SDKs, XML parsers, ROS2, planners, navigation, or AI.
 - Core framework modules depending on concrete plugins.
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - SDK-free plugin skeletons including vendor SDK headers.

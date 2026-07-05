@@ -263,6 +263,26 @@ Milestone 7.7 releases the execution runtime foundation as `0.7.0-alpha`. The
 runtime layer remains a set of reusable primitives for future execution engines,
 not an execution policy engine itself.
 
+## Behavior Tree Core
+
+Milestone 8.1 adds a behavior tree execution boundary on top of the runtime
+foundation:
+
+```text
+BehaviorTree
+  -> BTNode
+  -> BTContext
+    -> ExecutionContext
+    -> Blackboard
+```
+
+The behavior tree core owns root-node lifecycle, serialized ticks, status
+mapping, and node factory registration. It does not implement mission
+execution, robot adapter logic, SDK communication, XML parsing, ROS2, planners,
+navigation, or AI. Behavior tree nodes receive runtime dependencies through
+`BTContext` and must keep robot/vendor integration behind existing adapter and
+command boundaries.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

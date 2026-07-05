@@ -273,6 +273,21 @@ adding mission, behavior-tree, ROS2, AI, planner, robot-adapter, or SDK
 dependencies to the runtime layer. The release validation record is in
 `docs/Milestone_7_Report.md`.
 
+Milestone 8.1 adds the vendor-independent behavior tree core:
+
+```text
+BehaviorTree
+  -> BTNode
+  -> BTContext
+    -> ExecutionContext
+    -> Blackboard
+```
+
+The behavior tree layer provides node contracts, lifecycle management, runtime
+context wiring, status handling, and node factory registration. It does not
+implement mission execution, robot adapters, SDK communication, XML parsing,
+planners, navigation, ROS2, or AI. See `docs/api/behavior_tree_core.md`.
+
 ## Directory Structure
 
 ```text
@@ -288,6 +303,7 @@ humanoid-core/
   examples/                  Buildable examples
   gesture/                   Gesture interfaces and manager
   include/humanoid/adapters/ Public robot adapter and factory contracts
+  include/humanoid/bt/       Public behavior tree core contracts
   include/humanoid/mission/ Public mission model contracts
   include/humanoid/runtime/ Public execution runtime contracts
   logging/                   Logging interfaces and routing manager
@@ -500,6 +516,7 @@ rejection, and file-extension dispatch.
 API-level documentation:
 
 - `docs/api/command_model.md`
+- `docs/api/behavior_tree_core.md`
 - `docs/api/blackboard.md`
 - `docs/api/cancellation.md`
 - `docs/api/execution_context.md`

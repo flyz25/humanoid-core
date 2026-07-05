@@ -19,6 +19,9 @@ humanoid-core skeleton.
 | `Blackboard` | Thread-safe namespaced store, exact-type lookup, replacement, removal, and clear operations. Returned immutable values have shared lifetime independent of map locks. |
 | `ResourceManager` | Thread-safe shared and exclusive logical resource acquisition, timed acquisition, non-blocking acquisition, handle release, active-count queries, and RAII release through `ResourceLock`. |
 | `RuntimeScheduler` | Thread-safe runtime job submission, priority queueing, parallel and sequential dispatch, cooperative pause/resume, cooperative stop, lifecycle snapshots, statistics, and idempotent shutdown. Job callbacks run outside scheduler locks. |
+| `BTContext` | Thread-safe replacement and retrieval of shared runtime execution context and blackboard dependencies. |
+| `BehaviorTree` | Thread-safe serialized lifecycle, tick, reset, shutdown, status, and root queries. Node callbacks execute under tree serialization. |
+| `BehaviorTreeFactory` | Thread-safe node creator registration, unregistration, lookup, enumeration, node creation, and tree creation. Creator callbacks run outside factory locks. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
@@ -152,6 +155,21 @@ state; running callbacks must call `RuntimeJobContext::WaitIfPaused()` or poll
 `IsPaused()` to suspend work. `Stop()` cancels queued jobs immediately and
 requests cancellation for running jobs. Shutdown rejects new work, cancels
 queued work, requests cancellation for running callbacks, and joins workers.
+
+## Behavior Trees
+
+`BTContext` protects dependency replacement with a shared mutex. Getters return
+copied `std::shared_ptr` handles, so node code never observes references to
+context internals.
+
+`BehaviorTree` serializes `Initialize()`, `Tick()`, `Reset()`, `Shutdown()`,
+status reads, and root reads with one mutex. Root node callbacks run under this
+serialization, so a single tree never ticks the same root concurrently. A node
+implementation remains responsible for synchronizing any shared state it owns
+outside the tree.
+
+`BehaviorTreeFactory` protects registered node creators with a shared mutex.
+Creator callbacks are copied under lock and invoked after lock release.
 
 ## Registry
 
