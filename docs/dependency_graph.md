@@ -43,9 +43,23 @@ humanoid::core
   -> humanoid::configuration
   -> humanoid::logging
   -> humanoid::adapter_interfaces
+  -> humanoid::perception value types, pipeline, inference, detection, and fusion
 
 humanoid::core::CoreContext
   -> injected RobotStateManager
+
+Perception framework
+  -> humanoid::perception::Sensor
+  -> humanoid::perception::SensorFactory
+  -> humanoid::perception::SensorManager
+  -> humanoid::perception::PerceptionPipeline
+  -> humanoid::perception::IPerceptionStage
+  -> humanoid::perception::IInferenceEngine
+  -> humanoid::perception::ModelManager
+  -> humanoid::perception::DetectionResult
+  -> humanoid::perception::FrameSynchronizer / ISensorFusion
+  -> humanoid::common::Status
+  -> C++ standard library
 
 Future execution engines
   -> humanoid::runtime::ExecutionContext
@@ -187,6 +201,12 @@ unitree_sdk2
 - Command dispatch may depend on the abstract robot adapter interface.
 - Command safety validation may depend only on generic command, capability, and
   robot state models.
+- Perception managers, pipelines, inference registries, detection values, and
+  fusion helpers may depend only on perception contracts, `common`, and the C++
+  standard library.
+- Perception applications and future perception services must receive concrete
+  sensors, pipeline stages, inference engines, and fusion engines through
+  dependency injection.
 - `common` depends only on the C++ standard library.
 
 ## Forbidden Dependencies
@@ -213,4 +233,8 @@ unitree_sdk2
 - SDK wrapper facades including vendor SDK headers directly.
 - Unitree SDK headers outside `plugins/unitree/sdk/*.cpp`.
 - Vendor SDK types in public interfaces.
+- Perception interfaces depending on OpenCV, PCL, ROS2, DDS, TensorRT, ONNX
+  Runtime, Torch, OpenVINO, Unitree SDK, or vendor sensor SDK headers.
+- Perception pipeline stages bypassing `IInferenceEngine`, `Sensor`, or
+  `ISensorFusion` boundaries when integrating replaceable backends.
 - Global singleton access as a framework dependency pattern.

@@ -538,6 +538,32 @@ contains no vendor discovery, driver loading, SDK communication, middleware
 transport, polling thread, robot behavior, mission, behavior tree, or planning
 logic.
 
+Milestone 10.3 completes perception with a vendor-independent pipeline,
+inference boundary, detection values, and sensor fusion abstractions:
+
+```text
+SensorManager
+  -> SensorFrame
+    -> PerceptionPipeline
+      -> IPerceptionStage
+        -> IInferenceEngine / ModelManager
+        -> DetectionResult
+        -> ISensorFusion / FrameSynchronizer
+```
+
+The perception pipeline is a dependency-injected stage graph. It validates
+stage dependencies, executes enabled stages in topological order, and carries
+frame, inference, detection, and metadata context between stages. It does not
+own sensors, trackers, inference backends, SDK clients, plugin loaders, or
+middleware transports.
+
+Inference backends are abstracted by `IInferenceEngine`; `ModelManager` owns
+engine and model metadata registration only. Detection results are plain value
+types for object, pose, face, QR, marker, semantic segmentation, and custom
+detections. Fusion contracts provide timestamp alignment and coordinate-frame
+metadata without SLAM, localization, ROS2 TF, OpenCV, PCL, TensorRT, ONNX
+Runtime, Torch, OpenVINO, Unitree SDK, or vendor sensor SDK dependencies.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

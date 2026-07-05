@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(
   humanoid-core
-  VERSION 0.9.0
+  VERSION 0.10.0
   DESCRIPTION "Clean architecture C++20 framework foundation for humanoid robotics"
   LANGUAGES CXX)
 
@@ -104,3 +104,12 @@ install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/humanoid_coreConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/humanoid_coreConfigVersion.cmake"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/humanoid_core)
+
+set(CPACK_PACKAGE_NAME "humanoid-core")
+set(CPACK_PACKAGE_VENDOR "humanoid-core")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${HUMANOID_CORE_SEMANTIC_VERSION}-${CMAKE_SYSTEM_NAME}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_GENERATOR "TGZ")
+include(CPack)

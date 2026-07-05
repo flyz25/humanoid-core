@@ -14,6 +14,13 @@ audio, IMU, radar, OpenCV, PCL, ROS2, Unitree, DDS, or vendor SDK integration.
 #include <humanoid/perception/SensorManager.h>
 #include <humanoid/perception/SensorState.h>
 #include <humanoid/perception/SensorType.h>
+#include <humanoid/perception/DetectionResult.h>
+#include <humanoid/perception/IInferenceEngine.h>
+#include <humanoid/perception/InferenceRequest.h>
+#include <humanoid/perception/InferenceResult.h>
+#include <humanoid/perception/ModelManager.h>
+#include <humanoid/perception/PerceptionPipeline.h>
+#include <humanoid/perception/SensorFusion.h>
 ```
 
 All types are in `humanoid::perception` and are also available through the
@@ -126,6 +133,77 @@ communication, polling thread creation, or vendor-specific synchronization. A
 future perception service may compose `SensorFactory`, `SensorManager`, and
 plugin-provided concrete sensors without changing the core perception API.
 
+## Perception Pipeline
+
+`PerceptionPipeline` provides a thread-safe configurable stage graph:
+
+```text
+Frame
+  -> Filter
+    -> Inference
+      -> Detection
+        -> Tracking
+          -> Output
+```
+
+Stages are injected through `IPerceptionStage`. The pipeline owns graph
+configuration, dependency validation, topological execution, per-pipeline
+execution serialization, and result collection. Stages own their own domain
+logic and may wrap framework services through dependency injection.
+
+The pipeline does not own sensors, inference engines, trackers, SDK clients,
+middleware transports, or plugin loaders.
+
+## Inference
+
+`IInferenceEngine` is the only inference backend boundary. Future engines may
+wrap TensorRT, ONNX Runtime, Torch, OpenVINO, Ollama, cloud APIs, or custom
+runtime code behind the same interface.
+
+`InferenceRequest` carries a model id, input frame, scalar parameters, and
+timestamp. `InferenceResult` carries a status, model id, named scalar/vector
+outputs, optional detections, and timestamp.
+
+`ModelManager` is a thread-safe registry for injected engines and model
+metadata. It validates model-to-engine relationships and dispatches requests to
+the registered engine. It performs no model parsing, filesystem loading,
+runtime compilation, network download, or backend initialization policy.
+
+## Detection
+
+`DetectionResult` provides generic output values for:
+
+- Object detection.
+- Pose detection.
+- Face detection.
+- QR detection.
+- Marker detection.
+- Semantic segmentation.
+- Custom detections.
+
+Each result contains an id, confidence, label, 2D bounding box, optional 3D
+position, timestamp, and optional tracking id. Detection results are value
+types and do not depend on image matrices, point clouds, middleware messages,
+or backend tensors.
+
+## Sensor Fusion
+
+`SensorFusion.h` provides:
+
+- `CoordinateFrame`
+- `CoordinateTransform`
+- `FrameSynchronizationPolicy`
+- `SynchronizedFrameSet`
+- `FusionRequest`
+- `FusionResult`
+- `ISensorFusion`
+- `FrameSynchronizer`
+
+`FrameSynchronizer` aligns frames by monotonic timestamp and required sensor
+types. `ISensorFusion` is a pure interface for future fusion implementations.
+This layer intentionally excludes SLAM, localization, ROS2 TF, map building,
+calibration estimation, and vendor coordinate systems.
+
 ## Dependency Boundary
 
 ```text
@@ -133,6 +211,10 @@ Application / future perception manager
   -> Sensor
   -> SensorFactory
   -> SensorManager
+  -> PerceptionPipeline
+  -> IInferenceEngine / ModelManager
+  -> DetectionResult
+  -> FrameSynchronizer / ISensorFusion
   -> SensorFrame / SensorCapabilities / SensorState
     -> humanoid::common::Status
 ```

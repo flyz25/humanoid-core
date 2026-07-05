@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.9.0-alpha`
+Current release: `0.10.0-alpha`
 
 ## Architecture
 
@@ -442,6 +442,24 @@ removal, health/state snapshots, per-sensor synchronized reads, manager
 timestamping, latest-frame storage, frame routing, and manager statistics. The
 manager remains vendor independent and owns no polling thread or SDK transport.
 
+Milestone 10.3 completes the Perception Framework:
+
+```text
+SensorManager
+  -> SensorFrame
+    -> PerceptionPipeline
+      -> Filter / Inference / Detection / Tracking / Output stages
+        -> IInferenceEngine / ModelManager
+        -> DetectionResult
+        -> FrameSynchronizer / ISensorFusion
+```
+
+The completed framework provides replaceable inference backends, generic
+detection values, timestamp-based frame synchronization, coordinate-frame
+metadata, and runnable perception examples without OpenCV, PCL, ROS2, TensorRT,
+ONNX Runtime, Torch, OpenVINO, Unitree SDK, or vendor sensor SDK dependencies.
+See `docs/Milestone_10_Report.md`.
+
 ## Directory Structure
 
 ```text
@@ -789,7 +807,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.9.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.10.0-alpha`.
 
 Release tags use:
 

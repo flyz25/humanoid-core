@@ -144,6 +144,31 @@ humanoid_core_add_example(
   planning_examples/main.cpp
   humanoid::humanoid_core)
 
+humanoid_core_add_example(
+  humanoid_core_perception_camera_example
+  perception_camera/main.cpp
+  humanoid::humanoid_core)
+
+humanoid_core_add_example(
+  humanoid_core_perception_detection_example
+  perception_detection/main.cpp
+  humanoid::humanoid_core)
+
+humanoid_core_add_example(
+  humanoid_core_perception_inference_example
+  perception_inference/main.cpp
+  humanoid::humanoid_core)
+
+humanoid_core_add_example(
+  humanoid_core_perception_pipeline_example
+  perception_pipeline/main.cpp
+  humanoid::humanoid_core)
+
+humanoid_core_add_example(
+  humanoid_core_perception_sensor_fusion_example
+  perception_sensor_fusion/main.cpp
+  humanoid::humanoid_core)
+
 install(
   FILES
     mission_execution/simple.yaml

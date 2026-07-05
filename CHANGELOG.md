@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.0-alpha] - 2026-07-06
+
 ### Added
 
 - Milestone 10.1 Sensor Abstraction Layer: added vendor-independent perception
@@ -19,6 +21,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   snapshots, serialized per-sensor frame reads, manager timestamping,
   latest-frame storage, frame routing callbacks, statistics, documentation, and
   concurrent-read validation.
+- Milestone 10.3 Perception Framework Release: added the perception pipeline
+  graph, inference abstraction, model manager, detection result framework,
+  sensor fusion interfaces, timestamp frame synchronizer, perception examples,
+  API documentation, architecture documentation, dependency graph updates, and
+  Milestone 10 release report.
 
 ## [0.9.0-alpha] - 2026-07-06
 
@@ -260,7 +267,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.9.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.10.0-alpha...HEAD
+[0.10.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.9.0-alpha...v0.10.0-alpha
 [0.9.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.8.0-alpha...v0.9.0-alpha
 [0.8.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.7.0-alpha...v0.8.0-alpha
 [0.7.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.6.0-alpha...v0.7.0-alpha

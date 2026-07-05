@@ -93,10 +93,17 @@
 #include <humanoid/network/Endpoint.hpp>
 #include <humanoid/network/NetworkManager.hpp>
 #include <humanoid/network/TransportProtocol.hpp>
+#include <humanoid/perception/DetectionResult.h>
+#include <humanoid/perception/IInferenceEngine.h>
+#include <humanoid/perception/InferenceRequest.h>
+#include <humanoid/perception/InferenceResult.h>
+#include <humanoid/perception/ModelManager.h>
+#include <humanoid/perception/PerceptionPipeline.h>
 #include <humanoid/perception/Sensor.h>
 #include <humanoid/perception/SensorCapabilities.h>
 #include <humanoid/perception/SensorFactory.h>
 #include <humanoid/perception/SensorFrame.h>
+#include <humanoid/perception/SensorFusion.h>
 #include <humanoid/perception/SensorManager.h>
 #include <humanoid/perception/SensorState.h>
 #include <humanoid/perception/SensorType.h>

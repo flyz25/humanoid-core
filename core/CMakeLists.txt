@@ -7,6 +7,9 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/core/CommandQueue.cpp
   ${PROJECT_SOURCE_DIR}/src/core/RobotStateManager.cpp
   ${PROJECT_SOURCE_DIR}/src/core/SafetyValidator.cpp
+  ${PROJECT_SOURCE_DIR}/src/perception/ModelManager.cpp
+  ${PROJECT_SOURCE_DIR}/src/perception/PerceptionPipeline.cpp
+  ${PROJECT_SOURCE_DIR}/src/perception/SensorFusion.cpp
   ${PROJECT_SOURCE_DIR}/src/perception/SensorManager.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/ActionNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/BTContext.cpp
