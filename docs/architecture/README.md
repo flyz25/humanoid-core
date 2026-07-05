@@ -136,6 +136,19 @@ instantiate adapters, include vendor SDK headers, or implement behavior trees,
 planners, navigation, AI, or application missions. See
 `docs/api/mission_model.md` for the public contract.
 
+Milestone 6.3 adds mission file loading:
+
+```text
+MissionLoader
+  -> MissionParser
+  -> MissionValidator
+  -> Mission
+```
+
+The loader converts JSON or YAML documents into the mission model before
+execution. `MissionExecutor` remains independent of YAML, JSON, files, and
+parser code.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

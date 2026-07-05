@@ -10,10 +10,13 @@ behavior tree, or vendor integration.
 ```cpp
 #include <humanoid/mission/Mission.h>
 #include <humanoid/mission/MissionExecutor.h>
+#include <humanoid/mission/MissionLoader.h>
 #include <humanoid/mission/MissionMetadata.h>
+#include <humanoid/mission/MissionParser.h>
 #include <humanoid/mission/MissionResult.h>
 #include <humanoid/mission/MissionStatus.h>
 #include <humanoid/mission/MissionStep.h>
+#include <humanoid/mission/MissionValidator.h>
 ```
 
 All types are in `humanoid::mission` and are also available through the
@@ -116,3 +119,54 @@ cancel it; active adapter work is allowed to finish.
 The executor owns no robot adapter, SDK client, parser, planner, behavior tree,
 or mission authoring state. It is dependency-injection friendly and has no
 singleton or global state.
+
+## Mission Loading
+
+Milestone 6.3 adds file-format conversion and schema validation:
+
+```text
+Mission file (.json/.yaml/.yml)
+  -> MissionLoader
+    -> MissionParser
+    -> MissionValidator
+      -> Mission
+```
+
+`MissionLoader` reads mission files, dispatches by extension, and validates the
+parsed mission before returning it. `MissionParser` supports the strict
+humanoid-core mission JSON schema and a deterministic YAML subset for the same
+schema. `MissionValidator` validates the in-memory mission model independently
+from file parsing.
+
+`MissionExecutor` does not include or depend on YAML, JSON, file I/O, or parser
+types. Applications load a mission first, then pass the returned `Mission` to
+the executor.
+
+Required mission document fields:
+
+- `id`
+- `name`
+- `description`
+- `version`
+- `author`
+- `steps`
+
+Required enabled step fields:
+
+- `id`
+- `name`
+- `command.id`
+- `command.type`
+
+Optional step and command fields:
+
+- `timeout_ms`
+- `retry`
+- `enabled`
+- `priority`
+- `payload`
+- `metadata`
+
+Unknown command names, invalid syntax, missing required fields, invalid scalar
+types, negative timeouts, and empty enabled-step sets are rejected before a
+mission reaches `MissionExecutor`.

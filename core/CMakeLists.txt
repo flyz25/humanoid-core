@@ -7,7 +7,10 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/core/CommandQueue.cpp
   ${PROJECT_SOURCE_DIR}/src/core/RobotStateManager.cpp
   ${PROJECT_SOURCE_DIR}/src/core/SafetyValidator.cpp
-  ${PROJECT_SOURCE_DIR}/src/mission/MissionExecutor.cpp)
+  ${PROJECT_SOURCE_DIR}/src/mission/MissionExecutor.cpp
+  ${PROJECT_SOURCE_DIR}/src/mission/MissionLoader.cpp
+  ${PROJECT_SOURCE_DIR}/src/mission/MissionParser.cpp
+  ${PROJECT_SOURCE_DIR}/src/mission/MissionValidator.cpp)
 
 add_library(humanoid::core ALIAS humanoid_core_core)
 set_target_properties(humanoid_core_core PROPERTIES EXPORT_NAME core)

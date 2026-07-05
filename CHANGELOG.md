@@ -16,6 +16,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   starts, pauses, resumes, cancels, stops, tracks current step state, executes
   mission steps through `CommandDispatcher`, and validates lifecycle behavior
   without robot hardware.
+- Milestone 6.3 Mission Loader: added dependency-injected mission loading,
+  strict JSON and YAML mission parsing, schema validation, unknown-command
+  rejection, file-extension dispatch, and hardware-free loader tests.
 
 ## [0.5.0-alpha] - 2026-07-04
 

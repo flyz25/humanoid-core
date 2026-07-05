@@ -54,6 +54,9 @@ Robot state flow
   -> subscriber callbacks
 
 Mission model flow
+  -> humanoid::mission::MissionLoader
+  -> humanoid::mission::MissionParser
+  -> humanoid::mission::MissionValidator
   -> humanoid::mission::MissionExecutor
   -> humanoid::mission::Mission
   -> humanoid::mission::MissionStep
@@ -113,6 +116,7 @@ unitree_sdk2
 - Mission models may depend on generic command value types.
 - Mission execution may depend on the command dispatcher component and must not
   call robot adapters directly.
+- Mission executors must not depend on YAML, JSON, files, or parser code.
 - Command execution lifecycle infrastructure may depend on generic commands,
   command results, logging interfaces, and injected executor callbacks.
 - Command dispatch may depend on the abstract robot adapter interface.

@@ -157,6 +157,19 @@ MissionExecutor
 The mission layer does not parse YAML, implement behavior trees, add planners,
 perform navigation, include SDK headers, or call robot adapters directly.
 
+Milestone 6.3 adds `MissionLoader`, `MissionParser`, and `MissionValidator`:
+
+```text
+Mission file (.json/.yaml/.yml)
+  -> MissionLoader
+    -> MissionParser
+    -> MissionValidator
+      -> Mission
+```
+
+The loader converts mission JSON or YAML into the mission model. `MissionExecutor`
+does not know about file formats and still receives only `Mission` objects.
+
 ## Directory Structure
 
 ```text
@@ -367,6 +380,10 @@ mission status names, terminal status detection, and mission results.
 The always-built `humanoid_core_mission_executor_unit_test` validates mission
 start, pause, resume, cancel, stop, current-step tracking, retry behavior, and
 step execution through `CommandDispatcher`.
+
+The always-built `humanoid_core_mission_loader_unit_test` validates JSON and
+YAML loading, invalid YAML rejection, missing required fields, unknown command
+rejection, and file-extension dispatch.
 
 API-level documentation:
 
