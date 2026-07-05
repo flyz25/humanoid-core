@@ -299,6 +299,11 @@ transform child status or local execution policy, observe cooperative
 cancellation, and remain independent of missions, adapters, plugins, SDKs,
 ROS2, planners, navigation, and AI.
 
+Milestone 8.4 adds reusable behavior tree leaf nodes: action, condition, wait,
+delay, command, and mission nodes. `CommandNode` executes only through
+`CommandDispatcher`, `MissionNode` executes only through `MissionExecutor`, and
+condition-oriented nodes inspect runtime state through `BTContext`.
+
 ## Directory Structure
 
 ```text

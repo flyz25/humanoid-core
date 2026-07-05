@@ -63,6 +63,9 @@ Behavior tree core
   -> humanoid::bt::DecoratorNode
   -> humanoid::bt::InverterNode / RepeatNode / RetryNode
   -> humanoid::bt::SucceederNode / FailerNode / LimiterNode / TimeoutNode
+  -> humanoid::bt::ActionNode / ConditionNode / WaitNode / DelayNode
+  -> humanoid::bt::CommandNode -> humanoid::core::CommandDispatcher
+  -> humanoid::bt::MissionNode -> humanoid::mission::MissionExecutor
   -> humanoid::bt::BTContext
   -> humanoid::runtime::ExecutionContext
   -> humanoid::runtime::Blackboard
@@ -156,6 +159,10 @@ unitree_sdk2
   status, and enforce local repeat, retry, limit, or timeout policy; they must
   not perform robot, mission, parser, adapter, plugin, SDK, ROS2, planner,
   navigation, or AI work.
+- Behavior tree leaf nodes may use injected callbacks, runtime context,
+  `CommandDispatcher`, or `MissionExecutor`; they must not call robot adapters,
+  plugins, SDK wrappers, vendor SDKs, XML parsers, ROS2, planners, navigation,
+  or AI directly.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic

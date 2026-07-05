@@ -24,6 +24,7 @@ humanoid-core skeleton.
 | `BehaviorTreeFactory` | Thread-safe node creator registration, unregistration, lookup, enumeration, node creation, and tree creation. Creator callbacks run outside factory locks. |
 | `CompositeNode`, `SequenceNode`, `SelectorNode`, `ParallelNode` | Thread-safe child ownership, lifecycle propagation, traversal state, and tick operations. Parallel node ticks different child nodes concurrently while serializing access to its own child collection. |
 | `DecoratorNode`, `InverterNode`, `RepeatNode`, `RetryNode`, `SucceederNode`, `FailerNode`, `LimiterNode`, `TimeoutNode` | Thread-safe child ownership, lifecycle propagation, local policy state, and tick operations for one owned child node. |
+| `ActionNode`, `ConditionNode`, `WaitNode`, `DelayNode`, `CommandNode`, `MissionNode` | Thread-safe leaf lifecycle, local state, and tick operations. Command and mission nodes delegate concurrency to injected framework services. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
@@ -184,6 +185,13 @@ mutex. Concrete decorators use the same lock for local policy state such as
 repeat counts, retry attempts, tick limits, and timeout start times. Decorators
 tick only their owned child and do not share mutable child ownership with other
 nodes.
+
+Leaf nodes protect callback handles, local timers, command futures, mission
+start state, and terminal status with per-node mutexes. `CommandNode` submits
+work through `CommandDispatcher::ExecuteAsync()` and polls without blocking.
+`MissionNode` starts work through `MissionExecutor` and polls executor status.
+Injected callbacks in `ActionNode`, `ConditionNode`, and `WaitNode` must provide
+their own synchronization for state they capture outside the node.
 
 ## Registry
 

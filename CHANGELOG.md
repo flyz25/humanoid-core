@@ -20,6 +20,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 8.3 Decorator Nodes: added vendor-independent inverter, repeat,
   retry, succeeder, failer, limiter, and timeout behavior tree decorators with
   retry, timeout, loop, limit, cancellation, and documentation coverage.
+- Milestone 8.4 Action & Condition Nodes: added reusable behavior tree leaf
+  nodes for injected actions, runtime-context conditions, wait predicates,
+  timed delays, command dispatch through `CommandDispatcher`, and mission
+  execution through `MissionExecutor`, with hardware-free validation coverage.
 
 ## [0.7.0-alpha] - 2026-07-05
 

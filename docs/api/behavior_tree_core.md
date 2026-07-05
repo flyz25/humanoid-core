@@ -23,6 +23,12 @@ on top of the execution runtime primitives added in Milestone 7.
 #include <humanoid/bt/FailerNode.h>
 #include <humanoid/bt/LimiterNode.h>
 #include <humanoid/bt/TimeoutNode.h>
+#include <humanoid/bt/ActionNode.h>
+#include <humanoid/bt/ConditionNode.h>
+#include <humanoid/bt/WaitNode.h>
+#include <humanoid/bt/DelayNode.h>
+#include <humanoid/bt/CommandNode.h>
+#include <humanoid/bt/MissionNode.h>
 ```
 
 All behavior tree types are in `humanoid::bt`. The headers are also available
@@ -35,6 +41,9 @@ BehaviorTree
   -> BTNode
   -> CompositeNode
   -> DecoratorNode
+  -> ActionNode / ConditionNode / WaitNode / DelayNode
+  -> CommandNode -> core::CommandDispatcher
+  -> MissionNode -> mission::MissionExecutor
   -> BTContext
     -> runtime::ExecutionContext
     -> runtime::Blackboard
@@ -178,3 +187,41 @@ blocking child call; cancellation remains cooperative through `BTContext`.
 
 All decorator nodes are vendor-independent and contain no mission, command,
 adapter, plugin, SDK, XML parser, ROS2, planner, navigation, or AI logic.
+
+## Leaf Nodes
+
+Milestone 8.4 adds reusable leaf nodes:
+
+- `ActionNode`
+- `ConditionNode`
+- `WaitNode`
+- `DelayNode`
+- `CommandNode`
+- `MissionNode`
+
+`ActionNode` executes an injected `ActionCallback` and returns the callback's
+`BTStatus`. Callback exceptions are contained and reported as `Failure`.
+
+`ConditionNode` evaluates an injected `ConditionPredicate` against `BTContext`.
+It returns `Success` when the predicate is true and `Failure` when false.
+
+`WaitNode` evaluates the same predicate style but returns `Running` while the
+predicate is false and `Success` once it becomes true.
+
+`DelayNode` uses `std::chrono::steady_clock` and returns `Running` until the
+configured duration elapses. It does not sleep inside `Tick()` and therefore
+does not busy-wait or block the tree.
+
+`CommandNode` submits a generic `core::Command` through an injected
+`core::CommandDispatcher` using `ExecuteAsync()`. It polls the returned future
+with zero timeout on subsequent ticks. Completed commands map to `Success`,
+cancelled commands map to `Aborted`, and failed, rejected, or timed-out
+commands map to `Failure`.
+
+`MissionNode` starts a mission through an injected `mission::MissionExecutor`
+and polls executor status on later ticks. Completed missions map to `Success`,
+cancelled missions map to `Aborted`, and failed missions map to `Failure`.
+
+All leaf nodes check cooperative cancellation through `BTContext`. They do not
+instantiate robot adapters, call vendor SDKs, parse mission files, load plugins,
+or bypass command and mission framework boundaries.

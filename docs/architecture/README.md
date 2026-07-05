@@ -309,6 +309,26 @@ Decorator nodes transform child status or local execution policy only. They do
 not issue commands, evaluate missions, instantiate adapters, load plugins,
 include SDK wrappers, or depend on vendor SDKs.
 
+Milestone 8.4 adds reusable leaf nodes under the behavior tree boundary:
+
+```text
+ActionNode / ConditionNode / WaitNode / DelayNode
+  -> BTContext
+
+CommandNode
+  -> CommandDispatcher
+  -> Command Framework
+
+MissionNode
+  -> MissionExecutor
+  -> Mission Framework
+```
+
+Leaf nodes execute through existing framework services only. `CommandNode` does
+not call adapters directly, and `MissionNode` does not bypass the mission
+executor or command framework. Condition-oriented nodes inspect runtime state
+through `BTContext`.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:
