@@ -124,7 +124,17 @@ void TestLoadJsonFlowControl() {
       "timeout_policy": {
         "timeout_ms": 10,
         "abort_on_timeout": true
-      }
+      },
+      "conditions": [
+        {
+          "id": 1,
+          "name": "Battery available",
+          "type": "BatteryLevel",
+          "comparison": "GreaterThanOrEqual",
+          "value": 20,
+          "on_failure": "Abort"
+        }
+      ]
     },
     {
       "id": 2,
@@ -152,6 +162,7 @@ void TestLoadJsonFlowControl() {
 
   Check(result.Succeeded(), "Valid JSON flow-control mission did not load");
   Check(result.mission.steps.front().wait.has_value(), "JSON wait step was not parsed");
+  Check(result.mission.steps.front().conditions.size() == 1U, "JSON condition was not parsed");
   Check(result.mission.steps.back().loopPolicy.iterations == 2U, "JSON loop policy was not parsed");
   Check(result.mission.steps.back().retryPolicy.maxAttempts == 2U,
         "JSON retry policy was not parsed");
@@ -185,6 +196,12 @@ steps:
   - id: 2
     name: Skip
     skip: true
+    conditions:
+      - id: 1
+        name: Connected
+        type: Connection
+        value: true
+        on_failure: Skip
   - id: 3
     name: Abort
     abort: true
@@ -196,6 +213,7 @@ steps:
   Check(result.Succeeded(), "Valid YAML flow-control mission did not load");
   Check(result.mission.steps.front().delay.has_value(), "YAML delay step was not parsed");
   Check(result.mission.steps[1U].skip, "YAML skip step was not parsed");
+  Check(result.mission.steps[1U].conditions.size() == 1U, "YAML condition was not parsed");
   Check(result.mission.steps[2U].abort, "YAML abort step was not parsed");
 }
 

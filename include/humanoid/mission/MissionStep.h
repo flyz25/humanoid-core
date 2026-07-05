@@ -9,10 +9,12 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <humanoid/core/Command.h>
 #include <humanoid/mission/DelayStep.h>
 #include <humanoid/mission/LoopPolicy.h>
+#include <humanoid/mission/MissionCondition.h>
 #include <humanoid/mission/MissionMetadata.h>
 #include <humanoid/mission/RetryPolicy.h>
 #include <humanoid/mission/TimeoutPolicy.h>
@@ -119,6 +121,14 @@ struct MissionStep final {
   bool abort{false};
 
   /**
+   * @brief Conditions that must pass before this step executes.
+   *
+   * Conditions are evaluated against generic robot state and injected generic
+   * capability metadata. They never call robot adapters or vendor SDKs.
+   */
+  std::vector<MissionCondition> conditions;
+
+  /**
    * @brief Indicates whether this step is eligible for execution.
    */
   bool enabled{true};
@@ -151,6 +161,11 @@ struct MissionStep final {
     }
     if (delay.has_value() && !delay->isValid()) {
       return false;
+    }
+    for (const MissionCondition& condition : conditions) {
+      if (!condition.isValid()) {
+        return false;
+      }
     }
     if (skip || abort || wait.has_value() || delay.has_value()) {
       return true;

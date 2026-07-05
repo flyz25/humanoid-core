@@ -19,6 +19,8 @@ class CommandDispatcher;
 
 namespace humanoid::mission {
 
+class ConditionEvaluator;
+
 /**
  * @brief Zero-based index of a mission step in a mission's ordered step list.
  */
@@ -48,6 +50,19 @@ public:
    * @param dispatcher Shared command dispatcher used for step execution.
    */
   explicit MissionExecutor(std::shared_ptr<core::CommandDispatcher> dispatcher);
+
+  /**
+   * @brief Constructs an executor with command dispatch and condition evaluation.
+   *
+   * Conditions are evaluated through the injected evaluator before a step
+   * executes. A null evaluator is accepted; steps that declare conditions fail
+   * closed when no evaluator is available.
+   *
+   * @param dispatcher Shared command dispatcher used for step execution.
+   * @param condition_evaluator Shared evaluator used for mission conditions.
+   */
+  MissionExecutor(std::shared_ptr<core::CommandDispatcher> dispatcher,
+                  std::shared_ptr<ConditionEvaluator> condition_evaluator);
 
   /**
    * @brief Stops active work and destroys executor resources.

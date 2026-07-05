@@ -185,6 +185,20 @@ Flow-control steps can wait, delay, retry, loop, timeout, skip, or abort mission
 execution without adding robot-specific logic or SDK dependencies. Command
 steps still execute only through the existing command framework.
 
+Milestone 6.5 adds mission events and conditions:
+
+```text
+MissionStep
+  -> MissionCondition
+  -> ConditionEvaluator
+    -> RobotStateManager
+```
+
+Conditions let mission execution react to battery level, connection state,
+generic robot motion state, command capabilities, fault codes, and emergency
+stop state. Runtime state is read only through `RobotStateManager`; no adapter,
+plugin, SDK wrapper, or vendor SDK is called from the condition layer.
+
 ## Directory Structure
 
 ```text

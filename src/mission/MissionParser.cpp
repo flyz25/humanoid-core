@@ -123,6 +123,68 @@ struct JsonValue final {
   return std::nullopt;
 }
 
+[[nodiscard]] std::optional<MissionConditionType> ConditionTypeFromString(std::string_view value) {
+  if (value == "BatteryLevel") {
+    return MissionConditionType::BatteryLevel;
+  }
+  if (value == "Connection") {
+    return MissionConditionType::Connection;
+  }
+  if (value == "RobotStanding") {
+    return MissionConditionType::RobotStanding;
+  }
+  if (value == "RobotWalking") {
+    return MissionConditionType::RobotWalking;
+  }
+  if (value == "RobotSitting") {
+    return MissionConditionType::RobotSitting;
+  }
+  if (value == "Capability") {
+    return MissionConditionType::Capability;
+  }
+  if (value == "FaultCode") {
+    return MissionConditionType::FaultCode;
+  }
+  if (value == "EmergencyStop") {
+    return MissionConditionType::EmergencyStop;
+  }
+  return std::nullopt;
+}
+
+[[nodiscard]] std::optional<MissionConditionComparison>
+ConditionComparisonFromString(std::string_view value) {
+  if (value == "Equal") {
+    return MissionConditionComparison::Equal;
+  }
+  if (value == "NotEqual") {
+    return MissionConditionComparison::NotEqual;
+  }
+  if (value == "LessThan") {
+    return MissionConditionComparison::LessThan;
+  }
+  if (value == "LessThanOrEqual") {
+    return MissionConditionComparison::LessThanOrEqual;
+  }
+  if (value == "GreaterThan") {
+    return MissionConditionComparison::GreaterThan;
+  }
+  if (value == "GreaterThanOrEqual") {
+    return MissionConditionComparison::GreaterThanOrEqual;
+  }
+  return std::nullopt;
+}
+
+[[nodiscard]] std::optional<MissionConditionFailureAction>
+FailureActionFromString(std::string_view value) {
+  if (value == "Skip") {
+    return MissionConditionFailureAction::Skip;
+  }
+  if (value == "Abort") {
+    return MissionConditionFailureAction::Abort;
+  }
+  return std::nullopt;
+}
+
 [[nodiscard]] std::uint64_t ParseUint64(std::string_view text, std::string_view field_name) {
   const std::string trimmed = Trim(text);
   std::uint64_t value = 0U;
@@ -554,6 +616,64 @@ private:
   return policy;
 }
 
+[[nodiscard]] MissionCondition ConditionFromJson(const JsonValue& value) {
+  const JsonValue::Object& object = AsObject(value, "condition");
+  MissionCondition condition;
+  condition.id = JsonUint64(Required(object, "id"), "condition.id");
+  condition.name = JsonString(Required(object, "name"), "condition.name");
+
+  const std::string type_name = JsonString(Required(object, "type"), "condition.type");
+  const std::optional<MissionConditionType> type = ConditionTypeFromString(type_name);
+  if (!type.has_value()) {
+    throw ParseError{"Unknown condition type: " + type_name};
+  }
+  condition.type = *type;
+
+  if (const JsonValue* comparison = Optional(object, "comparison")) {
+    const std::string comparison_name = JsonString(*comparison, "condition.comparison");
+    const std::optional<MissionConditionComparison> condition_comparison =
+        ConditionComparisonFromString(comparison_name);
+    if (!condition_comparison.has_value()) {
+      throw ParseError{"Unknown condition comparison: " + comparison_name};
+    }
+    condition.comparison = *condition_comparison;
+  }
+  if (const JsonValue* value_field = Optional(object, "value")) {
+    if (std::holds_alternative<double>(value_field->storage)) {
+      condition.numericValue = static_cast<float>(std::get<double>(value_field->storage));
+    } else if (std::holds_alternative<bool>(value_field->storage)) {
+      condition.boolValue = std::get<bool>(value_field->storage);
+    } else {
+      throw ParseError{"condition.value must be numeric or boolean"};
+    }
+  }
+  if (const JsonValue* fault_code = Optional(object, "fault_code")) {
+    condition.faultCode = static_cast<std::int32_t>(JsonInt64(*fault_code, "condition.fault_code"));
+  }
+  if (const JsonValue* command_type = Optional(object, "command_type")) {
+    const std::string command_type_name = JsonString(*command_type, "condition.command_type");
+    const std::optional<core::CommandType> command_type_value =
+        CommandTypeFromString(command_type_name);
+    if (!command_type_value.has_value()) {
+      throw ParseError{"Unknown condition command_type: " + command_type_name};
+    }
+    condition.commandType = *command_type_value;
+  }
+  if (const JsonValue* on_failure = Optional(object, "on_failure")) {
+    const std::string action_name = JsonString(*on_failure, "condition.on_failure");
+    const std::optional<MissionConditionFailureAction> action =
+        FailureActionFromString(action_name);
+    if (!action.has_value()) {
+      throw ParseError{"Unknown condition on_failure action: " + action_name};
+    }
+    condition.failureAction = *action;
+  }
+  if (const JsonValue* metadata = Optional(object, "metadata")) {
+    condition.metadata = MetadataFromJson(*metadata, "condition.metadata");
+  }
+  return condition;
+}
+
 [[nodiscard]] MissionStep StepFromJson(const JsonValue& value) {
   const JsonValue::Object& object = AsObject(value, "step");
   MissionStep step;
@@ -593,6 +713,11 @@ private:
   }
   if (const JsonValue* abort = Optional(object, "abort")) {
     step.abort = JsonBool(*abort, "step.abort");
+  }
+  if (const JsonValue* conditions = Optional(object, "conditions")) {
+    for (const JsonValue& condition_value : AsArray(*conditions, "step.conditions")) {
+      step.conditions.push_back(ConditionFromJson(condition_value));
+    }
   }
   if (const JsonValue* enabled = Optional(object, "enabled")) {
     step.enabled = JsonBool(*enabled, "step.enabled");
@@ -994,6 +1119,123 @@ void ParseYamlDelayStep(const std::vector<YamlLine>& lines, std::size_t& index,
   }
 }
 
+void ApplyYamlConditionField(MissionCondition& condition, std::string_view key,
+                             std::string_view value, std::size_t line_number) {
+  if (key == "id") {
+    condition.id = ParseUint64(value, "condition.id");
+  } else if (key == "name") {
+    condition.name = YamlScalar(value);
+  } else if (key == "type") {
+    const std::string type = YamlScalar(value);
+    const std::optional<MissionConditionType> condition_type = ConditionTypeFromString(type);
+    if (!condition_type.has_value()) {
+      throw ParseError{"Unknown condition type at YAML line " + std::to_string(line_number) + ": " +
+                       type};
+    }
+    condition.type = *condition_type;
+  } else if (key == "comparison") {
+    const std::string comparison = YamlScalar(value);
+    const std::optional<MissionConditionComparison> condition_comparison =
+        ConditionComparisonFromString(comparison);
+    if (!condition_comparison.has_value()) {
+      throw ParseError{"Unknown condition comparison at YAML line " + std::to_string(line_number) +
+                       ": " + comparison};
+    }
+    condition.comparison = *condition_comparison;
+  } else if (key == "value") {
+    const std::string scalar = YamlScalar(value);
+    if (scalar == "true" || scalar == "false") {
+      condition.boolValue = YamlBool(value, "condition.value");
+    } else {
+      condition.numericValue = static_cast<float>(ParseDouble(value, "condition.value"));
+    }
+  } else if (key == "fault_code") {
+    condition.faultCode = static_cast<std::int32_t>(ParseInt64(value, "condition.fault_code"));
+  } else if (key == "command_type") {
+    const std::string command_type = YamlScalar(value);
+    const std::optional<core::CommandType> command_type_value = CommandTypeFromString(command_type);
+    if (!command_type_value.has_value()) {
+      throw ParseError{"Unknown condition command_type at YAML line " +
+                       std::to_string(line_number) + ": " + command_type};
+    }
+    condition.commandType = *command_type_value;
+  } else if (key == "on_failure") {
+    const std::string action = YamlScalar(value);
+    const std::optional<MissionConditionFailureAction> failure_action =
+        FailureActionFromString(action);
+    if (!failure_action.has_value()) {
+      throw ParseError{"Unknown condition on_failure action at YAML line " +
+                       std::to_string(line_number) + ": " + action};
+    }
+    condition.failureAction = *failure_action;
+  } else {
+    throw ParseError{"Unknown condition field at YAML line " + std::to_string(line_number) + ": " +
+                     std::string{key}};
+  }
+}
+
+[[nodiscard]] MissionCondition ParseYamlCondition(const std::vector<YamlLine>& lines,
+                                                  std::size_t& index, std::size_t expected_indent,
+                                                  std::size_t base_indent) {
+  MissionCondition condition;
+  YamlLine first_line = lines[index];
+  std::string first_content = first_line.content.substr(2U);
+  ++index;
+  if (!Trim(first_content).empty()) {
+    const auto [key, value] =
+        SplitYamlKeyValue(YamlLine{first_line.indent, Trim(first_content), first_line.number});
+    if (value.empty()) {
+      throw ParseError{"YAML condition sequence entry requires a scalar first field"};
+    }
+    ApplyYamlConditionField(condition, key, value, first_line.number);
+  }
+
+  while (index < lines.size()) {
+    const std::size_t indent = LogicalIndent(lines[index], base_indent);
+    if (indent < expected_indent ||
+        (indent == expected_indent && lines[index].content.rfind("- ", 0U) == 0U)) {
+      return condition;
+    }
+    if (indent != expected_indent + 2U) {
+      throw ParseError{"Unexpected YAML condition indentation at line " +
+                       std::to_string(lines[index].number)};
+    }
+
+    const auto [key, value] = SplitYamlKeyValue(lines[index]);
+    ++index;
+    if (key == "metadata") {
+      if (!value.empty()) {
+        throw ParseError{"condition.metadata must be a nested mapping"};
+      }
+      ParseYamlStringMap(lines, index, expected_indent + 4U, base_indent, condition.metadata);
+    } else {
+      if (value.empty()) {
+        throw ParseError{"Condition field requires a scalar value at YAML line " +
+                         std::to_string(lines[index - 1U].number)};
+      }
+      ApplyYamlConditionField(condition, key, value, lines[index - 1U].number);
+    }
+  }
+
+  return condition;
+}
+
+void ParseYamlConditions(const std::vector<YamlLine>& lines, std::size_t& index,
+                         std::size_t expected_indent, std::size_t base_indent,
+                         std::vector<MissionCondition>& conditions) {
+  while (index < lines.size()) {
+    const std::size_t indent = LogicalIndent(lines[index], base_indent);
+    if (indent < expected_indent) {
+      return;
+    }
+    if (indent != expected_indent || lines[index].content.rfind("- ", 0U) != 0U) {
+      throw ParseError{"Expected YAML condition sequence entry at line " +
+                       std::to_string(lines[index].number)};
+    }
+    conditions.push_back(ParseYamlCondition(lines, index, expected_indent, base_indent));
+  }
+}
+
 void ApplyYamlStepField(MissionStep& step, std::string_view key, std::string_view value,
                         std::size_t line_number) {
   if (key == "id") {
@@ -1077,6 +1319,11 @@ void ApplyYamlStepField(MissionStep& step, std::string_view key, std::string_vie
       DelayStep delay;
       ParseYamlDelayStep(lines, index, 6U, base_indent, delay);
       step.delay = delay;
+    } else if (key == "conditions") {
+      if (!value.empty()) {
+        throw ParseError{"step.conditions must be a nested sequence"};
+      }
+      ParseYamlConditions(lines, index, 6U, base_indent, step.conditions);
     } else if (key == "metadata") {
       if (!value.empty()) {
         throw ParseError{"step.metadata must be a nested mapping"};

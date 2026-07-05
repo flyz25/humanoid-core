@@ -16,6 +16,8 @@
 
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/RobotStateManager.hpp>
+#include <humanoid/mission/ConditionEvaluator.h>
 #include <humanoid/mission/MissionExecutor.h>
 
 namespace {
@@ -178,6 +180,17 @@ struct ExecutorFixture final {
   std::shared_ptr<humanoid::core::CommandDispatcher> dispatcher{
       std::make_shared<humanoid::core::CommandDispatcher>(adapter)};
   humanoid::mission::MissionExecutor executor{dispatcher};
+};
+
+struct ConditionExecutorFixture final {
+  std::shared_ptr<MockRobotAdapter> adapter{std::make_shared<MockRobotAdapter>()};
+  std::shared_ptr<humanoid::core::CommandDispatcher> dispatcher{
+      std::make_shared<humanoid::core::CommandDispatcher>(adapter)};
+  std::shared_ptr<humanoid::core::RobotStateManager> state_manager{
+      std::make_shared<humanoid::core::RobotStateManager>()};
+  std::shared_ptr<humanoid::mission::ConditionEvaluator> condition_evaluator{
+      std::make_shared<humanoid::mission::ConditionEvaluator>(state_manager)};
+  humanoid::mission::MissionExecutor executor{dispatcher, condition_evaluator};
 };
 
 void TestExecuteStepUsesCommandDispatcher() {
@@ -346,6 +359,76 @@ void TestSkipAndAbortStepsDoNotDispatchCommands() {
   Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
 }
 
+[[nodiscard]] humanoid::mission::MissionCondition
+ConnectedCondition(humanoid::mission::MissionConditionFailureAction failure_action) {
+  humanoid::mission::MissionCondition condition;
+  condition.id = 1U;
+  condition.name = "Connected";
+  condition.type = humanoid::mission::MissionConditionType::Connection;
+  condition.boolValue = true;
+  condition.failureAction = failure_action;
+  return condition;
+}
+
+void TestConditionTrueExecutesStep() {
+  ConditionExecutorFixture fixture;
+  humanoid::core::RobotState state;
+  state.connection.connected = true;
+  fixture.state_manager->UpdateState(state);
+
+  humanoid::mission::MissionStep step =
+      MakeStep(1U, MakeCommand(1U, humanoid::core::CommandType::Stop));
+  step.conditions.push_back(
+      ConnectedCondition(humanoid::mission::MissionConditionFailureAction::Abort));
+
+  const humanoid::mission::MissionResult result = fixture.executor.ExecuteStep(step);
+
+  Check(result.isSuccess(), "Condition-satisfied step did not execute");
+  Check(fixture.adapter->Actions() == std::vector<std::string>({"Stop"}),
+        "Condition-satisfied step did not dispatch command");
+  Check(fixture.executor.Stop().isSuccess(), "Executor stop failed");
+  Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
+}
+
+void TestConditionFalseSkipsStep() {
+  ConditionExecutorFixture fixture;
+  humanoid::core::RobotState state;
+  state.connection.connected = false;
+  fixture.state_manager->UpdateState(state);
+
+  humanoid::mission::MissionStep step =
+      MakeStep(1U, MakeCommand(1U, humanoid::core::CommandType::Stop));
+  step.conditions.push_back(
+      ConnectedCondition(humanoid::mission::MissionConditionFailureAction::Skip));
+
+  const humanoid::mission::MissionResult result = fixture.executor.ExecuteStep(step);
+
+  Check(result.isSuccess(), "Condition-failed skip step did not complete");
+  Check(fixture.adapter->Actions().empty(), "Condition-failed skip step dispatched command");
+  Check(fixture.executor.Stop().isSuccess(), "Executor stop failed");
+  Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
+}
+
+void TestConditionFalseAbortsStep() {
+  ConditionExecutorFixture fixture;
+  humanoid::core::RobotState state;
+  state.connection.connected = false;
+  fixture.state_manager->UpdateState(state);
+
+  humanoid::mission::MissionStep step =
+      MakeStep(1U, MakeCommand(1U, humanoid::core::CommandType::Stop));
+  step.conditions.push_back(
+      ConnectedCondition(humanoid::mission::MissionConditionFailureAction::Abort));
+
+  const humanoid::mission::MissionResult result = fixture.executor.ExecuteStep(step);
+
+  Check(result.status == humanoid::mission::MissionStatus::Failed,
+        "Condition-failed abort step did not fail");
+  Check(fixture.adapter->Actions().empty(), "Condition-failed abort step dispatched command");
+  Check(fixture.executor.Stop().isSuccess(), "Executor stop failed");
+  Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
+}
+
 } // namespace
 
 int main() {
@@ -359,6 +442,9 @@ int main() {
     TestLoopPolicyRepeatsStep();
     TestWaitStepTimeoutFailsMission();
     TestSkipAndAbortStepsDoNotDispatchCommands();
+    TestConditionTrueExecutesStep();
+    TestConditionFalseSkipsStep();
+    TestConditionFalseAbortsStep();
   } catch (...) {
     return 1;
   }

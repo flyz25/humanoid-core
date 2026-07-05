@@ -12,6 +12,7 @@
 
 #include <humanoid/core/CommandDispatcher.h>
 #include <humanoid/core/CommandResult.h>
+#include <humanoid/mission/ConditionEvaluator.h>
 
 namespace humanoid::mission {
 namespace {
@@ -88,8 +89,9 @@ namespace {
 
 class MissionExecutor::Impl final {
 public:
-  explicit Impl(std::shared_ptr<core::CommandDispatcher> dispatcher)
-      : dispatcher_(std::move(dispatcher)) {}
+  Impl(std::shared_ptr<core::CommandDispatcher> dispatcher,
+       std::shared_ptr<ConditionEvaluator> condition_evaluator)
+      : dispatcher_(std::move(dispatcher)), condition_evaluator_(std::move(condition_evaluator)) {}
 
   ~Impl() noexcept {
     try {
@@ -357,6 +359,14 @@ private:
       return Result(MissionStatus::Failed, "Mission step requested abort");
     }
 
+    const MissionResult condition_result = EvaluateStepConditions(step);
+    if (!condition_result.isSuccess()) {
+      return condition_result;
+    }
+    if (condition_result.message == "Mission step skipped by condition") {
+      return condition_result;
+    }
+
     MissionResult result = Result(MissionStatus::Completed, "Mission step completed");
     for (LoopIterationCount iteration = 0U; iteration < step.loopPolicy.iterations; ++iteration) {
       if (CancellationRequested()) {
@@ -374,6 +384,32 @@ private:
     }
 
     return result;
+  }
+
+  [[nodiscard]] MissionResult EvaluateStepConditions(const MissionStep& step) const {
+    if (step.conditions.empty()) {
+      return Result(MissionStatus::Completed, "Mission step conditions satisfied");
+    }
+    if (!condition_evaluator_) {
+      return Result(MissionStatus::Failed, "Mission condition evaluator is unavailable");
+    }
+
+    for (const MissionCondition& condition : step.conditions) {
+      const ConditionEvaluationResult evaluation = condition_evaluator_->Evaluate(condition);
+      if (evaluation.Succeeded()) {
+        continue;
+      }
+
+      if (condition.failureAction == MissionConditionFailureAction::Skip) {
+        return Result(MissionStatus::Completed, "Mission step skipped by condition");
+      }
+      if (evaluation.evaluated) {
+        return Result(MissionStatus::Failed, "Mission condition failed");
+      }
+      return Result(MissionStatus::Failed, evaluation.event.message);
+    }
+
+    return Result(MissionStatus::Completed, "Mission step conditions satisfied");
   }
 
   [[nodiscard]] MissionResult ExecuteStepWithRetryPolicy(const MissionStep& step) {
@@ -479,6 +515,7 @@ private:
   }
 
   std::shared_ptr<core::CommandDispatcher> dispatcher_;
+  std::shared_ptr<ConditionEvaluator> condition_evaluator_;
   mutable std::mutex state_mutex_;
   std::mutex control_mutex_;
   std::condition_variable condition_;
@@ -494,7 +531,11 @@ private:
 };
 
 MissionExecutor::MissionExecutor(std::shared_ptr<core::CommandDispatcher> dispatcher)
-    : impl_(std::make_unique<Impl>(std::move(dispatcher))) {}
+    : impl_(std::make_unique<Impl>(std::move(dispatcher), nullptr)) {}
+
+MissionExecutor::MissionExecutor(std::shared_ptr<core::CommandDispatcher> dispatcher,
+                                 std::shared_ptr<ConditionEvaluator> condition_evaluator)
+    : impl_(std::make_unique<Impl>(std::move(dispatcher), std::move(condition_evaluator))) {}
 
 MissionExecutor::~MissionExecutor() noexcept = default;
 

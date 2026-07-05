@@ -18,6 +18,7 @@ humanoid-core skeleton.
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
 | `CommandDispatcher` | Thread-safe synchronous execution, asynchronous queueing, queued-command cancellation, and idempotent shutdown. Adapter calls are serialized. |
+| `ConditionEvaluator` | Thread-safe capability context updates and condition reads. Robot state is copied from `RobotStateManager` before evaluation. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
 | `SdkWrapper` | Thread-safe public methods through internal serialization of Unitree SDK2 access. The read-only heartbeat worker shares the same mutex and invokes state callbacks outside the SDK lock. |
 | `LocoAdapter`, `HandAdapter`, `AudioAdapter` | Thread-safe public methods through per-adapter mutexes around owned Unitree SDK2 clients. |
@@ -75,6 +76,11 @@ lifecycle to `CommandQueue`. `Cancel()` removes only queued work; running calls
 require the adapter to return.
 `Shutdown()` rejects new work, cancels queued work, and waits for synchronous
 and asynchronous calls already in progress.
+
+`ConditionEvaluator` reads state only by copying a `RobotState` snapshot from
+the injected `RobotStateManager`. Capability context updates are protected by an
+internal mutex. The evaluator does not call adapters, plugins, SDK wrappers, or
+vendor SDKs.
 
 `TelemetryService` owns a `std::jthread` while running and sleeps on a condition
 variable between state samples. `Stop()` requests cooperative cancellation and

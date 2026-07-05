@@ -39,9 +39,12 @@
 #include <humanoid/logging/LogSink.hpp>
 #include <humanoid/logging/Logger.hpp>
 #include <humanoid/logging/LoggerManager.hpp>
+#include <humanoid/mission/ConditionEvaluator.h>
 #include <humanoid/mission/DelayStep.h>
 #include <humanoid/mission/LoopPolicy.h>
 #include <humanoid/mission/Mission.h>
+#include <humanoid/mission/MissionCondition.h>
+#include <humanoid/mission/MissionEvent.h>
 #include <humanoid/mission/MissionExecutor.h>
 #include <humanoid/mission/MissionLoader.h>
 #include <humanoid/mission/MissionMetadata.h>

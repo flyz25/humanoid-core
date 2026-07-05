@@ -23,6 +23,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   loop, timeout, skip, and abort mission flow-control types; integrated them
   into mission validation, parsing, and executor behavior with nested retry,
   loop, timeout, skip, and abort tests.
+- Milestone 6.5 Events and Conditions: added mission conditions, mission
+  events, and a RobotStateManager-backed condition evaluator for battery,
+  connection, robot state, capability, fault, and emergency-stop checks;
+  integrated condition skip/abort behavior into mission execution and mission
+  document parsing with hardware-free tests.
 
 ## [0.5.0-alpha] - 2026-07-04
 

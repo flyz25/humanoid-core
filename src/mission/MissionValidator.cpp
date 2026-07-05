@@ -48,6 +48,87 @@ namespace {
   return false;
 }
 
+[[nodiscard]] bool IsKnown(MissionConditionType type) noexcept {
+  switch (type) {
+  case MissionConditionType::BatteryLevel:
+  case MissionConditionType::Connection:
+  case MissionConditionType::RobotStanding:
+  case MissionConditionType::RobotWalking:
+  case MissionConditionType::RobotSitting:
+  case MissionConditionType::Capability:
+  case MissionConditionType::FaultCode:
+  case MissionConditionType::EmergencyStop:
+    return true;
+  }
+
+  return false;
+}
+
+[[nodiscard]] bool IsKnown(MissionConditionComparison comparison) noexcept {
+  switch (comparison) {
+  case MissionConditionComparison::Equal:
+  case MissionConditionComparison::NotEqual:
+  case MissionConditionComparison::LessThan:
+  case MissionConditionComparison::LessThanOrEqual:
+  case MissionConditionComparison::GreaterThan:
+  case MissionConditionComparison::GreaterThanOrEqual:
+    return true;
+  }
+
+  return false;
+}
+
+[[nodiscard]] bool IsKnown(MissionConditionFailureAction action) noexcept {
+  switch (action) {
+  case MissionConditionFailureAction::Skip:
+  case MissionConditionFailureAction::Abort:
+    return true;
+  }
+
+  return false;
+}
+
+[[nodiscard]] bool IsBooleanComparison(MissionConditionComparison comparison) noexcept {
+  return comparison == MissionConditionComparison::Equal ||
+         comparison == MissionConditionComparison::NotEqual;
+}
+
+[[nodiscard]] MissionValidationResult ValidateCondition(const MissionCondition& condition,
+                                                        std::size_t step_index,
+                                                        std::size_t condition_index) {
+  const std::string prefix = "Mission step " + std::to_string(step_index) + " condition " +
+                             std::to_string(condition_index) + ": ";
+  if (condition.id == 0U) {
+    return Invalid(prefix + "id must be nonzero");
+  }
+  if (condition.name.empty()) {
+    return Invalid(prefix + "name is required");
+  }
+  if (!IsKnown(condition.type)) {
+    return Invalid(prefix + "type is unknown");
+  }
+  if (!IsKnown(condition.comparison)) {
+    return Invalid(prefix + "comparison is unknown");
+  }
+  if (!IsKnown(condition.failureAction)) {
+    return Invalid(prefix + "on_failure is unknown");
+  }
+  if ((condition.type == MissionConditionType::Connection ||
+       condition.type == MissionConditionType::RobotStanding ||
+       condition.type == MissionConditionType::RobotWalking ||
+       condition.type == MissionConditionType::RobotSitting ||
+       condition.type == MissionConditionType::Capability ||
+       condition.type == MissionConditionType::EmergencyStop) &&
+      !IsBooleanComparison(condition.comparison)) {
+    return Invalid(prefix + "boolean condition requires Equal or NotEqual comparison");
+  }
+  if (condition.type == MissionConditionType::Capability && !IsKnown(condition.commandType)) {
+    return Invalid(prefix + "capability command_type is unknown");
+  }
+
+  return Valid();
+}
+
 [[nodiscard]] MissionValidationResult ValidateStep(const MissionStep& step,
                                                    std::size_t step_index) {
   const std::string prefix = "Mission step " + std::to_string(step_index) + ": ";
@@ -77,6 +158,13 @@ namespace {
   }
   if (step.delay.has_value() && !step.delay->isValid()) {
     return Invalid(prefix + "delay.duration_ms must not be negative");
+  }
+  for (std::size_t index = 0U; index < step.conditions.size(); ++index) {
+    const MissionValidationResult condition_result =
+        ValidateCondition(step.conditions[index], step_index, index);
+    if (!condition_result.Succeeded()) {
+      return condition_result;
+    }
   }
   if (step.skip || step.abort || step.wait.has_value() || step.delay.has_value()) {
     return Valid();

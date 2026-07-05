@@ -4,15 +4,18 @@ Milestone 6.1 defines the vendor-independent mission value model. Milestone 6.2
 adds a thread-safe executor that runs mission steps through the existing command
 framework. Milestone 6.3 adds strict JSON/YAML loading. Milestone 6.4 adds
 flow-control policies for wait, delay, retry, loop, timeout, skip, and abort.
-This API does not add a robot adapter, planner, behavior tree, or vendor
-integration.
+Milestone 6.5 adds robot-state conditions and mission condition events. This
+API does not add a robot adapter, planner, behavior tree, or vendor integration.
 
 ## Public Headers
 
 ```cpp
+#include <humanoid/mission/ConditionEvaluator.h>
 #include <humanoid/mission/DelayStep.h>
 #include <humanoid/mission/LoopPolicy.h>
 #include <humanoid/mission/Mission.h>
+#include <humanoid/mission/MissionCondition.h>
+#include <humanoid/mission/MissionEvent.h>
 #include <humanoid/mission/MissionExecutor.h>
 #include <humanoid/mission/MissionLoader.h>
 #include <humanoid/mission/MissionMetadata.h>
@@ -57,6 +60,7 @@ workflows and do not block mission validity.
 - A retry count.
 - A `RetryPolicy`, `LoopPolicy`, and `TimeoutPolicy`.
 - Optional `WaitStep` or `DelayStep` flow-control behavior.
+- Optional `MissionCondition` values evaluated before step execution.
 - Skip and abort flags.
 - An enabled flag.
 - Step metadata.
@@ -83,6 +87,37 @@ The mission executor applies flow control without bypassing the command
 framework. Command steps still execute through `CommandDispatcher`; wait, delay,
 skip, and abort steps do not call robot adapters and contain no SDK or robot
 logic.
+
+## Events and Conditions
+
+Milestone 6.5 adds condition-aware mission execution:
+
+```text
+MissionStep
+  -> MissionCondition
+  -> ConditionEvaluator
+    -> RobotStateManager
+```
+
+`MissionCondition` supports:
+
+- Battery level.
+- Connection state.
+- Standing, walking, and sitting robot state flags.
+- Generic command capability checks.
+- Fault code checks.
+- Emergency-stop checks.
+
+`ConditionEvaluator` reads runtime robot state only through the injected
+`humanoid::core::RobotStateManager`. Capability conditions use an injected
+generic `CommandCapabilitySet`; the evaluator never calls robot adapters,
+plugins, SDK wrappers, or vendor SDKs.
+
+Each condition failure can request `Skip` or `Abort`. The executor evaluates
+step conditions before command dispatch or flow-control execution. Skip failures
+complete the step without dispatching a command. Abort failures fail the step
+and stop mission execution. `MissionEvent` records condition satisfied, failed,
+and unavailable outcomes for diagnostics and tests.
 
 ## Status and Result
 
@@ -147,6 +182,10 @@ Loop policy wraps retry policy: each loop iteration executes the step with its
 own retry attempts. Timeout policy is applied to command timeout selection and
 to wait/delay flow-control steps.
 
+When constructed with a `ConditionEvaluator`, the executor evaluates each
+step's conditions before loop/retry execution starts. The original dispatcher
+constructor remains available for missions that do not use conditions.
+
 The executor owns no robot adapter, SDK client, parser, planner, behavior tree,
 or mission authoring state. It is dependency-injection friendly and has no
 singleton or global state.
@@ -199,6 +238,7 @@ Optional step and command fields:
 - `delay`
 - `skip`
 - `abort`
+- `conditions`
 - `enabled`
 - `priority`
 - `payload`

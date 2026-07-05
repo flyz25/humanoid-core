@@ -85,6 +85,7 @@ void TestMissionStepDefaults() {
   assert(!step.delay.has_value());
   assert(!step.skip);
   assert(!step.abort);
+  assert(step.conditions.empty());
   assert(step.enabled);
   assert(step.metadata.empty());
   assert(!step.isValid());
@@ -131,6 +132,14 @@ void TestFlowControlStepValidity() {
   abort_step.timeoutPolicy = humanoid::mission::TimeoutPolicy{std::chrono::milliseconds{10}};
   assert(abort_step.isValid());
   assert(abort_step.hasEffectiveTimeout());
+
+  humanoid::mission::MissionCondition condition;
+  condition.id = 12U;
+  condition.name = "Connected";
+  condition.type = humanoid::mission::MissionConditionType::Connection;
+  condition.boolValue = true;
+  assert(condition.isValid());
+  assert(std::string{humanoid::mission::toString(condition.type)} == "Connection");
 }
 
 void TestMissionDefaults() {
