@@ -94,6 +94,31 @@ humanoid_core_add_example(
   mission_execution/main.cpp
   humanoid::humanoid_core)
 
+humanoid_core_add_example(
+  humanoid_core_runtime_execution_context_example
+  runtime_execution_context/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_runtime_blackboard_example
+  runtime_blackboard/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_runtime_resource_manager_example
+  runtime_resource_manager/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_runtime_cancellation_example
+  runtime_cancellation/main.cpp
+  humanoid::core)
+
+humanoid_core_add_example(
+  humanoid_core_runtime_scheduler_example
+  runtime_scheduler/main.cpp
+  humanoid::core)
+
 install(
   FILES
     mission_execution/simple.yaml

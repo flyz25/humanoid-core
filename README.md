@@ -261,6 +261,11 @@ parallel and sequential dispatch, lifecycle snapshots, cooperative pause/resume,
 and cooperative stop through runtime cancellation. See
 `docs/api/runtime_scheduler.md`.
 
+Milestone 7.6 adds runnable runtime integration examples for
+`ExecutionContext`, `Blackboard`, `ResourceManager`, `CancellationSource`, and
+`RuntimeScheduler`. The examples are hardware-free and link only against the
+vendor-independent core runtime. See `docs/api/runtime_examples.md`.
+
 ## Directory Structure
 
 ```text

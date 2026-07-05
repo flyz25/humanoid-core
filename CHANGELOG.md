@@ -28,6 +28,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   scheduling with bounded priority/FIFO queueing, parallel and sequential
   dispatch, cooperative pause/resume, cooperative stop, lifecycle snapshots,
   scheduler statistics, concurrent submission coverage, and API documentation.
+- Milestone 7.6 Runtime Integration Examples: added runnable hardware-free
+  examples for `ExecutionContext`, `Blackboard`, `ResourceManager`,
+  `CancellationSource`, and `RuntimeScheduler`, plus example documentation.
 
 ## [0.6.0-alpha] - 2026-07-05
 
