@@ -30,6 +30,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   optional fallback planning, plan validation, diagnostics, optional logging,
   metrics, optional behavior tree runtime handoff, and hardware-free validation
   coverage without provider implementations or SDK dependencies.
+- Milestone 9.6 Planning Examples: added runnable hardware-free examples for
+  Greeting, Flag Ceremony, Inspection, and Stage Demo scenarios that create
+  goals, produce missions and behavior trees through the planning pipeline, and
+  execute generated trees through the existing runtime.
 
 ## [0.8.0-alpha] - 2026-07-05
 

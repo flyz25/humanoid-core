@@ -139,6 +139,11 @@ humanoid_core_add_example(
   bt_patrol/main.cpp
   humanoid::core)
 
+humanoid_core_add_example(
+  humanoid_core_planning_examples
+  planning_examples/main.cpp
+  humanoid::humanoid_core)
+
 install(
   FILES
     mission_execution/simple.yaml

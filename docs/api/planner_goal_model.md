@@ -206,3 +206,25 @@ not implement a provider, HTTP transport, LLM client, robot adapter, robot SDK,
 mission executor, runtime scheduler, behavior tree node factory, or concrete
 planning policy. Those dependencies remain behind their existing interfaces and
 are supplied by the application composition root.
+
+## Planning Examples
+
+Milestone 9.6 adds the `humanoid_core_planning_examples` application under
+`examples/planning_examples`. It demonstrates the pipeline as application-layer
+composition:
+
+```text
+Goal
+  -> PlanningPipeline
+    -> RuleBasedPlanner
+      -> Mission
+      -> BehaviorTree
+    -> BehaviorTreeRuntime
+      -> RuntimeScheduler
+```
+
+The example scenarios are Greeting, Flag Ceremony, Inspection, and Stage Demo.
+They are intentionally hardware-free and use deterministic rules only. The
+examples do not add provider SDKs, HTTP clients, robot SDKs, robot hardware
+communication, motion execution, mission-engine bypasses, or application
+business logic to the planner module.

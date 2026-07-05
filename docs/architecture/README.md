@@ -474,6 +474,22 @@ existing behavior tree runtime. It contains no provider implementation, no
 HTTP client, no robot SDK, no adapter, no mission executor, no scheduler
 implementation, and no application mission policy.
 
+Milestone 9.6 keeps planning examples at the application composition boundary:
+
+```text
+Planning example application
+  -> Goal
+  -> PlanningPipeline
+    -> RuleBasedPlanner
+    -> BehaviorTreeRuntime
+```
+
+The examples demonstrate Greeting, Flag Ceremony, Inspection, and Stage Demo
+flows by printing generated missions and executing generated behavior trees
+through the existing runtime. They do not introduce planner architecture
+changes, provider implementations, SDK dependencies, robot hardware access, or
+new execution engines.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

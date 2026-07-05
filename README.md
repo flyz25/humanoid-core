@@ -408,6 +408,13 @@ owned behavior tree to `BehaviorTreeRuntime`. It does not implement an LLM
 provider, HTTP client, robot adapter, SDK call, mission executor, scheduler, or
 business policy.
 
+Milestone 9.6 adds runnable planning examples for Greeting, Flag Ceremony,
+Inspection, and Stage Demo scenarios. The examples create goals, run them
+through `PlanningPipeline` and `RuleBasedPlanner`, print the generated mission
+steps, submit the generated behavior trees to `BehaviorTreeRuntime`, and report
+execution results without provider implementations, SDK calls, or robot
+hardware.
+
 ## Directory Structure
 
 ```text

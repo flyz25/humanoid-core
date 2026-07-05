@@ -57,3 +57,28 @@ All robot commands use a process-local `IRobotAdapter` implementation and pass
 through `CommandDispatcher`. Mission execution passes through
 `MissionExecutor`, and every tree executes through `BehaviorTreeRuntime` and
 the shared runtime services. No vendor SDK or robot hardware is required.
+
+## Planning Examples
+
+Milestone 9.6 adds hardware-free planning pipeline examples:
+
+- `greeting`: plans the goal "Wave to audience" into a mission and behavior tree.
+- `flag-ceremony`: plans a high-priority ceremony routine.
+- `inspection`: plans an inspection sequence with movement and stop commands.
+- `stage-demo`: plans a stage presentation routine.
+
+Run all examples or one named scenario from the build directory:
+
+```bash
+./examples/humanoid_core_planning_examples
+./examples/humanoid_core_planning_examples greeting
+./examples/humanoid_core_planning_examples flag-ceremony
+./examples/humanoid_core_planning_examples inspection
+./examples/humanoid_core_planning_examples stage-demo
+```
+
+Each scenario creates a `Goal`, executes it through `PlanningPipeline` and
+`RuleBasedPlanner`, prints the generated `Mission`, submits the generated
+`BehaviorTree` through `BehaviorTreeRuntime`, and reports the runtime result.
+The examples contain no provider SDK, HTTP client, robot SDK, robot hardware
+dependency, mission-engine bypass, or application-specific adapter logic.
