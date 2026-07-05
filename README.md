@@ -373,6 +373,20 @@ normal rule matches. The planner generates framework-owned mission and behavior
 tree artifacts only; it does not execute robot commands, call adapters, invoke
 SDKs, or use AI/LLM services.
 
+Milestone 9.4 adds an abstract LLM provider boundary for future AI-assisted
+planning:
+
+```text
+Future AI planner or application composition root
+  -> ILLMProvider
+    -> LLMRequest / LLMResponse / LLMCapabilities
+```
+
+The abstraction names provider families such as OpenAI, Anthropic, Gemini,
+Ollama, local models, and custom providers for selection metadata only. It does
+not add provider SDKs, HTTP transport, credentials, or concrete provider
+implementations. See `docs/api/llm_provider.md`.
+
 ## Directory Structure
 
 ```text
@@ -388,6 +402,7 @@ humanoid-core/
   examples/                  Buildable examples
   gesture/                   Gesture interfaces and manager
   include/humanoid/adapters/ Public robot adapter and factory contracts
+  include/humanoid/ai/       Public LLM provider abstraction contracts
   include/humanoid/bt/       Public behavior tree core contracts
   include/humanoid/mission/ Public mission model contracts
   include/humanoid/planner/ Public goal and planning request/result contracts
@@ -577,6 +592,10 @@ deterministic rule matching, goal-priority selection, fallback behavior, plan
 validation, cancellation, behavior tree tickability, and planner factory
 integration without robot hardware or AI services.
 
+The always-built `humanoid_core_llm_provider_interface_unit_test` validates
+provider-neutral LLM requests, responses, capabilities, cancellation, and
+dependency injection through `ILLMProvider` without provider SDKs or HTTP.
+
 The always-built `humanoid_core_execution_context_unit_test` validates runtime
 identity, scope and state values, timestamps, current-step tracking, metadata
 replacement, cancellation token propagation, snapshots, and concurrent access.
@@ -621,6 +640,7 @@ API-level documentation:
 - `docs/api/blackboard.md`
 - `docs/api/cancellation.md`
 - `docs/api/execution_context.md`
+- `docs/api/llm_provider.md`
 - `docs/api/mission_model.md`
 - `docs/api/planner_goal_model.md`
 - `docs/api/plugin_integration.md`

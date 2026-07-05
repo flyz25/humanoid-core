@@ -21,6 +21,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   mission/behavior-tree output generation, cancellation handling, factory
   integration, documentation, and validation coverage without AI or LLM
   dependencies.
+- Milestone 9.4 LLM Provider Interface: added provider-neutral LLM request,
+  response, capabilities, and pure abstract provider contracts for future
+  OpenAI, Anthropic, Gemini, Ollama, local, and custom adapters without provider
+  SDKs, HTTP implementation, or concrete providers.
 
 ## [0.8.0-alpha] - 2026-07-05
 

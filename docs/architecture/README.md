@@ -432,6 +432,24 @@ and produces mission plus behavior tree artifacts. It does not execute those
 artifacts, call `MissionExecutor`, call `BehaviorTreeRuntime`, invoke command
 dispatch, instantiate adapters, include SDK headers, or use AI/LLM services.
 
+Milestone 9.4 adds an abstract LLM provider boundary for future AI-assisted
+planning:
+
+```text
+Future AI planner or application composition root
+  -> ILLMProvider
+    -> LLMRequest
+    -> LLMResponse
+    -> LLMCapabilities
+```
+
+The provider abstraction identifies OpenAI, Anthropic, Gemini, Ollama, local
+models, and custom providers as metadata only. It does not include provider
+SDKs, HTTP clients, credential storage, concrete providers, prompt orchestration,
+planner execution, robot adapters, or robot SDKs. Future provider adapters must
+remain outside this abstraction boundary and be injected through
+`ILLMProvider`.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

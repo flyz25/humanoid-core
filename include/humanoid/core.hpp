@@ -8,6 +8,10 @@
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/adapters/IRobotFactory.h>
 #include <humanoid/adapters/Result.h>
+#include <humanoid/ai/ILLMProvider.h>
+#include <humanoid/ai/LLMCapabilities.h>
+#include <humanoid/ai/LLMRequest.h>
+#include <humanoid/ai/LLMResponse.h>
 #include <humanoid/bt/ActionNode.h>
 #include <humanoid/bt/BTContext.h>
 #include <humanoid/bt/BTNode.h>
