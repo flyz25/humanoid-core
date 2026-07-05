@@ -247,3 +247,20 @@ Optional step and command fields:
 Unknown command names, invalid syntax, missing required fields, invalid scalar
 types, negative timeouts, and empty enabled-step sets are rejected before a
 mission reaches `MissionExecutor`.
+
+## Runnable Examples
+
+The `humanoid_core_mission_execution_example` executable demonstrates file
+loading and mission lifecycle control without robot hardware. It accepts a
+mission path followed by one of `execute`, `pause-resume`, or `cancel`.
+
+The source tree provides three validated documents:
+
+- `examples/mission_execution/simple.yaml` for normal execution.
+- `examples/mission_execution/demo.yaml` for pause and resume.
+- `examples/mission_execution/flag_ceremony.yaml` for cancellation.
+
+The executable uses a process-local example adapter only at the application
+composition boundary. Mission commands still pass through `CommandDispatcher`;
+the mission and command layers remain independent of concrete adapters and
+vendor SDKs.

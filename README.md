@@ -199,6 +199,23 @@ generic robot motion state, command capabilities, fault codes, and emergency
 stop state. Runtime state is read only through `RobotStateManager`; no adapter,
 plugin, SDK wrapper, or vendor SDK is called from the condition layer.
 
+Milestone 6.6 provides runnable, hardware-free mission examples in
+`examples/mission_execution/`. Build the project, then run:
+
+```bash
+./build/examples/humanoid_core_mission_execution_example \
+  examples/mission_execution/simple.yaml execute
+./build/examples/humanoid_core_mission_execution_example \
+  examples/mission_execution/demo.yaml pause-resume
+./build/examples/humanoid_core_mission_execution_example \
+  examples/mission_execution/flag_ceremony.yaml cancel
+```
+
+Each command loads and validates YAML before composing `MissionExecutor` with
+`CommandDispatcher`. The process-local example adapter performs no SDK or robot
+communication. Replace it at the application composition boundary to execute a
+mission against a supported robot adapter.
+
 ## Directory Structure
 
 ```text

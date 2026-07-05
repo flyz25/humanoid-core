@@ -28,6 +28,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   connection, robot state, capability, fault, and emergency-stop checks;
   integrated condition skip/abort behavior into mission execution and mission
   document parsing with hardware-free tests.
+- Milestone 6.6 Examples: added runnable YAML mission examples for normal
+  execution, pause/resume, and cancellation through `MissionLoader`,
+  `MissionExecutor`, `CommandDispatcher`, and a process-local example adapter.
 
 ## [0.5.0-alpha] - 2026-07-04
 

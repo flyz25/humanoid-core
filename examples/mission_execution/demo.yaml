@@ -1,0 +1,35 @@
+mission:
+  id: 6602
+  name: Pause and resume mission
+  description: Demonstrate mission pause and resume around generic commands
+  version: 1.0.0
+  author: humanoid-core
+  metadata:
+    example: pause-resume
+  steps:
+    - id: 1
+      name: Preparation window
+      wait:
+        duration_ms: 250
+    - id: 2
+      name: Stand
+      command:
+        id: 660201
+        type: Stand
+        priority: Normal
+    - id: 3
+      name: Move forward
+      command:
+        id: 660202
+        type: Move
+        priority: Normal
+        payload:
+          linear_x: 0.1
+          linear_y: 0.0
+          angular_z: 0.0
+    - id: 4
+      name: Stop
+      command:
+        id: 660203
+        type: Stop
+        priority: High

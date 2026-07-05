@@ -1,0 +1,30 @@
+mission:
+  id: 6603
+  name: Flag ceremony sequence
+  description: A cancellable timing sequence with no vendor-specific commands
+  version: 1.0.0
+  author: humanoid-core
+  metadata:
+    example: cancellation
+    safety: no-physical-hardware
+  steps:
+    - id: 1
+      name: Ceremony preparation
+      wait:
+        duration_ms: 500
+    - id: 2
+      name: Stand at attention
+      command:
+        id: 660301
+        type: Stand
+        priority: High
+    - id: 3
+      name: Observance interval
+      wait:
+        duration_ms: 500
+    - id: 4
+      name: Stop
+      command:
+        id: 660302
+        type: Stop
+        priority: Critical

@@ -1,0 +1,25 @@
+mission:
+  id: 6601
+  name: Simple mission
+  description: Stand safely and stop through the generic command framework
+  version: 1.0.0
+  author: humanoid-core
+  metadata:
+    example: simple
+  steps:
+    - id: 1
+      name: Stand
+      command:
+        id: 660101
+        type: Stand
+        priority: Normal
+    - id: 2
+      name: Stabilization delay
+      delay:
+        duration_ms: 50
+    - id: 3
+      name: Stop
+      command:
+        id: 660102
+        type: Stop
+        priority: High

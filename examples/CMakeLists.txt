@@ -89,6 +89,18 @@ humanoid_core_add_example(
   capability_validation/main.cpp
   humanoid::core)
 
+humanoid_core_add_example(
+  humanoid_core_mission_execution_example
+  mission_execution/main.cpp
+  humanoid::humanoid_core)
+
+install(
+  FILES
+    mission_execution/simple.yaml
+    mission_execution/demo.yaml
+    mission_execution/flag_ceremony.yaml
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/examples/missions)
+
 if(TARGET humanoid::unitree_sdk_abstraction)
   humanoid_core_add_example(
     humanoid_core_unitree_sdk_boundary_example
