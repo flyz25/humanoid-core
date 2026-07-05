@@ -2,12 +2,16 @@
 
 Milestone 6.1 defines the vendor-independent mission value model. Milestone 6.2
 adds a thread-safe executor that runs mission steps through the existing command
-framework. This API does not add a scheduler, parser, robot adapter, planner,
-behavior tree, or vendor integration.
+framework. Milestone 6.3 adds strict JSON/YAML loading. Milestone 6.4 adds
+flow-control policies for wait, delay, retry, loop, timeout, skip, and abort.
+This API does not add a robot adapter, planner, behavior tree, or vendor
+integration.
 
 ## Public Headers
 
 ```cpp
+#include <humanoid/mission/DelayStep.h>
+#include <humanoid/mission/LoopPolicy.h>
 #include <humanoid/mission/Mission.h>
 #include <humanoid/mission/MissionExecutor.h>
 #include <humanoid/mission/MissionLoader.h>
@@ -17,6 +21,9 @@ behavior tree, or vendor integration.
 #include <humanoid/mission/MissionStatus.h>
 #include <humanoid/mission/MissionStep.h>
 #include <humanoid/mission/MissionValidator.h>
+#include <humanoid/mission/RetryPolicy.h>
+#include <humanoid/mission/TimeoutPolicy.h>
+#include <humanoid/mission/WaitStep.h>
 ```
 
 All types are in `humanoid::mission` and are also available through the
@@ -48,14 +55,34 @@ workflows and do not block mission validity.
 - A vendor-independent `humanoid::core::Command`.
 - A `std::chrono::milliseconds` timeout.
 - A retry count.
+- A `RetryPolicy`, `LoopPolicy`, and `TimeoutPolicy`.
+- Optional `WaitStep` or `DelayStep` flow-control behavior.
+- Skip and abort flags.
 - An enabled flag.
 - Step metadata.
 
-`MissionStep::isValid()` requires a nonzero step ID, a valid embedded command,
-and a nonnegative timeout. A zero timeout disables step timeout policy.
+`MissionStep::isValid()` requires a nonzero step ID, valid flow-control
+policies, and nonnegative timeout values. Command steps require a valid embedded
+command. Wait, delay, skip, and abort steps do not require a command because
+they do not dispatch robot commands. A zero timeout disables timeout policy.
 
-Retry policy is declarative only in Milestone 6.1. No retry execution behavior
-is implemented by the mission model.
+The legacy `retry` field remains supported. New mission authors should prefer
+`RetryPolicy::maxAttempts`, which includes the initial attempt.
+
+## Flow Control
+
+Milestone 6.4 adds vendor-independent flow-control value types:
+
+- `WaitStep`: deterministic duration-based wait before continuing.
+- `DelayStep`: deterministic duration-based delay between steps.
+- `RetryPolicy`: total attempts, retry delay, and retry conditions.
+- `LoopPolicy`: total number of times to execute a step.
+- `TimeoutPolicy`: step timeout and abort-on-timeout behavior.
+
+The mission executor applies flow control without bypassing the command
+framework. Command steps still execute through `CommandDispatcher`; wait, delay,
+skip, and abort steps do not call robot adapters and contain no SDK or robot
+logic.
 
 ## Status and Result
 
@@ -116,6 +143,10 @@ dispatcher because the command and adapter contracts do not expose cooperative
 interruption. Queued dispatcher work is cancelled when the dispatcher can still
 cancel it; active adapter work is allowed to finish.
 
+Loop policy wraps retry policy: each loop iteration executes the step with its
+own retry attempts. Timeout policy is applied to command timeout selection and
+to wait/delay flow-control steps.
+
 The executor owns no robot adapter, SDK client, parser, planner, behavior tree,
 or mission authoring state. It is dependency-injection friendly and has no
 singleton or global state.
@@ -155,13 +186,19 @@ Required enabled step fields:
 
 - `id`
 - `name`
-- `command.id`
-- `command.type`
+- `command.id` and `command.type` for command steps
 
 Optional step and command fields:
 
 - `timeout_ms`
 - `retry`
+- `retry_policy`
+- `loop_policy`
+- `timeout_policy`
+- `wait`
+- `delay`
+- `skip`
+- `abort`
 - `enabled`
 - `priority`
 - `payload`

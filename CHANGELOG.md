@@ -19,6 +19,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 6.3 Mission Loader: added dependency-injected mission loading,
   strict JSON and YAML mission parsing, schema validation, unknown-command
   rejection, file-extension dispatch, and hardware-free loader tests.
+- Milestone 6.4 Flow Control: added vendor-independent wait, delay, retry,
+  loop, timeout, skip, and abort mission flow-control types; integrated them
+  into mission validation, parsing, and executor behavior with nested retry,
+  loop, timeout, skip, and abort tests.
 
 ## [0.5.0-alpha] - 2026-07-04
 

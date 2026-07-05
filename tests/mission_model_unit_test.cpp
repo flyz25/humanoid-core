@@ -77,10 +77,19 @@ void TestMissionStepDefaults() {
   assert(step.command.id == 0U);
   assert(step.timeout == humanoid::mission::MissionStepTimeout::zero());
   assert(step.retry == 0U);
+  assert(step.retryPolicy.maxAttempts == 1U);
+  assert(step.retryPolicy.delayBetweenAttempts == humanoid::mission::RetryDelay::zero());
+  assert(step.loopPolicy.iterations == 1U);
+  assert(step.timeoutPolicy.timeout == humanoid::mission::TimeoutDuration::zero());
+  assert(!step.wait.has_value());
+  assert(!step.delay.has_value());
+  assert(!step.skip);
+  assert(!step.abort);
   assert(step.enabled);
   assert(step.metadata.empty());
   assert(!step.isValid());
   assert(!step.hasTimeout());
+  assert(!step.hasEffectiveTimeout());
 }
 
 void TestPopulatedMissionStep() {
@@ -92,6 +101,36 @@ void TestPopulatedMissionStep() {
   assert(step.command.type == humanoid::core::CommandType::Stop);
   assert(step.retry == 1U);
   assert(step.metadata.at("phase") == "safety");
+}
+
+void TestFlowControlStepValidity() {
+  humanoid::mission::MissionStep wait_step;
+  wait_step.id = 8U;
+  wait_step.name = "Wait";
+  wait_step.wait = humanoid::mission::WaitStep{std::chrono::milliseconds{5}};
+  assert(wait_step.isValid());
+
+  humanoid::mission::MissionStep delay_step;
+  delay_step.id = 9U;
+  delay_step.name = "Delay";
+  delay_step.delay = humanoid::mission::DelayStep{std::chrono::milliseconds{5}};
+  delay_step.loopPolicy = humanoid::mission::LoopPolicy{2U};
+  assert(delay_step.isValid());
+  assert(delay_step.loopPolicy.isEnabled());
+
+  humanoid::mission::MissionStep skipped_step;
+  skipped_step.id = 10U;
+  skipped_step.name = "Skip";
+  skipped_step.skip = true;
+  assert(skipped_step.isValid());
+
+  humanoid::mission::MissionStep abort_step;
+  abort_step.id = 11U;
+  abort_step.name = "Abort";
+  abort_step.abort = true;
+  abort_step.timeoutPolicy = humanoid::mission::TimeoutPolicy{std::chrono::milliseconds{10}};
+  assert(abort_step.isValid());
+  assert(abort_step.hasEffectiveTimeout());
 }
 
 void TestMissionDefaults() {
@@ -162,6 +201,7 @@ int main() {
     TestMissionResult();
     TestMissionStepDefaults();
     TestPopulatedMissionStep();
+    TestFlowControlStepValidity();
     TestMissionDefaults();
     TestPopulatedMission();
     TestDisabledInvalidStepDoesNotBlockMission();

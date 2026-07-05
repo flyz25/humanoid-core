@@ -63,6 +63,24 @@ namespace {
   if (step.timeout < MissionStepTimeout::zero()) {
     return Invalid(prefix + "timeout_ms must not be negative");
   }
+  if (!step.retryPolicy.isValid()) {
+    return Invalid(prefix + "retry_policy is not valid");
+  }
+  if (!step.loopPolicy.isValid()) {
+    return Invalid(prefix + "loop_policy.iterations must be greater than zero");
+  }
+  if (!step.timeoutPolicy.isValid()) {
+    return Invalid(prefix + "timeout_policy.timeout_ms must not be negative");
+  }
+  if (step.wait.has_value() && !step.wait->isValid()) {
+    return Invalid(prefix + "wait.duration_ms must not be negative");
+  }
+  if (step.delay.has_value() && !step.delay->isValid()) {
+    return Invalid(prefix + "delay.duration_ms must not be negative");
+  }
+  if (step.skip || step.abort || step.wait.has_value() || step.delay.has_value()) {
+    return Valid();
+  }
   if (step.command.id == 0U) {
     return Invalid(prefix + "command.id must be nonzero");
   }

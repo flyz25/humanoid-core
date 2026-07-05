@@ -435,6 +435,14 @@ private:
   return static_cast<std::uint64_t>(number);
 }
 
+[[nodiscard]] std::uint32_t JsonUint32(const JsonValue& value, std::string_view key) {
+  const std::uint64_t number = JsonUint64(value, key);
+  if (number > static_cast<std::uint64_t>(std::numeric_limits<std::uint32_t>::max())) {
+    throw ParseError{std::string{key} + " exceeds uint32 range"};
+  }
+  return static_cast<std::uint32_t>(number);
+}
+
 [[nodiscard]] std::int64_t JsonInt64(const JsonValue& value, std::string_view key) {
   if (!std::holds_alternative<double>(value.storage) ||
       !IsInteger(std::get<double>(value.storage))) {
@@ -507,18 +515,84 @@ private:
   return command;
 }
 
+[[nodiscard]] RetryPolicy RetryPolicyFromJson(const JsonValue& value) {
+  const JsonValue::Object& object = AsObject(value, "retry_policy");
+  RetryPolicy policy;
+  if (const JsonValue* max_attempts = Optional(object, "max_attempts")) {
+    policy.maxAttempts = JsonUint32(*max_attempts, "retry_policy.max_attempts");
+  }
+  if (const JsonValue* delay = Optional(object, "delay_ms")) {
+    policy.delayBetweenAttempts = RetryDelay{JsonInt64(*delay, "retry_policy.delay_ms")};
+  }
+  if (const JsonValue* retry_on_failure = Optional(object, "retry_on_failure")) {
+    policy.retryOnFailure = JsonBool(*retry_on_failure, "retry_policy.retry_on_failure");
+  }
+  if (const JsonValue* retry_on_timeout = Optional(object, "retry_on_timeout")) {
+    policy.retryOnTimeout = JsonBool(*retry_on_timeout, "retry_policy.retry_on_timeout");
+  }
+  return policy;
+}
+
+[[nodiscard]] LoopPolicy LoopPolicyFromJson(const JsonValue& value) {
+  const JsonValue::Object& object = AsObject(value, "loop_policy");
+  LoopPolicy policy;
+  if (const JsonValue* iterations = Optional(object, "iterations")) {
+    policy.iterations = JsonUint32(*iterations, "loop_policy.iterations");
+  }
+  return policy;
+}
+
+[[nodiscard]] TimeoutPolicy TimeoutPolicyFromJson(const JsonValue& value) {
+  const JsonValue::Object& object = AsObject(value, "timeout_policy");
+  TimeoutPolicy policy;
+  if (const JsonValue* timeout = Optional(object, "timeout_ms")) {
+    policy.timeout = TimeoutDuration{JsonInt64(*timeout, "timeout_policy.timeout_ms")};
+  }
+  if (const JsonValue* abort = Optional(object, "abort_on_timeout")) {
+    policy.abortOnTimeout = JsonBool(*abort, "timeout_policy.abort_on_timeout");
+  }
+  return policy;
+}
+
 [[nodiscard]] MissionStep StepFromJson(const JsonValue& value) {
   const JsonValue::Object& object = AsObject(value, "step");
   MissionStep step;
   step.id = JsonUint64(Required(object, "id"), "step.id");
   step.name = JsonString(Required(object, "name"), "step.name");
-  step.command = CommandFromJson(Required(object, "command"));
+  if (const JsonValue* command = Optional(object, "command")) {
+    step.command = CommandFromJson(*command);
+  }
 
   if (const JsonValue* timeout = Optional(object, "timeout_ms")) {
     step.timeout = MissionStepTimeout{JsonInt64(*timeout, "step.timeout_ms")};
   }
   if (const JsonValue* retry = Optional(object, "retry")) {
-    step.retry = static_cast<MissionStepRetryCount>(JsonUint64(*retry, "step.retry"));
+    step.retry = JsonUint32(*retry, "step.retry");
+  }
+  if (const JsonValue* retry_policy = Optional(object, "retry_policy")) {
+    step.retryPolicy = RetryPolicyFromJson(*retry_policy);
+  }
+  if (const JsonValue* loop_policy = Optional(object, "loop_policy")) {
+    step.loopPolicy = LoopPolicyFromJson(*loop_policy);
+  }
+  if (const JsonValue* timeout_policy = Optional(object, "timeout_policy")) {
+    step.timeoutPolicy = TimeoutPolicyFromJson(*timeout_policy);
+  }
+  if (const JsonValue* wait = Optional(object, "wait")) {
+    const JsonValue::Object& wait_object = AsObject(*wait, "step.wait");
+    step.wait = WaitStep{
+        WaitStepDuration{JsonInt64(Required(wait_object, "duration_ms"), "step.wait.duration_ms")}};
+  }
+  if (const JsonValue* delay = Optional(object, "delay")) {
+    const JsonValue::Object& delay_object = AsObject(*delay, "step.delay");
+    step.delay = DelayStep{DelayStepDuration{
+        JsonInt64(Required(delay_object, "duration_ms"), "step.delay.duration_ms")}};
+  }
+  if (const JsonValue* skip = Optional(object, "skip")) {
+    step.skip = JsonBool(*skip, "step.skip");
+  }
+  if (const JsonValue* abort = Optional(object, "abort")) {
+    step.abort = JsonBool(*abort, "step.abort");
   }
   if (const JsonValue* enabled = Optional(object, "enabled")) {
     step.enabled = JsonBool(*enabled, "step.enabled");
@@ -646,6 +720,14 @@ struct YamlLine final {
     return false;
   }
   throw ParseError{std::string{field_name} + " must be true or false"};
+}
+
+[[nodiscard]] std::uint32_t ParseUint32(std::string_view text, std::string_view field_name) {
+  const std::uint64_t value = ParseUint64(text, field_name);
+  if (value > static_cast<std::uint64_t>(std::numeric_limits<std::uint32_t>::max())) {
+    throw ParseError{std::string{field_name} + " exceeds uint32 range"};
+  }
+  return static_cast<std::uint32_t>(value);
 }
 
 [[nodiscard]] core::CommandPayloadValue YamlPayloadValue(std::string_view value) {
@@ -787,6 +869,131 @@ void ParseYamlCommand(const std::vector<YamlLine>& lines, std::size_t& index,
   }
 }
 
+void ParseYamlRetryPolicy(const std::vector<YamlLine>& lines, std::size_t& index,
+                          std::size_t expected_indent, std::size_t base_indent,
+                          RetryPolicy& policy) {
+  while (index < lines.size()) {
+    const std::size_t indent = LogicalIndent(lines[index], base_indent);
+    if (indent < expected_indent) {
+      return;
+    }
+    if (indent != expected_indent) {
+      throw ParseError{"Unexpected YAML retry_policy indentation at line " +
+                       std::to_string(lines[index].number)};
+    }
+    const auto [key, value] = SplitYamlKeyValue(lines[index]);
+    if (value.empty()) {
+      throw ParseError{"retry_policy field requires a scalar value at YAML line " +
+                       std::to_string(lines[index].number)};
+    }
+    if (key == "max_attempts") {
+      policy.maxAttempts = ParseUint32(value, "retry_policy.max_attempts");
+    } else if (key == "delay_ms") {
+      policy.delayBetweenAttempts = RetryDelay{ParseInt64(value, "retry_policy.delay_ms")};
+    } else if (key == "retry_on_failure") {
+      policy.retryOnFailure = YamlBool(value, "retry_policy.retry_on_failure");
+    } else if (key == "retry_on_timeout") {
+      policy.retryOnTimeout = YamlBool(value, "retry_policy.retry_on_timeout");
+    } else {
+      throw ParseError{"Unknown retry_policy field at YAML line " +
+                       std::to_string(lines[index].number) + ": " + std::string{key}};
+    }
+    ++index;
+  }
+}
+
+void ParseYamlLoopPolicy(const std::vector<YamlLine>& lines, std::size_t& index,
+                         std::size_t expected_indent, std::size_t base_indent, LoopPolicy& policy) {
+  while (index < lines.size()) {
+    const std::size_t indent = LogicalIndent(lines[index], base_indent);
+    if (indent < expected_indent) {
+      return;
+    }
+    if (indent != expected_indent) {
+      throw ParseError{"Unexpected YAML loop_policy indentation at line " +
+                       std::to_string(lines[index].number)};
+    }
+    const auto [key, value] = SplitYamlKeyValue(lines[index]);
+    if (key != "iterations" || value.empty()) {
+      throw ParseError{"loop_policy.iterations requires a scalar value at YAML line " +
+                       std::to_string(lines[index].number)};
+    }
+    policy.iterations = ParseUint32(value, "loop_policy.iterations");
+    ++index;
+  }
+}
+
+void ParseYamlTimeoutPolicy(const std::vector<YamlLine>& lines, std::size_t& index,
+                            std::size_t expected_indent, std::size_t base_indent,
+                            TimeoutPolicy& policy) {
+  while (index < lines.size()) {
+    const std::size_t indent = LogicalIndent(lines[index], base_indent);
+    if (indent < expected_indent) {
+      return;
+    }
+    if (indent != expected_indent) {
+      throw ParseError{"Unexpected YAML timeout_policy indentation at line " +
+                       std::to_string(lines[index].number)};
+    }
+    const auto [key, value] = SplitYamlKeyValue(lines[index]);
+    if (value.empty()) {
+      throw ParseError{"timeout_policy field requires a scalar value at YAML line " +
+                       std::to_string(lines[index].number)};
+    }
+    if (key == "timeout_ms") {
+      policy.timeout = TimeoutDuration{ParseInt64(value, "timeout_policy.timeout_ms")};
+    } else if (key == "abort_on_timeout") {
+      policy.abortOnTimeout = YamlBool(value, "timeout_policy.abort_on_timeout");
+    } else {
+      throw ParseError{"Unknown timeout_policy field at YAML line " +
+                       std::to_string(lines[index].number) + ": " + std::string{key}};
+    }
+    ++index;
+  }
+}
+
+void ParseYamlWaitStep(const std::vector<YamlLine>& lines, std::size_t& index,
+                       std::size_t expected_indent, std::size_t base_indent, WaitStep& wait) {
+  while (index < lines.size()) {
+    const std::size_t indent = LogicalIndent(lines[index], base_indent);
+    if (indent < expected_indent) {
+      return;
+    }
+    if (indent != expected_indent) {
+      throw ParseError{"Unexpected YAML wait indentation at line " +
+                       std::to_string(lines[index].number)};
+    }
+    const auto [key, value] = SplitYamlKeyValue(lines[index]);
+    if (key != "duration_ms" || value.empty()) {
+      throw ParseError{"wait.duration_ms requires a scalar value at YAML line " +
+                       std::to_string(lines[index].number)};
+    }
+    wait.duration = WaitStepDuration{ParseInt64(value, "wait.duration_ms")};
+    ++index;
+  }
+}
+
+void ParseYamlDelayStep(const std::vector<YamlLine>& lines, std::size_t& index,
+                        std::size_t expected_indent, std::size_t base_indent, DelayStep& delay) {
+  while (index < lines.size()) {
+    const std::size_t indent = LogicalIndent(lines[index], base_indent);
+    if (indent < expected_indent) {
+      return;
+    }
+    if (indent != expected_indent) {
+      throw ParseError{"Unexpected YAML delay indentation at line " +
+                       std::to_string(lines[index].number)};
+    }
+    const auto [key, value] = SplitYamlKeyValue(lines[index]);
+    if (key != "duration_ms" || value.empty()) {
+      throw ParseError{"delay.duration_ms requires a scalar value at YAML line " +
+                       std::to_string(lines[index].number)};
+    }
+    delay.duration = DelayStepDuration{ParseInt64(value, "delay.duration_ms")};
+    ++index;
+  }
+}
+
 void ApplyYamlStepField(MissionStep& step, std::string_view key, std::string_view value,
                         std::size_t line_number) {
   if (key == "id") {
@@ -796,9 +1003,13 @@ void ApplyYamlStepField(MissionStep& step, std::string_view key, std::string_vie
   } else if (key == "timeout_ms") {
     step.timeout = MissionStepTimeout{ParseInt64(value, "step.timeout_ms")};
   } else if (key == "retry") {
-    step.retry = static_cast<MissionStepRetryCount>(ParseUint64(value, "step.retry"));
+    step.retry = ParseUint32(value, "step.retry");
   } else if (key == "enabled") {
     step.enabled = YamlBool(value, "step.enabled");
+  } else if (key == "skip") {
+    step.skip = YamlBool(value, "step.skip");
+  } else if (key == "abort") {
+    step.abort = YamlBool(value, "step.abort");
   } else {
     throw ParseError{"Unknown step field at YAML line " + std::to_string(line_number) + ": " +
                      std::string{key}};
@@ -837,6 +1048,35 @@ void ApplyYamlStepField(MissionStep& step, std::string_view key, std::string_vie
         throw ParseError{"step.command must be a nested mapping"};
       }
       ParseYamlCommand(lines, index, 6U, base_indent, step.command);
+    } else if (key == "retry_policy") {
+      if (!value.empty()) {
+        throw ParseError{"step.retry_policy must be a nested mapping"};
+      }
+      ParseYamlRetryPolicy(lines, index, 6U, base_indent, step.retryPolicy);
+    } else if (key == "loop_policy") {
+      if (!value.empty()) {
+        throw ParseError{"step.loop_policy must be a nested mapping"};
+      }
+      ParseYamlLoopPolicy(lines, index, 6U, base_indent, step.loopPolicy);
+    } else if (key == "timeout_policy") {
+      if (!value.empty()) {
+        throw ParseError{"step.timeout_policy must be a nested mapping"};
+      }
+      ParseYamlTimeoutPolicy(lines, index, 6U, base_indent, step.timeoutPolicy);
+    } else if (key == "wait") {
+      if (!value.empty()) {
+        throw ParseError{"step.wait must be a nested mapping"};
+      }
+      WaitStep wait;
+      ParseYamlWaitStep(lines, index, 6U, base_indent, wait);
+      step.wait = wait;
+    } else if (key == "delay") {
+      if (!value.empty()) {
+        throw ParseError{"step.delay must be a nested mapping"};
+      }
+      DelayStep delay;
+      ParseYamlDelayStep(lines, index, 6U, base_indent, delay);
+      step.delay = delay;
     } else if (key == "metadata") {
       if (!value.empty()) {
         throw ParseError{"step.metadata must be a nested mapping"};

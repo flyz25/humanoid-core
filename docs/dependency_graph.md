@@ -60,6 +60,8 @@ Mission model flow
   -> humanoid::mission::MissionExecutor
   -> humanoid::mission::Mission
   -> humanoid::mission::MissionStep
+  -> humanoid::mission::WaitStep / DelayStep
+  -> humanoid::mission::RetryPolicy / LoopPolicy / TimeoutPolicy
   -> humanoid::core::CommandDispatcher
   -> humanoid::core::Command
 
@@ -113,7 +115,8 @@ unitree_sdk2
 - Managers may depend on module interfaces and `common`.
 - Runtime services may depend on core state models and managers.
 - Runtime services receive core services through dependency injection.
-- Mission models may depend on generic command value types.
+- Mission models may depend on generic command value types and
+  vendor-independent flow-control policy value types.
 - Mission execution may depend on the command dispatcher component and must not
   call robot adapters directly.
 - Mission executors must not depend on YAML, JSON, files, or parser code.

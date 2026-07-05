@@ -106,6 +106,57 @@ void TestLoadJson() {
         "JSON command priority mismatch");
 }
 
+void TestLoadJsonFlowControl() {
+  constexpr std::string_view flow_json = R"json(
+{
+  "id": 105,
+  "name": "JSON flow mission",
+  "description": "Loaded from JSON",
+  "version": "1.0.0",
+  "author": "humanoid-core",
+  "steps": [
+    {
+      "id": 1,
+      "name": "Wait",
+      "wait": {
+        "duration_ms": 5
+      },
+      "timeout_policy": {
+        "timeout_ms": 10,
+        "abort_on_timeout": true
+      }
+    },
+    {
+      "id": 2,
+      "name": "Loop stop",
+      "loop_policy": {
+        "iterations": 2
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "delay_ms": 0,
+        "retry_on_failure": true,
+        "retry_on_timeout": true
+      },
+      "command": {
+        "id": 5001,
+        "type": "Stop"
+      }
+    }
+  ]
+}
+)json";
+
+  const humanoid::mission::MissionLoader loader;
+  const humanoid::mission::MissionLoadResult result = loader.LoadJson(flow_json);
+
+  Check(result.Succeeded(), "Valid JSON flow-control mission did not load");
+  Check(result.mission.steps.front().wait.has_value(), "JSON wait step was not parsed");
+  Check(result.mission.steps.back().loopPolicy.iterations == 2U, "JSON loop policy was not parsed");
+  Check(result.mission.steps.back().retryPolicy.maxAttempts == 2U,
+        "JSON retry policy was not parsed");
+}
+
 void TestLoadYaml() {
   const humanoid::mission::MissionLoader loader;
   const humanoid::mission::MissionLoadResult result = loader.LoadYaml(kValidYamlMission);
@@ -117,6 +168,35 @@ void TestLoadYaml() {
   Check(result.mission.steps.front().metadata.at("phase") == "safety", "YAML metadata mismatch");
   Check(result.mission.steps.front().command.priority == humanoid::core::CommandPriority::Critical,
         "YAML command priority mismatch");
+}
+
+void TestLoadYamlFlowControl() {
+  constexpr std::string_view flow_yaml = R"yaml(
+id: 106
+name: YAML flow mission
+description: Loaded from YAML
+version: 1.0.0
+author: humanoid-core
+steps:
+  - id: 1
+    name: Delay
+    delay:
+      duration_ms: 5
+  - id: 2
+    name: Skip
+    skip: true
+  - id: 3
+    name: Abort
+    abort: true
+)yaml";
+
+  const humanoid::mission::MissionLoader loader;
+  const humanoid::mission::MissionLoadResult result = loader.LoadYaml(flow_yaml);
+
+  Check(result.Succeeded(), "Valid YAML flow-control mission did not load");
+  Check(result.mission.steps.front().delay.has_value(), "YAML delay step was not parsed");
+  Check(result.mission.steps[1U].skip, "YAML skip step was not parsed");
+  Check(result.mission.steps[2U].abort, "YAML abort step was not parsed");
 }
 
 void TestInvalidYaml() {
@@ -190,7 +270,9 @@ void TestLoadFile() {
 int main() {
   try {
     TestLoadJson();
+    TestLoadJsonFlowControl();
     TestLoadYaml();
+    TestLoadYamlFlowControl();
     TestInvalidYaml();
     TestMissingRequiredField();
     TestUnknownCommand();

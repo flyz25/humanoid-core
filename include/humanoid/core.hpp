@@ -39,6 +39,8 @@
 #include <humanoid/logging/LogSink.hpp>
 #include <humanoid/logging/Logger.hpp>
 #include <humanoid/logging/LoggerManager.hpp>
+#include <humanoid/mission/DelayStep.h>
+#include <humanoid/mission/LoopPolicy.h>
 #include <humanoid/mission/Mission.h>
 #include <humanoid/mission/MissionExecutor.h>
 #include <humanoid/mission/MissionLoader.h>
@@ -48,6 +50,9 @@
 #include <humanoid/mission/MissionStatus.h>
 #include <humanoid/mission/MissionStep.h>
 #include <humanoid/mission/MissionValidator.h>
+#include <humanoid/mission/RetryPolicy.h>
+#include <humanoid/mission/TimeoutPolicy.h>
+#include <humanoid/mission/WaitStep.h>
 #include <humanoid/motion/MotionController.hpp>
 #include <humanoid/motion/MotionManager.hpp>
 #include <humanoid/motion/MotionMode.hpp>

@@ -3,6 +3,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <exception>
+#include <limits>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -26,13 +27,43 @@ namespace {
   return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now());
 }
 
+[[nodiscard]] bool IsCommandStep(const MissionStep& step) noexcept {
+  return !step.skip && !step.abort && !step.wait.has_value() && !step.delay.has_value();
+}
+
+[[nodiscard]] std::optional<MissionStepTimeout> EffectiveTimeout(const MissionStep& step) {
+  std::optional<MissionStepTimeout> timeout;
+  if (step.hasTimeout()) {
+    timeout = step.timeout;
+  }
+  if (step.timeoutPolicy.isEnabled() &&
+      (!timeout.has_value() || step.timeoutPolicy.timeout < *timeout)) {
+    timeout = step.timeoutPolicy.timeout;
+  }
+  return timeout;
+}
+
 [[nodiscard]] core::Command PrepareCommand(const MissionStep& step) {
   core::Command command = step.command;
   command.timestamp = Now();
-  if (step.hasTimeout() && (!command.hasTimeout() || step.timeout < command.timeout)) {
-    command.timeout = step.timeout;
+  const std::optional<MissionStepTimeout> timeout = EffectiveTimeout(step);
+  if (timeout.has_value() && (!command.hasTimeout() || *timeout < command.timeout)) {
+    command.timeout = *timeout;
   }
   return command;
+}
+
+[[nodiscard]] RetryAttemptCount EffectiveMaxAttempts(const MissionStep& step) noexcept {
+  const RetryAttemptCount legacy_attempts =
+      step.retry == std::numeric_limits<MissionStepRetryCount>::max() ? step.retry
+                                                                      : step.retry + 1U;
+  return step.retryPolicy.maxAttempts > legacy_attempts ? step.retryPolicy.maxAttempts
+                                                        : legacy_attempts;
+}
+
+[[nodiscard]] bool LooksLikeTimeout(const MissionResult& result) {
+  return result.message.find("timeout") != std::string::npos ||
+         result.message.find("timed out") != std::string::npos;
 }
 
 [[nodiscard]] MissionResult FromCommandResult(const core::CommandResult& command_result) {
@@ -280,10 +311,11 @@ private:
           std::lock_guard<std::mutex> lock{state_mutex_};
           current_step_index_ = index;
           current_step_id_ = step.id;
-          current_command_id_ = step.command.id;
+          current_command_id_ =
+              IsCommandStep(step) ? std::optional<core::CommandId>{step.command.id} : std::nullopt;
         }
 
-        const MissionResult step_result = ExecuteStepWithRetry(step);
+        const MissionResult step_result = ExecuteFlowStep(step);
         {
           std::lock_guard<std::mutex> lock{state_mutex_};
           current_command_id_.reset();
@@ -308,22 +340,35 @@ private:
   }
 
   [[nodiscard]] MissionResult ExecuteStepWithRetry(const MissionStep& step) {
+    return ExecuteFlowStep(step);
+  }
+
+  [[nodiscard]] MissionResult ExecuteFlowStep(const MissionStep& step) {
     if (!dispatcher_) {
       return Result(MissionStatus::Failed, "Mission executor has no command dispatcher");
     }
     if (!step.isValid()) {
       return Result(MissionStatus::Failed, "Mission step is not valid for execution");
     }
+    if (step.skip) {
+      return Result(MissionStatus::Completed, "Mission step skipped");
+    }
+    if (step.abort) {
+      return Result(MissionStatus::Failed, "Mission step requested abort");
+    }
 
-    MissionResult result = Result(MissionStatus::Failed, "Mission step did not execute");
-    for (MissionStepRetryCount attempt = 0U; attempt <= step.retry; ++attempt) {
+    MissionResult result = Result(MissionStatus::Completed, "Mission step completed");
+    for (LoopIterationCount iteration = 0U; iteration < step.loopPolicy.iterations; ++iteration) {
       if (CancellationRequested()) {
-        return Result(MissionStatus::Cancelled, "Mission step cancelled before execution");
+        return Result(MissionStatus::Cancelled, "Mission step cancelled before loop iteration");
       }
 
-      result = ExecuteStepOnce(step);
-      if (result.isSuccess() || result.status == MissionStatus::Cancelled ||
-          attempt == step.retry) {
+      if (!WaitUntilRunnable()) {
+        return Result(MissionStatus::Cancelled, "Mission step cancelled while paused");
+      }
+
+      result = ExecuteStepWithRetryPolicy(step);
+      if (!result.isSuccess()) {
         return result;
       }
     }
@@ -331,7 +376,45 @@ private:
     return result;
   }
 
+  [[nodiscard]] MissionResult ExecuteStepWithRetryPolicy(const MissionStep& step) {
+    MissionResult result = Result(MissionStatus::Failed, "Mission step did not execute");
+    const RetryAttemptCount max_attempts = EffectiveMaxAttempts(step);
+    for (RetryAttemptCount attempt = 0U; attempt < max_attempts; ++attempt) {
+      if (CancellationRequested()) {
+        return Result(MissionStatus::Cancelled, "Mission step cancelled before execution");
+      }
+
+      if (!WaitUntilRunnable()) {
+        return Result(MissionStatus::Cancelled, "Mission step cancelled while paused");
+      }
+
+      result = ExecuteStepOnce(step);
+      if (result.isSuccess() || result.status == MissionStatus::Cancelled ||
+          attempt + 1U >= max_attempts) {
+        return result;
+      }
+      const bool timeout_failure = LooksLikeTimeout(result);
+      if ((timeout_failure && !step.retryPolicy.retryOnTimeout) ||
+          (!timeout_failure && !step.retryPolicy.retryOnFailure)) {
+        return result;
+      }
+      if (step.retryPolicy.delayBetweenAttempts > RetryDelay::zero() &&
+          !WaitForDuration(step.retryPolicy.delayBetweenAttempts)) {
+        return Result(MissionStatus::Cancelled, "Mission step cancelled before retry");
+      }
+    }
+
+    return result;
+  }
+
   [[nodiscard]] MissionResult ExecuteStepOnce(const MissionStep& step) {
+    if (step.wait.has_value()) {
+      return ExecuteTimedFlowWait(step.wait->duration, step);
+    }
+    if (step.delay.has_value()) {
+      return ExecuteTimedFlowWait(step.delay->duration, step);
+    }
+
     core::Command command = PrepareCommand(step);
     const core::CommandResult command_result = dispatcher_->Execute(command);
     MissionResult result = FromCommandResult(command_result);
@@ -339,6 +422,36 @@ private:
       result.message = result.isSuccess() ? "Mission step completed" : "Mission step failed";
     }
     return result;
+  }
+
+  [[nodiscard]] MissionResult ExecuteTimedFlowWait(std::chrono::milliseconds duration,
+                                                   const MissionStep& step) {
+    const std::optional<MissionStepTimeout> timeout = EffectiveTimeout(step);
+    if (timeout.has_value() && *timeout < duration) {
+      if (!WaitForDuration(*timeout)) {
+        return Result(MissionStatus::Cancelled, "Mission step cancelled during timed wait");
+      }
+      if (step.timeoutPolicy.abortOnTimeout) {
+        return Result(MissionStatus::Failed, "Mission step timed out");
+      }
+      return Result(MissionStatus::Completed, "Mission step timed out and was skipped");
+    }
+
+    if (!WaitForDuration(duration)) {
+      return Result(MissionStatus::Cancelled, "Mission step cancelled during timed wait");
+    }
+    return Result(MissionStatus::Completed, "Mission timed wait completed");
+  }
+
+  [[nodiscard]] bool WaitForDuration(std::chrono::milliseconds duration) {
+    if (duration <= std::chrono::milliseconds::zero()) {
+      return !CancellationRequested();
+    }
+
+    std::unique_lock<std::mutex> lock{state_mutex_};
+    const bool interrupted = condition_.wait_for(
+        lock, duration, [this]() { return cancel_requested_ || stop_requested_; });
+    return !interrupted && !cancel_requested_ && !stop_requested_;
   }
 
   [[nodiscard]] bool CancellationRequested() const {

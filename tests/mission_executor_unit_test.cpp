@@ -70,7 +70,12 @@ public:
 
   void FailNextCommand() {
     std::lock_guard<std::mutex> lock{mutex_};
-    fail_next_command_ = true;
+    fail_next_command_count_ = 1U;
+  }
+
+  void FailNextCommands(std::uint32_t count) {
+    std::lock_guard<std::mutex> lock{mutex_};
+    fail_next_command_count_ = count;
   }
 
   [[nodiscard]] std::vector<std::string> Actions() const {
@@ -95,8 +100,10 @@ private:
         condition_.wait(lock, [this]() { return release_blocked_command_; });
       }
 
-      should_fail = fail_next_command_;
-      fail_next_command_ = false;
+      should_fail = fail_next_command_count_ > 0U;
+      if (fail_next_command_count_ > 0U) {
+        --fail_next_command_count_;
+      }
     }
 
     if (should_fail) {
@@ -111,7 +118,7 @@ private:
   bool block_next_command_{false};
   bool blocked_command_started_{false};
   bool release_blocked_command_{false};
-  bool fail_next_command_{false};
+  std::uint32_t fail_next_command_count_{0U};
 };
 
 void Check(bool condition, const char* message) {
@@ -270,6 +277,75 @@ void TestStepRetry() {
   Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
 }
 
+void TestNestedRetryInsideLoop() {
+  ExecutorFixture fixture;
+  humanoid::mission::MissionStep step =
+      MakeStep(1U, MakeCommand(1U, humanoid::core::CommandType::Stop));
+  step.retryPolicy = humanoid::mission::RetryPolicy{2U};
+  step.loopPolicy = humanoid::mission::LoopPolicy{2U};
+  fixture.adapter->FailNextCommand();
+
+  const humanoid::mission::MissionResult result = fixture.executor.ExecuteStep(step);
+
+  Check(result.isSuccess(), "Nested retry inside loop did not recover");
+  Check(fixture.adapter->Actions() == std::vector<std::string>({"Stop", "Stop", "Stop"}),
+        "Nested retry inside loop did not dispatch expected attempts");
+  Check(fixture.executor.Stop().isSuccess(), "Executor stop failed");
+  Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
+}
+
+void TestLoopPolicyRepeatsStep() {
+  ExecutorFixture fixture;
+  humanoid::mission::MissionStep step =
+      MakeStep(1U, MakeCommand(1U, humanoid::core::CommandType::Stop));
+  step.loopPolicy = humanoid::mission::LoopPolicy{3U};
+
+  const humanoid::mission::MissionResult result = fixture.executor.ExecuteStep(step);
+
+  Check(result.isSuccess(), "Loop policy step did not complete");
+  Check(fixture.adapter->Actions() == std::vector<std::string>({"Stop", "Stop", "Stop"}),
+        "Loop policy did not repeat step");
+  Check(fixture.executor.Stop().isSuccess(), "Executor stop failed");
+  Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
+}
+
+void TestWaitStepTimeoutFailsMission() {
+  ExecutorFixture fixture;
+  humanoid::mission::MissionStep step;
+  step.id = 1U;
+  step.name = "wait timeout";
+  step.wait = humanoid::mission::WaitStep{std::chrono::milliseconds{20}};
+  step.timeoutPolicy = humanoid::mission::TimeoutPolicy{std::chrono::milliseconds{1}};
+
+  const humanoid::mission::MissionResult result = fixture.executor.ExecuteStep(step);
+
+  Check(result.status == humanoid::mission::MissionStatus::Failed, "Timed wait step did not fail");
+  Check(fixture.adapter->Actions().empty(), "Timed wait dispatched a robot command");
+  Check(fixture.executor.Stop().isSuccess(), "Executor stop failed");
+  Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
+}
+
+void TestSkipAndAbortStepsDoNotDispatchCommands() {
+  ExecutorFixture fixture;
+
+  humanoid::mission::MissionStep skip_step;
+  skip_step.id = 1U;
+  skip_step.name = "skip";
+  skip_step.skip = true;
+
+  humanoid::mission::MissionStep abort_step;
+  abort_step.id = 2U;
+  abort_step.name = "abort";
+  abort_step.abort = true;
+
+  Check(fixture.executor.ExecuteStep(skip_step).isSuccess(), "Skip step did not complete");
+  Check(fixture.executor.ExecuteStep(abort_step).status == humanoid::mission::MissionStatus::Failed,
+        "Abort step did not fail mission execution");
+  Check(fixture.adapter->Actions().empty(), "Flow control steps dispatched robot commands");
+  Check(fixture.executor.Stop().isSuccess(), "Executor stop failed");
+  Check(fixture.dispatcher->Shutdown().isSuccess(), "Dispatcher shutdown failed");
+}
+
 } // namespace
 
 int main() {
@@ -279,6 +355,10 @@ int main() {
     TestPauseAndResumeBetweenSteps();
     TestCancelStopsBeforeNextStep();
     TestStepRetry();
+    TestNestedRetryInsideLoop();
+    TestLoopPolicyRepeatsStep();
+    TestWaitStepTimeoutFailsMission();
+    TestSkipAndAbortStepsDoNotDispatchCommands();
   } catch (...) {
     return 1;
   }

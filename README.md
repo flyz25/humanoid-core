@@ -170,6 +170,21 @@ Mission file (.json/.yaml/.yml)
 The loader converts mission JSON or YAML into the mission model. `MissionExecutor`
 does not know about file formats and still receives only `Mission` objects.
 
+Milestone 6.4 adds mission flow control:
+
+```text
+MissionStep
+  -> WaitStep / DelayStep
+  -> RetryPolicy
+  -> LoopPolicy
+  -> TimeoutPolicy
+  -> CommandDispatcher for command steps only
+```
+
+Flow-control steps can wait, delay, retry, loop, timeout, skip, or abort mission
+execution without adding robot-specific logic or SDK dependencies. Command
+steps still execute only through the existing command framework.
+
 ## Directory Structure
 
 ```text

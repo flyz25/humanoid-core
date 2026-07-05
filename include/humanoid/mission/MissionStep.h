@@ -7,10 +7,16 @@
 
 #include <chrono>
 #include <cstdint>
+#include <optional>
 #include <string>
 
 #include <humanoid/core/Command.h>
+#include <humanoid/mission/DelayStep.h>
+#include <humanoid/mission/LoopPolicy.h>
 #include <humanoid/mission/MissionMetadata.h>
+#include <humanoid/mission/RetryPolicy.h>
+#include <humanoid/mission/TimeoutPolicy.h>
+#include <humanoid/mission/WaitStep.h>
 
 namespace humanoid::mission {
 
@@ -65,8 +71,52 @@ struct MissionStep final {
 
   /**
    * @brief Number of retry attempts permitted after a failed step execution.
+   *
+   * This legacy field is preserved for compatibility. New mission documents may
+   * prefer `retryPolicy`, where `maxAttempts` includes the initial attempt.
    */
   MissionStepRetryCount retry{0U};
+
+  /**
+   * @brief Retry policy applied to this step execution.
+   */
+  RetryPolicy retryPolicy;
+
+  /**
+   * @brief Loop policy applied to this step.
+   */
+  LoopPolicy loopPolicy;
+
+  /**
+   * @brief Timeout policy applied to this step.
+   */
+  TimeoutPolicy timeoutPolicy;
+
+  /**
+   * @brief Optional wait behavior for this step.
+   *
+   * A wait step contains no robot command. It blocks mission progression for a
+   * fixed duration while still allowing cancellation and stop requests.
+   */
+  std::optional<WaitStep> wait;
+
+  /**
+   * @brief Optional delay behavior for this step.
+   *
+   * A delay step contains no robot command. It is intended for deterministic
+   * spacing between command steps.
+   */
+  std::optional<DelayStep> delay;
+
+  /**
+   * @brief Indicates that this enabled step should be skipped intentionally.
+   */
+  bool skip{false};
+
+  /**
+   * @brief Indicates that this step should abort mission execution.
+   */
+  bool abort{false};
 
   /**
    * @brief Indicates whether this step is eligible for execution.
@@ -84,13 +134,28 @@ struct MissionStep final {
   MissionStep() = default;
 
   /**
-   * @brief Reports whether the step has a valid identity, command, and timeout.
+   * @brief Reports whether the step has a valid identity and behavior.
    *
-   * @return True when the step identifier is nonzero, the command is valid, and
-   * the timeout is nonnegative.
+   * Command steps require a valid command. Wait, delay, skip, and abort steps do
+   * not require a command. All flow-control policies must be valid.
+   *
+   * @return True when the step can be interpreted by the mission executor.
    */
   [[nodiscard]] constexpr bool isValid() const noexcept {
-    return id != 0U && command.isValid() && timeout >= MissionStepTimeout::zero();
+    if (id == 0U || timeout < MissionStepTimeout::zero() || !retryPolicy.isValid() ||
+        !loopPolicy.isValid() || !timeoutPolicy.isValid()) {
+      return false;
+    }
+    if (wait.has_value() && !wait->isValid()) {
+      return false;
+    }
+    if (delay.has_value() && !delay->isValid()) {
+      return false;
+    }
+    if (skip || abort || wait.has_value() || delay.has_value()) {
+      return true;
+    }
+    return command.isValid();
   }
 
   /**
@@ -100,6 +165,15 @@ struct MissionStep final {
    */
   [[nodiscard]] constexpr bool hasTimeout() const noexcept {
     return timeout > MissionStepTimeout::zero();
+  }
+
+  /**
+   * @brief Reports whether timeout policy enforcement is requested.
+   *
+   * @return True when either legacy timeout or timeout policy is enabled.
+   */
+  [[nodiscard]] constexpr bool hasEffectiveTimeout() const noexcept {
+    return hasTimeout() || timeoutPolicy.isEnabled();
   }
 };
 
