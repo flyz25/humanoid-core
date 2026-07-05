@@ -520,6 +520,24 @@ messages, DDS samples, Unitree SDK headers, or vendor sensor SDK types.
 and capability metadata only. It performs no hardware discovery, dynamic
 loading, polling, SDK initialization, or middleware communication.
 
+Milestone 10.2 adds `SensorManager` as the active sensor coordination boundary:
+
+```text
+Application or future perception service
+  -> SensorManager
+    -> Sensor
+    -> SensorFrame listeners
+    -> SensorState / SensorHealth snapshots
+```
+
+The manager owns registered sensor instances, supports hot-plug removal,
+serializes lifecycle and frame reads per sensor, timestamps frames that arrive
+without a capture timestamp, stores latest-frame snapshots, and routes frames to
+subscribers. Listener callbacks are invoked outside internal locks. The manager
+contains no vendor discovery, driver loading, SDK communication, middleware
+transport, polling thread, robot behavior, mission, behavior tree, or planning
+logic.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

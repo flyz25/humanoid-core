@@ -97,6 +97,7 @@
 #include <humanoid/perception/SensorCapabilities.h>
 #include <humanoid/perception/SensorFactory.h>
 #include <humanoid/perception/SensorFrame.h>
+#include <humanoid/perception/SensorManager.h>
 #include <humanoid/perception/SensorState.h>
 #include <humanoid/perception/SensorType.h>
 #include <humanoid/planner/Goal.h>

@@ -11,6 +11,7 @@ audio, IMU, radar, OpenCV, PCL, ROS2, Unitree, DDS, or vendor SDK integration.
 #include <humanoid/perception/SensorCapabilities.h>
 #include <humanoid/perception/SensorFactory.h>
 #include <humanoid/perception/SensorFrame.h>
+#include <humanoid/perception/SensorManager.h>
 #include <humanoid/perception/SensorState.h>
 #include <humanoid/perception/SensorType.h>
 ```
@@ -101,12 +102,37 @@ containment checks, and size queries. It performs no hardware discovery,
 dynamic loading, stream polling, SDK initialization, or middleware
 communication.
 
+## Manager
+
+`SensorManager` owns active `Sensor` instances and provides a thread-safe
+coordination point for:
+
+- Sensor registration and hot-plug unregistration.
+- Active sensor discovery through capability snapshots.
+- Per-sensor lifecycle forwarding.
+- Health and manager-maintained state snapshots.
+- Serialized per-sensor frame reads.
+- Manager timestamping for frames that arrive without timestamps.
+- Latest-frame storage.
+- Frame routing to subscribed listeners.
+- Manager statistics.
+
+Frame listeners are invoked outside manager and sensor locks. Listener
+exceptions are contained and counted so one consumer cannot break frame routing
+for other consumers.
+
+The manager performs no hardware discovery, driver loading, transport
+communication, polling thread creation, or vendor-specific synchronization. A
+future perception service may compose `SensorFactory`, `SensorManager`, and
+plugin-provided concrete sensors without changing the core perception API.
+
 ## Dependency Boundary
 
 ```text
 Application / future perception manager
   -> Sensor
   -> SensorFactory
+  -> SensorManager
   -> SensorFrame / SensorCapabilities / SensorState
     -> humanoid::common::Status
 ```

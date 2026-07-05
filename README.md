@@ -425,6 +425,7 @@ Milestone 10.1 adds a vendor-independent sensor abstraction layer:
 ```text
 Application or future perception manager
   -> SensorFactory
+  -> SensorManager
     -> Sensor
       -> SensorFrame
       -> SensorCapabilities
@@ -435,6 +436,11 @@ The perception boundary supports camera, depth camera, LiDAR, microphone, IMU,
 radar, and custom sensor categories. It defines interfaces and value types only;
 it does not include OpenCV, PCL, ROS2, Unitree SDK, vendor sensor SDKs, or
 physical sensor communication. See `docs/api/sensor_abstraction.md`.
+
+Milestone 10.2 adds `SensorManager` for active sensor registration, hot-plug
+removal, health/state snapshots, per-sensor synchronized reads, manager
+timestamping, latest-frame storage, frame routing, and manager statistics. The
+manager remains vendor independent and owns no polling thread or SDK transport.
 
 ## Directory Structure
 
