@@ -5,7 +5,9 @@ adds a thread-safe executor that runs mission steps through the existing command
 framework. Milestone 6.3 adds strict JSON/YAML loading. Milestone 6.4 adds
 flow-control policies for wait, delay, retry, loop, timeout, skip, and abort.
 Milestone 6.5 adds robot-state conditions and mission condition events. This
-API does not add a robot adapter, planner, behavior tree, or vendor integration.
+Milestone 6.6 adds runnable lifecycle examples. Milestone 6.7 validates and
+releases the integrated API as `0.6.0-alpha`. This API does not add a robot
+adapter, planner, behavior tree, or vendor integration.
 
 ## Public Headers
 
@@ -264,3 +266,12 @@ The executable uses a process-local example adapter only at the application
 composition boundary. Mission commands still pass through `CommandDispatcher`;
 the mission and command layers remain independent of concrete adapters and
 vendor SDKs.
+
+## Release Validation
+
+The integrated mission framework is validated in Debug and Release with the
+Unitree integration both enabled and disabled. The test suite exercises normal
+execution, pause, resume, cancel, retry, loop, timeout, skip, abort, parser and
+schema failures, and RobotStateManager-backed condition evaluation. See
+`docs/Milestone_6_Report.md` for the complete release matrix and known
+limitations.

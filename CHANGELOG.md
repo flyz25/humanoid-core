@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.6.0-alpha] - 2026-07-05
+
 ### Added
 
 - Milestone 6.1 Mission Model: added vendor-independent mission, mission step,
@@ -31,6 +33,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 6.6 Examples: added runnable YAML mission examples for normal
   execution, pause/resume, and cancellation through `MissionLoader`,
   `MissionExecutor`, `CommandDispatcher`, and a process-local example adapter.
+- Milestone 6.7 Mission Framework Release: completed mission framework
+  integration, release documentation, package metadata, and the full
+  Debug/Release and Unitree-enabled/disabled validation matrix.
 
 ## [0.5.0-alpha] - 2026-07-04
 
@@ -144,7 +149,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.5.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.6.0-alpha...HEAD
+[0.6.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.5.0-alpha...v0.6.0-alpha
 [0.5.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.4.0-alpha...v0.5.0-alpha
 [0.4.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.3.0-alpha...v0.4.0-alpha
 [0.3.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.1.0-alpha...v0.3.0-alpha

@@ -149,6 +149,25 @@ The loader converts JSON or YAML documents into the mission model before
 execution. `MissionExecutor` remains independent of YAML, JSON, files, and
 parser code.
 
+Milestone 6.4 through 6.7 complete the mission execution path:
+
+```text
+MissionLoader -> MissionParser -> MissionValidator -> Mission
+                                                  -> MissionExecutor
+MissionStep -> WaitStep / DelayStep
+            -> RetryPolicy / LoopPolicy / TimeoutPolicy
+            -> MissionCondition -> ConditionEvaluator -> RobotStateManager
+            -> Command -> CommandDispatcher -> SafetyValidator -> IRobotAdapter
+```
+
+The executor applies wait, delay, retry, loop, timeout, skip, abort, and
+condition decisions before forwarding command steps to `CommandDispatcher`.
+Condition evaluation consumes only copied generic state from
+`RobotStateManager` and generic capability metadata. The mission layer does not
+depend on concrete adapters, plugins, SDK wrappers, or vendor SDKs. Runnable
+examples remain application-layer composition and do not reverse this
+dependency direction.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

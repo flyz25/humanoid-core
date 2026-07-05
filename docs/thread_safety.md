@@ -19,6 +19,7 @@ humanoid-core skeleton.
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
 | `CommandDispatcher` | Thread-safe synchronous execution, asynchronous queueing, queued-command cancellation, and idempotent shutdown. Adapter calls are serialized. |
 | `ConditionEvaluator` | Thread-safe capability context updates and condition reads. Robot state is copied from `RobotStateManager` before evaluation. |
+| `MissionExecutor` | Thread-safe lifecycle requests and state snapshots. One owned worker executes mission steps serially; callbacks into `CommandDispatcher` occur without holding executor state locks. |
 | `TelemetryService` | Thread-safe start, stop, subscribe, and unsubscribe operations. Listener callbacks are invoked outside service locks. |
 | `SdkWrapper` | Thread-safe public methods through internal serialization of Unitree SDK2 access. The read-only heartbeat worker shares the same mutex and invokes state callbacks outside the SDK lock. |
 | `LocoAdapter`, `HandAdapter`, `AudioAdapter` | Thread-safe public methods through per-adapter mutexes around owned Unitree SDK2 clients. |

@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.5.0-alpha`
+Current release: `0.6.0-alpha`
 
 ## Architecture
 
@@ -215,6 +215,13 @@ Each command loads and validates YAML before composing `MissionExecutor` with
 `CommandDispatcher`. The process-local example adapter performs no SDK or robot
 communication. Replace it at the application composition boundary to execute a
 mission against a supported robot adapter.
+
+Milestone 6 completes the mission framework by integrating the mission model,
+strict loader and validator, thread-safe executor, flow-control policies,
+RobotStateManager-backed conditions, and runnable lifecycle examples. Mission
+commands always enter the existing command and safety framework; mission code
+does not call adapters or SDKs directly. The release validation record is in
+`docs/Milestone_6_Report.md`.
 
 ## Directory Structure
 
@@ -437,6 +444,7 @@ API-level documentation:
 - `docs/api/mission_model.md`
 - `docs/api/robot_state_and_telemetry.md`
 - `docs/api/plugin_integration.md`
+- `docs/Milestone_6_Report.md`
 - `docs/services/telemetry_service.md`
 
 ## Install and Export
@@ -520,7 +528,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.5.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.6.0-alpha`.
 
 Release tags use:
 
