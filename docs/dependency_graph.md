@@ -54,8 +54,10 @@ Robot state flow
   -> subscriber callbacks
 
 Mission model flow
+  -> humanoid::mission::MissionExecutor
   -> humanoid::mission::Mission
   -> humanoid::mission::MissionStep
+  -> humanoid::core::CommandDispatcher
   -> humanoid::core::Command
 
 Command execution flow
@@ -109,6 +111,8 @@ unitree_sdk2
 - Runtime services may depend on core state models and managers.
 - Runtime services receive core services through dependency injection.
 - Mission models may depend on generic command value types.
+- Mission execution may depend on the command dispatcher component and must not
+  call robot adapters directly.
 - Command execution lifecycle infrastructure may depend on generic commands,
   command results, logging interfaces, and injected executor callbacks.
 - Command dispatch may depend on the abstract robot adapter interface.
@@ -122,7 +126,8 @@ unitree_sdk2
 - Applications directly constructing concrete robot adapters.
 - Managers depending on concrete adapters or vendor SDKs.
 - Core modules depending on Unitree SDK2, ROS2, OpenCV, AI runtimes, GUI
-  frameworks, mission engines, planners, navigation, or behavior trees.
+  frameworks, planners, navigation, behavior trees, or mission execution paths
+  that bypass the command framework.
 - Core framework modules depending on concrete plugins.
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - SDK-free plugin skeletons including vendor SDK headers.

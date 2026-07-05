@@ -12,6 +12,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 6.1 Mission Model: added vendor-independent mission, mission step,
   mission status, mission result, and mission metadata value types with
   hardware-free validation coverage and API documentation.
+- Milestone 6.2 Mission Executor: added a thread-safe mission executor that
+  starts, pauses, resumes, cancels, stops, tracks current step state, executes
+  mission steps through `CommandDispatcher`, and validates lifecycle behavior
+  without robot hardware.
 
 ## [0.5.0-alpha] - 2026-07-04
 

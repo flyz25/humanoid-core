@@ -40,6 +40,7 @@
 #include <humanoid/logging/Logger.hpp>
 #include <humanoid/logging/LoggerManager.hpp>
 #include <humanoid/mission/Mission.h>
+#include <humanoid/mission/MissionExecutor.h>
 #include <humanoid/mission/MissionMetadata.h>
 #include <humanoid/mission/MissionResult.h>
 #include <humanoid/mission/MissionStatus.h>

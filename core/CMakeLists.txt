@@ -6,7 +6,8 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/core/CommandExecutionPipeline.cpp
   ${PROJECT_SOURCE_DIR}/src/core/CommandQueue.cpp
   ${PROJECT_SOURCE_DIR}/src/core/RobotStateManager.cpp
-  ${PROJECT_SOURCE_DIR}/src/core/SafetyValidator.cpp)
+  ${PROJECT_SOURCE_DIR}/src/core/SafetyValidator.cpp
+  ${PROJECT_SOURCE_DIR}/src/mission/MissionExecutor.cpp)
 
 add_library(humanoid::core ALIAS humanoid_core_core)
 set_target_properties(humanoid_core_core PROPERTIES EXPORT_NAME core)

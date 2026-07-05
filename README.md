@@ -143,9 +143,19 @@ Mission
     -> Command
 ```
 
-The model is declarative only. It does not implement a mission engine,
-scheduler, YAML parser, behavior tree, planner, navigation stack, or robot
-adapter integration.
+Milestone 6.2 adds `MissionExecutor`, which executes mission steps only through
+the existing `CommandDispatcher`:
+
+```text
+MissionExecutor
+  -> Mission
+    -> MissionStep
+      -> CommandDispatcher
+        -> Command Framework
+```
+
+The mission layer does not parse YAML, implement behavior trees, add planners,
+perform navigation, include SDK headers, or call robot adapters directly.
 
 ## Directory Structure
 
@@ -353,6 +363,10 @@ history, timeout, exception propagation, logging, and concurrent submissions.
 The always-built `humanoid_core_mission_model_unit_test` validates mission
 defaults, embedded command steps, metadata, enabled-step validity rules,
 mission status names, terminal status detection, and mission results.
+
+The always-built `humanoid_core_mission_executor_unit_test` validates mission
+start, pause, resume, cancel, stop, current-step tracking, retry behavior, and
+step execution through `CommandDispatcher`.
 
 API-level documentation:
 

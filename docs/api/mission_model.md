@@ -1,12 +1,15 @@
 # Mission Model
 
-Milestone 6.1 defines the vendor-independent mission value model. It does not
-add a mission engine, scheduler, parser, robot adapter, or vendor integration.
+Milestone 6.1 defines the vendor-independent mission value model. Milestone 6.2
+adds a thread-safe executor that runs mission steps through the existing command
+framework. This API does not add a scheduler, parser, robot adapter, planner,
+behavior tree, or vendor integration.
 
 ## Public Headers
 
 ```cpp
 #include <humanoid/mission/Mission.h>
+#include <humanoid/mission/MissionExecutor.h>
 #include <humanoid/mission/MissionMetadata.h>
 #include <humanoid/mission/MissionResult.h>
 #include <humanoid/mission/MissionStatus.h>
@@ -77,7 +80,39 @@ Application or future mission service
       -> C++ standard library only
 ```
 
-The mission model contains no Unitree SDK headers, robot communication,
+The mission value model contains no Unitree SDK headers, robot communication,
 execution engine, behavior tree, planner, navigation stack, YAML parser, or
-state machine. Future mission execution components may consume this model, but
-vendor types must remain behind adapter and SDK boundaries.
+state machine. Mission execution components may consume this model, but vendor
+types must remain behind adapter and SDK boundaries.
+
+## Mission Executor
+
+Milestone 6.2 adds `MissionExecutor`, a thread-safe component for executing a
+mission's enabled steps through an injected `humanoid::core::CommandDispatcher`.
+
+```text
+MissionExecutor
+  -> Mission
+    -> MissionStep
+      -> CommandDispatcher
+        -> Command Framework
+```
+
+The executor provides:
+
+- `Start()` for asynchronous mission execution.
+- `Pause()` to pause before the next step or retry starts.
+- `Resume()` to continue a paused mission.
+- `Cancel()` to request cancellation without waiting for the worker to join.
+- `Stop()` to request cancellation and wait for executor-owned work to finish.
+- `ExecuteStep()` for synchronous single-step execution through the dispatcher.
+- Status, current step index, current step ID, and last result snapshots.
+
+Pause, cancel, and stop do not interrupt a command already executing inside the
+dispatcher because the command and adapter contracts do not expose cooperative
+interruption. Queued dispatcher work is cancelled when the dispatcher can still
+cancel it; active adapter work is allowed to finish.
+
+The executor owns no robot adapter, SDK client, parser, planner, behavior tree,
+or mission authoring state. It is dependency-injection friendly and has no
+singleton or global state.

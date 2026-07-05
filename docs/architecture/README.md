@@ -80,8 +80,9 @@ See `docs/api/plugin_integration.md` for the public plugin integration API
 summary and example target list.
 
 The core foundation modules do not implement ROS2, DDS participants, AI, OpenCV,
-GUI workflows, mission engines, or event controllers. Unitree SDK2 integration
-is isolated in the optional adapter and SDK wrapper targets.
+GUI workflows, behavior trees, planners, navigation, or event controllers.
+Unitree SDK2 integration is isolated in the optional adapter and SDK wrapper
+targets.
 
 ## Robot State and Telemetry Layer
 
@@ -117,9 +118,22 @@ Mission
     -> Command
 ```
 
+Milestone 6.2 adds `MissionExecutor`:
+
+```text
+MissionExecutor
+  -> Mission
+    -> MissionStep
+      -> CommandDispatcher
+        -> Command Framework
+```
+
 `Mission` and `MissionStep` are value types for describing ordered command
-collections. They do not execute commands, parse YAML, schedule work, manage
-robot state, instantiate adapters, or include vendor SDK headers. See
+collections. `MissionExecutor` runs those steps only through the injected
+`CommandDispatcher`; it does not bypass safety validation or command
+translation. The mission layer does not parse YAML, manage robot state,
+instantiate adapters, include vendor SDK headers, or implement behavior trees,
+planners, navigation, AI, or application missions. See
 `docs/api/mission_model.md` for the public contract.
 
 ## Generic Command Model
