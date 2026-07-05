@@ -387,6 +387,27 @@ Ollama, local models, and custom providers for selection metadata only. It does
 not add provider SDKs, HTTP transport, credentials, or concrete provider
 implementations. See `docs/api/llm_provider.md`.
 
+Milestone 9.5 adds `PlanningPipeline`, a vendor-independent orchestration
+boundary:
+
+```text
+Goal
+  -> PlanningPipeline
+    -> IPlanner
+      -> Mission
+      -> BehaviorTree
+      -> PlanningDiagnostics
+    -> optional fallback IPlanner
+    -> optional BehaviorTreeRuntime handoff
+```
+
+The pipeline validates planning requests, calls an injected planner, optionally
+validates produced plans, attempts an injected fallback planner, records
+diagnostics, emits optional logs, tracks planning metrics, and can hand an
+owned behavior tree to `BehaviorTreeRuntime`. It does not implement an LLM
+provider, HTTP client, robot adapter, SDK call, mission executor, scheduler, or
+business policy.
+
 ## Directory Structure
 
 ```text

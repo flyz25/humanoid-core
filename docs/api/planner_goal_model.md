@@ -172,3 +172,37 @@ global generator.
 `RuleBasedPlanner::ValidatePlan()` requires `GoalStatus::Planned`, a valid
 mission, and a behavior tree. It intentionally does not execute the mission or
 tick the tree.
+
+## Planning Pipeline
+
+Milestone 9.5 adds `PlanningPipeline`, the vendor-independent orchestration
+boundary from goal planning to optional runtime handoff:
+
+```cpp
+#include <humanoid/planner/PlanningPipeline.h>
+```
+
+```text
+PlanningRequest
+  -> PlanningPipeline
+    -> primary IPlanner
+    -> optional fallback IPlanner
+    -> PlanningResult diagnostics
+    -> optional BehaviorTreeRuntime submission
+```
+
+`PlanningPipelineOptions` controls plan validation, fallback use, and optional
+behavior tree runtime submission. Runtime submission transfers ownership of the
+generated `BehaviorTree` to the injected `BehaviorTreeRuntime`; the returned
+`PlanningPipelineResult` retains mission output, diagnostics, status, fallback
+metadata, and the optional runtime job handle.
+
+`PlanningPipelineMetrics` is a thread-safe snapshot containing request,
+rejection, planner-attempt, fallback, validation-failure, failure, runtime
+submission, and runtime-submission-failure counters.
+
+The pipeline is dependency-injection friendly and owns no global state. It does
+not implement a provider, HTTP transport, LLM client, robot adapter, robot SDK,
+mission executor, runtime scheduler, behavior tree node factory, or concrete
+planning policy. Those dependencies remain behind their existing interfaces and
+are supplied by the application composition root.

@@ -100,6 +100,7 @@
 #include <humanoid/planner/IPlanner.h>
 #include <humanoid/planner/PlannerFactory.h>
 #include <humanoid/planner/PlannerRegistry.h>
+#include <humanoid/planner/PlanningPipeline.h>
 #include <humanoid/planner/PlanningRequest.h>
 #include <humanoid/planner/PlanningResult.h>
 #include <humanoid/planner/RuleBasedPlanner.h>

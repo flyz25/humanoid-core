@@ -450,6 +450,30 @@ planner execution, robot adapters, or robot SDKs. Future provider adapters must
 remain outside this abstraction boundary and be injected through
 `ILLMProvider`.
 
+Milestone 9.5 adds a planning pipeline that composes existing planning and
+runtime boundaries without changing ownership direction:
+
+```text
+Application or future planner host
+  -> PlanningPipeline
+    -> IPlanner
+      -> PlanningResult
+        -> Mission
+        -> BehaviorTree
+        -> PlanningDiagnostics
+    -> fallback IPlanner
+    -> BehaviorTreeRuntime
+      -> RuntimeScheduler
+```
+
+`PlanningPipeline` owns orchestration policy only. It validates requests, calls
+the injected primary planner, validates produced plans through `IPlanner`,
+attempts an injected fallback planner when enabled, appends diagnostics, emits
+optional logs, tracks metrics, and may transfer behavior tree ownership to the
+existing behavior tree runtime. It contains no provider implementation, no
+HTTP client, no robot SDK, no adapter, no mission executor, no scheduler
+implementation, and no application mission policy.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

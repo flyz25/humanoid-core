@@ -25,6 +25,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   response, capabilities, and pure abstract provider contracts for future
   OpenAI, Anthropic, Gemini, Ollama, local, and custom adapters without provider
   SDKs, HTTP implementation, or concrete providers.
+- Milestone 9.5 Planning Pipeline: added a vendor-independent planning
+  orchestration layer with request validation, primary planner execution,
+  optional fallback planning, plan validation, diagnostics, optional logging,
+  metrics, optional behavior tree runtime handoff, and hardware-free validation
+  coverage without provider implementations or SDK dependencies.
 
 ## [0.8.0-alpha] - 2026-07-05
 
