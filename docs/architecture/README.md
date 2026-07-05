@@ -490,6 +490,12 @@ through the existing runtime. They do not introduce planner architecture
 changes, provider implementations, SDK dependencies, robot hardware access, or
 new execution engines.
 
+Milestone 9.7 releases this planner framework boundary as `0.9.0-alpha`.
+Planner model, planner discovery, deterministic planning, provider abstraction,
+pipeline orchestration, and examples remain vendor independent. Physical robot
+execution still requires an application-selected adapter behind the existing
+robot and command boundaries.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

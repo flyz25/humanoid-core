@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.0-alpha] - 2026-07-06
+
 ### Added
 
 - Milestone 9.1 Goal Model: added vendor-independent planner goal, goal type,
@@ -34,6 +36,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   Greeting, Flag Ceremony, Inspection, and Stage Demo scenarios that create
   goals, produce missions and behavior trees through the planning pipeline, and
   execute generated trees through the existing runtime.
+- Milestone 9.7 Planner Framework Release: completed planner framework
+  documentation, release metadata, validation report, build matrix, install
+  validation, package validation, and release readiness for `v0.9.0-alpha`.
 
 ## [0.8.0-alpha] - 2026-07-05
 
@@ -242,7 +247,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.8.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.9.0-alpha...HEAD
+[0.9.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.8.0-alpha...v0.9.0-alpha
 [0.8.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.7.0-alpha...v0.8.0-alpha
 [0.7.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.6.0-alpha...v0.7.0-alpha
 [0.6.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.5.0-alpha...v0.6.0-alpha

@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.8.0-alpha`
+Current release: `0.9.0-alpha`
 
 ## Architecture
 
@@ -415,6 +415,11 @@ steps, submit the generated behavior trees to `BehaviorTreeRuntime`, and report
 execution results without provider implementations, SDK calls, or robot
 hardware.
 
+Milestone 9.7 releases the integrated AI Planning Framework as
+`0.9.0-alpha`. The release includes the goal model, planner interface,
+rule-based planner, LLM provider abstraction, planning pipeline, and runnable
+planning examples. See `docs/Milestone_9_Report.md`.
+
 ## Directory Structure
 
 ```text
@@ -761,7 +766,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.8.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.9.0-alpha`.
 
 Release tags use:
 
@@ -784,6 +789,7 @@ Production hardening documentation:
 - `docs/Production_Hardening_Report.md`
 - `docs/Repository_Governance_Report.md`
 - `docs/Milestone_5_Report.md`
+- `docs/Milestone_9_Report.md`
 - `docs/Milestone_4_Report.md`
 - `docs/integration/Milestone_4_8_Integration_Report.md`
 - `docs/architecture/plugin_architecture.md`

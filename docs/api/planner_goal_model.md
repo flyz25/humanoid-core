@@ -228,3 +228,12 @@ They are intentionally hardware-free and use deterministic rules only. The
 examples do not add provider SDKs, HTTP clients, robot SDKs, robot hardware
 communication, motion execution, mission-engine bypasses, or application
 business logic to the planner module.
+
+## Planner Framework Release
+
+Milestone 9.7 releases the planner framework API in humanoid-core
+`0.9.0-alpha`. The public planner surface includes the goal model, planner
+interface, planner registry, planner factory, deterministic rule planner, LLM
+provider abstraction, planning pipeline, and runnable planning examples. The
+release remains provider-neutral and vendor-independent; concrete LLM providers
+and robot execution stay outside the planner module.
