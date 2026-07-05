@@ -168,6 +168,24 @@ depend on concrete adapters, plugins, SDK wrappers, or vendor SDKs. Runnable
 examples remain application-layer composition and do not reverse this
 dependency direction.
 
+## Execution Runtime Context
+
+Milestone 7.1 adds a shared state boundary for future execution engines:
+
+```text
+Mission framework / future execution engine
+  -> ExecutionContext
+    -> ExecutionContextId
+    -> ExecutionScope / ExecutionState
+    -> cooperative cancellation
+    -> ExecutionMetadata
+```
+
+The context is a synchronized value container. It does not invoke or depend on
+`MissionExecutor`, behavior trees, planners, ROS2, robot adapters, plugins, or
+SDK wrappers. Future integrations may depend on the runtime context; the
+runtime context must not depend on those integrations.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

@@ -47,6 +47,10 @@ humanoid::core
 humanoid::core::CoreContext
   -> injected RobotStateManager
 
+Future execution engines
+  -> humanoid::runtime::ExecutionContext
+  -> C++ standard library
+
 Robot state flow
   -> humanoid::core::RobotState
   -> humanoid::core::RobotStateManager

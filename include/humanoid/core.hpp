@@ -65,6 +65,11 @@
 #include <humanoid/robot/Robot.hpp>
 #include <humanoid/robot/RobotAdapter.hpp>
 #include <humanoid/robot/RobotManager.hpp>
+#include <humanoid/runtime/ExecutionContext.h>
+#include <humanoid/runtime/ExecutionContextId.h>
+#include <humanoid/runtime/ExecutionMetadata.h>
+#include <humanoid/runtime/ExecutionScope.h>
+#include <humanoid/runtime/ExecutionState.h>
 #include <humanoid/safety/SafetyController.hpp>
 #include <humanoid/safety/SafetyManager.hpp>
 #include <humanoid/safety/SafetyState.hpp>

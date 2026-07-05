@@ -223,6 +223,19 @@ commands always enter the existing command and safety framework; mission code
 does not call adapters or SDKs directly. The release validation record is in
 `docs/Milestone_6_Report.md`.
 
+Milestone 7.1 adds a vendor-independent execution runtime context:
+
+```text
+Future execution engine
+  -> ExecutionContext
+    -> execution identity, scope, state, timestamp, current step
+    -> cooperative cancellation and runtime metadata
+```
+
+`ExecutionContext` is a synchronized state container, not an execution engine.
+It has no dependency on `MissionExecutor`, behavior trees, AI planners, ROS2,
+robot adapters, or vendor SDKs. See `docs/api/execution_context.md`.
+
 ## Directory Structure
 
 ```text
@@ -239,6 +252,7 @@ humanoid-core/
   gesture/                   Gesture interfaces and manager
   include/humanoid/adapters/ Public robot adapter and factory contracts
   include/humanoid/mission/ Public mission model contracts
+  include/humanoid/runtime/ Public execution runtime contracts
   logging/                   Logging interfaces and routing manager
   motion/                    Motion interfaces and manager
   network/                   Network interfaces and endpoint metadata
@@ -409,6 +423,10 @@ The always-built `humanoid_core_command_model_unit_test` validates command
 defaults, identity and timeout rules, typed payload values, metadata, lifecycle
 results, and stable enum names without requiring robot hardware.
 
+The always-built `humanoid_core_execution_context_unit_test` validates runtime
+identity, scope and state values, timestamps, current-step tracking, metadata
+replacement, cancellation token propagation, snapshots, and concurrent access.
+
 The always-built `humanoid_core_command_dispatcher_unit_test` validates command
 forwarding, payload rejection, timeout and exception translation, asynchronous
 priority, cancellation, duplicate IDs, and concurrent shutdown without robot
@@ -441,6 +459,7 @@ rejection, and file-extension dispatch.
 API-level documentation:
 
 - `docs/api/command_model.md`
+- `docs/api/execution_context.md`
 - `docs/api/mission_model.md`
 - `docs/api/robot_state_and_telemetry.md`
 - `docs/api/plugin_integration.md`

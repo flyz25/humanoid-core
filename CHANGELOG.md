@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- Milestone 7.1 Execution Runtime Context: added vendor-independent execution
+  IDs, scope, lifecycle state, cooperative cancellation, metadata, coherent
+  stored-state snapshots, thread-safe mutable runtime state, tests, and API
+  documentation.
+
 ## [0.6.0-alpha] - 2026-07-05
 
 ### Added
