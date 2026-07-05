@@ -17,6 +17,7 @@ execution policy, or behavior tree execution policy.
 #include <humanoid/planner/PlannerRegistry.h>
 #include <humanoid/planner/PlanningRequest.h>
 #include <humanoid/planner/PlanningResult.h>
+#include <humanoid/planner/RuleBasedPlanner.h>
 ```
 
 All types are in `humanoid::planner` and are also available through the
@@ -141,3 +142,33 @@ planner instances and performs no dynamic loading.
 capability discovery to an injected `PlannerRegistry`, tracks active instances,
 and refuses unregistration while created planners are still active. It is
 dependency-injection friendly, owns no global state, and is not a singleton.
+
+## Rule-Based Planner
+
+Milestone 9.3 adds `RuleBasedPlanner`, the first deterministic planner
+implementation. It is static and contains no AI, LLM, OpenAI API, Claude API,
+robot SDK, adapter call, mission execution, or behavior tree runtime execution.
+
+The planner evaluates an ordered `RuleBasedPlannerRule` set:
+
+- Match by `GoalType`.
+- Require `GoalPriority` to be at least the rule's minimum priority.
+- Select the matching rule with the highest minimum priority.
+- Preserve insertion order for ties.
+- Use the first fallback rule when no normal rule matches.
+
+Each selected rule produces:
+
+- A `Mission` containing deterministic `MissionStep` command values.
+- A `BehaviorTree` with deterministic success leaf nodes representing the
+  generated plan structure.
+- Planner diagnostics identifying whether a normal rule or fallback rule was
+  selected.
+
+Generated command priorities are derived directly from goal priority. Command
+and mission identifiers are derived from the goal identifier and contain no
+global generator.
+
+`RuleBasedPlanner::ValidatePlan()` requires `GoalStatus::Planned`, a valid
+mission, and a behavior tree. It intentionally does not execute the mission or
+tick the tree.

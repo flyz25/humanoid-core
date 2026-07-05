@@ -16,6 +16,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   planner capability metadata, thread-safe planner registry, dependency-injected
   planner factory, and validation coverage without adding concrete planner
   implementations.
+- Milestone 9.3 Rule-Based Planner: added a deterministic static planner with
+  rule matching, priority-specific rule selection, fallback planning,
+  mission/behavior-tree output generation, cancellation handling, factory
+  integration, documentation, and validation coverage without AI or LLM
+  dependencies.
 
 ## [0.8.0-alpha] - 2026-07-05
 

@@ -415,6 +415,23 @@ capability metadata. Both are thread-safe, non-singleton components. No rule,
 LLM, symbolic, vendor, or robot-specific planner implementation is introduced
 in this milestone.
 
+Milestone 9.3 adds the first concrete deterministic planner:
+
+```text
+Goal
+  -> RuleBasedPlanner
+    -> static RuleBasedPlannerRule
+      -> Mission
+      -> BehaviorTree
+      -> PlanningDiagnostics
+```
+
+The rule planner is static and vendor independent. It selects rules by goal type
+and minimum priority, emits fallback diagnostics when no normal rule matches,
+and produces mission plus behavior tree artifacts. It does not execute those
+artifacts, call `MissionExecutor`, call `BehaviorTreeRuntime`, invoke command
+dispatch, instantiate adapters, include SDK headers, or use AI/LLM services.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

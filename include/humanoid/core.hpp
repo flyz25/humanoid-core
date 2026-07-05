@@ -98,6 +98,7 @@
 #include <humanoid/planner/PlannerRegistry.h>
 #include <humanoid/planner/PlanningRequest.h>
 #include <humanoid/planner/PlanningResult.h>
+#include <humanoid/planner/RuleBasedPlanner.h>
 #include <humanoid/robot/Robot.hpp>
 #include <humanoid/robot/RobotAdapter.hpp>
 #include <humanoid/robot/RobotManager.hpp>

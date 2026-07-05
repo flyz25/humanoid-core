@@ -357,6 +357,22 @@ Application or future planner host
 future planner families such as rule planners, LLM planners, and symbolic
 planners without adding any concrete planner implementation or SDK dependency.
 
+Milestone 9.3 adds `RuleBasedPlanner`, a deterministic static planner:
+
+```text
+Goal
+  -> RuleBasedPlanner
+    -> Mission
+    -> BehaviorTree
+    -> PlanningDiagnostics
+```
+
+Rules match by goal type and minimum priority. The most specific priority rule
+wins, and an explicit fallback rule preserves deterministic output when no
+normal rule matches. The planner generates framework-owned mission and behavior
+tree artifacts only; it does not execute robot commands, call adapters, invoke
+SDKs, or use AI/LLM services.
+
 ## Directory Structure
 
 ```text
@@ -555,6 +571,11 @@ The always-built `humanoid_core_planner_interface_unit_test` validates the
 abstract planner interface, dependency-injected factory and registry,
 capability lookup, active-instance tracking, invalid creator rejection, and
 concurrent registry access without adding a concrete production planner.
+
+The always-built `humanoid_core_rule_based_planner_unit_test` validates
+deterministic rule matching, goal-priority selection, fallback behavior, plan
+validation, cancellation, behavior tree tickability, and planner factory
+integration without robot hardware or AI services.
 
 The always-built `humanoid_core_execution_context_unit_test` validates runtime
 identity, scope and state values, timestamps, current-step tracking, metadata
