@@ -288,6 +288,11 @@ context wiring, status handling, and node factory registration. It does not
 implement mission execution, robot adapters, SDK communication, XML parsing,
 planners, navigation, ROS2, or AI. See `docs/api/behavior_tree_core.md`.
 
+Milestone 8.2 adds standard behavior tree composites: sequence, selector,
+memory sequence, memory selector, and parallel nodes. Composite nodes own child
+nodes, use the runtime-backed `BTContext`, support cooperative cancellation,
+and remain vendor independent.
+
 ## Directory Structure
 
 ```text

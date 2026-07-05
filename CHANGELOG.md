@@ -13,6 +13,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   status, node, runtime context, tree lifecycle, node factory registration,
   thread-safe lifecycle validation, and API documentation on top of the
   execution runtime.
+- Milestone 8.2 Composite Nodes: added vendor-independent sequence, selector,
+  memory sequence, memory selector, and parallel behavior tree composites with
+  nested composite validation, concurrent parallel tick validation, runtime
+  cancellation handling, and updated documentation.
 
 ## [0.7.0-alpha] - 2026-07-05
 

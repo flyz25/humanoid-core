@@ -58,6 +58,8 @@ Future execution engines
 Behavior tree core
   -> humanoid::bt::BehaviorTree
   -> humanoid::bt::BTNode
+  -> humanoid::bt::CompositeNode
+  -> humanoid::bt::SequenceNode / SelectorNode / ParallelNode
   -> humanoid::bt::BTContext
   -> humanoid::runtime::ExecutionContext
   -> humanoid::runtime::Blackboard
@@ -144,6 +146,9 @@ unitree_sdk2
   but must not depend on mission execution, command dispatch, robot adapters,
   plugins, SDK wrappers, vendor SDKs, XML parsers, ROS2, planners, navigation,
   or AI.
+- Behavior tree composite nodes may own and tick child `BTNode` instances and
+  may use `BTContext`; they must not perform robot, mission, parser, adapter,
+  plugin, SDK, ROS2, planner, navigation, or AI work.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic

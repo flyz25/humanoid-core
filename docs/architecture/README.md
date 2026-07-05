@@ -283,6 +283,18 @@ navigation, or AI. Behavior tree nodes receive runtime dependencies through
 `BTContext` and must keep robot/vendor integration behind existing adapter and
 command boundaries.
 
+Milestone 8.2 adds composite node policy under the same boundary:
+
+```text
+CompositeNode
+  -> SequenceNode / SelectorNode / ParallelNode
+  -> owned BTNode children
+  -> BTContext
+```
+
+Composite nodes provide child traversal and aggregation only. They do not call
+commands, missions, adapters, plugins, SDK wrappers, or vendor SDKs.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

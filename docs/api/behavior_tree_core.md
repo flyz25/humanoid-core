@@ -11,6 +11,10 @@ on top of the execution runtime primitives added in Milestone 7.
 #include <humanoid/bt/BTContext.h>
 #include <humanoid/bt/BehaviorTree.h>
 #include <humanoid/bt/BehaviorTreeFactory.h>
+#include <humanoid/bt/CompositeNode.h>
+#include <humanoid/bt/SequenceNode.h>
+#include <humanoid/bt/SelectorNode.h>
+#include <humanoid/bt/ParallelNode.h>
 ```
 
 All behavior tree types are in `humanoid::bt`. The headers are also available
@@ -21,6 +25,7 @@ through `<humanoid/core.hpp>`.
 ```text
 BehaviorTree
   -> BTNode
+  -> CompositeNode
   -> BTContext
     -> runtime::ExecutionContext
     -> runtime::Blackboard
@@ -90,3 +95,36 @@ a tree from a registered root node type. Creator exceptions are contained and
 reported as an empty result.
 
 The factory does not parse XML or any other behavior tree document format.
+
+## Composite Nodes
+
+Milestone 8.2 adds standard composite nodes:
+
+- `SequenceNode`
+- `SelectorNode`
+- `ParallelNode`
+
+`CompositeNode` owns child nodes with `std::unique_ptr<BTNode>` and propagates
+initialization, reset, and shutdown to children. It rejects null child
+ownership and provides thread-safe child count and child registration APIs.
+
+`SequenceNode` ticks children in order and succeeds only when all children
+succeed. It fails on the first child failure and reports running on the first
+running child.
+
+`SelectorNode` ticks children in order and succeeds on the first child success.
+It fails only when all children fail and reports running on the first running
+child.
+
+Both sequence and selector nodes support stateless and memory traversal:
+
+- Stateless traversal restarts from the first child on every tick.
+- Memory traversal resumes from the child that previously returned `Running`.
+
+`ParallelNode` ticks children concurrently and aggregates their statuses. By
+default it succeeds when all children succeed and fails when any child fails.
+Configurable success and failure thresholds allow future execution policies
+without introducing robot or mission dependencies.
+
+All composite nodes check cooperative cancellation through `BTContext` before
+executing child ticks.

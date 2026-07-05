@@ -10,6 +10,10 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/bt/BTContext.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/BehaviorTree.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/BehaviorTreeFactory.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/CompositeNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/ParallelNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/SelectorNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/SequenceNode.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/ConditionEvaluator.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionExecutor.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionLoader.cpp

@@ -13,6 +13,10 @@
 #include <humanoid/bt/BTStatus.h>
 #include <humanoid/bt/BehaviorTree.h>
 #include <humanoid/bt/BehaviorTreeFactory.h>
+#include <humanoid/bt/CompositeNode.h>
+#include <humanoid/bt/ParallelNode.h>
+#include <humanoid/bt/SelectorNode.h>
+#include <humanoid/bt/SequenceNode.h>
 #include <humanoid/common/LifecycleState.hpp>
 #include <humanoid/common/Status.hpp>
 #include <humanoid/common/Version.hpp>
