@@ -30,6 +30,9 @@
 #include <humanoid/bt/SequenceNode.h>
 #include <humanoid/bt/SucceederNode.h>
 #include <humanoid/bt/TimeoutNode.h>
+#include <humanoid/bt/TreeLoader.h>
+#include <humanoid/bt/TreeParser.h>
+#include <humanoid/bt/TreeValidator.h>
 #include <humanoid/bt/WaitNode.h>
 #include <humanoid/common/LifecycleState.hpp>
 #include <humanoid/common/Status.hpp>

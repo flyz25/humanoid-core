@@ -304,6 +304,11 @@ delay, command, and mission nodes. `CommandNode` executes only through
 `CommandDispatcher`, `MissionNode` executes only through `MissionExecutor`, and
 condition-oriented nodes inspect runtime state through `BTContext`.
 
+Milestone 8.5 adds `TreeLoader`, `TreeParser`, and `TreeValidator` for loading
+behavior trees from JSON or YAML documents. Parsing remains outside
+`BehaviorTree`; documents are validated against registered node types and then
+constructed through `BehaviorTreeFactory`.
+
 ## Directory Structure
 
 ```text

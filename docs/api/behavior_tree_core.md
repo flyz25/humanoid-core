@@ -29,6 +29,9 @@ on top of the execution runtime primitives added in Milestone 7.
 #include <humanoid/bt/DelayNode.h>
 #include <humanoid/bt/CommandNode.h>
 #include <humanoid/bt/MissionNode.h>
+#include <humanoid/bt/TreeLoader.h>
+#include <humanoid/bt/TreeParser.h>
+#include <humanoid/bt/TreeValidator.h>
 ```
 
 All behavior tree types are in `humanoid::bt`. The headers are also available
@@ -44,6 +47,7 @@ BehaviorTree
   -> ActionNode / ConditionNode / WaitNode / DelayNode
   -> CommandNode -> core::CommandDispatcher
   -> MissionNode -> mission::MissionExecutor
+  -> TreeLoader -> TreeParser / TreeValidator / BehaviorTreeFactory
   -> BTContext
     -> runtime::ExecutionContext
     -> runtime::Blackboard
@@ -225,3 +229,63 @@ cancelled missions map to `Aborted`, and failed missions map to `Failure`.
 All leaf nodes check cooperative cancellation through `BTContext`. They do not
 instantiate robot adapters, call vendor SDKs, parse mission files, load plugins,
 or bypass command and mission framework boundaries.
+
+## Tree Loading
+
+Milestone 8.5 adds behavior tree loading support:
+
+- `TreeParser`
+- `TreeValidator`
+- `TreeLoader`
+
+`TreeParser` converts JSON or a deterministic YAML subset into
+`TreeDocument`. It performs no file I/O, factory lookup, execution, robot
+adapter work, plugin loading, or SDK work.
+
+`TreeValidator` validates the parsed document against registered node types in
+`BehaviorTreeFactory`. Unknown node types, missing node type fields, and empty
+node types are rejected before construction.
+
+`TreeLoader` owns parser and validator values through dependency injection,
+loads `.json`, `.yaml`, and `.yml` files, and constructs `BehaviorTree` objects
+through the injected `BehaviorTreeFactory`. `.xml` files are recognized but
+rejected with a clear diagnostic because XML adapter support is optional and
+not enabled in Milestone 8.5.
+
+The JSON schema is:
+
+```json
+{
+  "root": {
+    "type": "Sequence",
+    "children": [
+      { "type": "Action" },
+      { "type": "Condition" }
+    ]
+  }
+}
+```
+
+Decorator-style single-child nodes may use `child`:
+
+```json
+{
+  "root": {
+    "type": "Inverter",
+    "child": { "type": "Condition" }
+  }
+}
+```
+
+The equivalent YAML subset is:
+
+```yaml
+root:
+  type: Sequence
+  children:
+    - type: Action
+    - type: Condition
+```
+
+Parser and loader code is separate from `BehaviorTree`; the core tree lifecycle
+does not know about JSON, YAML, XML, files, or parser state.

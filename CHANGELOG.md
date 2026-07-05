@@ -24,6 +24,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   nodes for injected actions, runtime-context conditions, wait predicates,
   timed delays, command dispatch through `CommandDispatcher`, and mission
   execution through `MissionExecutor`, with hardware-free validation coverage.
+- Milestone 8.5 Behavior Tree Loader: added JSON and YAML behavior tree
+  parsing, validation against registered node types, recursive tree
+  construction through `BehaviorTreeFactory`, optional XML rejection, file
+  loading, and invalid/missing/unknown-node validation coverage.
 
 ## [0.7.0-alpha] - 2026-07-05
 

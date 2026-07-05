@@ -25,6 +25,7 @@ humanoid-core skeleton.
 | `CompositeNode`, `SequenceNode`, `SelectorNode`, `ParallelNode` | Thread-safe child ownership, lifecycle propagation, traversal state, and tick operations. Parallel node ticks different child nodes concurrently while serializing access to its own child collection. |
 | `DecoratorNode`, `InverterNode`, `RepeatNode`, `RetryNode`, `SucceederNode`, `FailerNode`, `LimiterNode`, `TimeoutNode` | Thread-safe child ownership, lifecycle propagation, local policy state, and tick operations for one owned child node. |
 | `ActionNode`, `ConditionNode`, `WaitNode`, `DelayNode`, `CommandNode`, `MissionNode` | Thread-safe leaf lifecycle, local state, and tick operations. Command and mission nodes delegate concurrency to injected framework services. |
+| `TreeParser`, `TreeValidator`, `TreeLoader` | Parser and validator are immutable value objects. Loader is immutable after construction and safe to share when the injected factory remains alive and thread-safe. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
@@ -192,6 +193,11 @@ work through `CommandDispatcher::ExecuteAsync()` and polls without blocking.
 `MissionNode` starts work through `MissionExecutor` and polls executor status.
 Injected callbacks in `ActionNode`, `ConditionNode`, and `WaitNode` must provide
 their own synchronization for state they capture outside the node.
+
+`TreeParser` and `TreeValidator` store no mutable runtime state. `TreeLoader`
+stores shared ownership of the injected `BehaviorTreeFactory` and immutable
+parser/validator values. Each load operation builds a new `BehaviorTree`; the
+returned tree owns its root and has the normal tree serialization guarantees.
 
 ## Registry
 

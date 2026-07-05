@@ -27,6 +27,9 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/bt/SequenceNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/SucceederNode.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/TimeoutNode.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/TreeLoader.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/TreeParser.cpp
+  ${PROJECT_SOURCE_DIR}/src/bt/TreeValidator.cpp
   ${PROJECT_SOURCE_DIR}/src/bt/WaitNode.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/ConditionEvaluator.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionExecutor.cpp

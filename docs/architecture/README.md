@@ -329,6 +329,20 @@ not call adapters directly, and `MissionNode` does not bypass the mission
 executor or command framework. Condition-oriented nodes inspect runtime state
 through `BTContext`.
 
+Milestone 8.5 adds a loader boundary around behavior tree documents:
+
+```text
+TreeLoader
+  -> TreeParser
+  -> TreeValidator
+  -> BehaviorTreeFactory
+    -> BehaviorTree
+```
+
+`BehaviorTree` and `BTNode` remain unaware of JSON, YAML, XML, files, or parser
+state. Loading is an outer composition concern that produces an already-owned
+`BehaviorTree` from registered node factories.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

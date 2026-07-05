@@ -66,6 +66,7 @@ Behavior tree core
   -> humanoid::bt::ActionNode / ConditionNode / WaitNode / DelayNode
   -> humanoid::bt::CommandNode -> humanoid::core::CommandDispatcher
   -> humanoid::bt::MissionNode -> humanoid::mission::MissionExecutor
+  -> humanoid::bt::TreeLoader -> TreeParser / TreeValidator / BehaviorTreeFactory
   -> humanoid::bt::BTContext
   -> humanoid::runtime::ExecutionContext
   -> humanoid::runtime::Blackboard
@@ -163,6 +164,10 @@ unitree_sdk2
   `CommandDispatcher`, or `MissionExecutor`; they must not call robot adapters,
   plugins, SDK wrappers, vendor SDKs, XML parsers, ROS2, planners, navigation,
   or AI directly.
+- Behavior tree loading may depend on parser and validator helpers plus
+  `BehaviorTreeFactory`; `BehaviorTree` and `BTNode` must not depend on JSON,
+  YAML, XML, file I/O, parser state, robot adapters, plugins, SDK wrappers, or
+  vendor SDKs.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic
