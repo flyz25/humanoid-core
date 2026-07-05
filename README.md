@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.6.0-alpha`
+Current release: `0.7.0-alpha`
 
 ## Architecture
 
@@ -266,6 +266,13 @@ Milestone 7.6 adds runnable runtime integration examples for
 `RuntimeScheduler`. The examples are hardware-free and link only against the
 vendor-independent core runtime. See `docs/api/runtime_examples.md`.
 
+Milestone 7 completes the execution runtime foundation. The release integrates
+the runtime context, blackboard, resource manager, cancellation framework,
+scheduler, tests, examples, install/export metadata, and documentation without
+adding mission, behavior-tree, ROS2, AI, planner, robot-adapter, or SDK
+dependencies to the runtime layer. The release validation record is in
+`docs/Milestone_7_Report.md`.
+
 ## Directory Structure
 
 ```text
@@ -494,10 +501,15 @@ API-level documentation:
 
 - `docs/api/command_model.md`
 - `docs/api/blackboard.md`
+- `docs/api/cancellation.md`
 - `docs/api/execution_context.md`
 - `docs/api/mission_model.md`
-- `docs/api/robot_state_and_telemetry.md`
 - `docs/api/plugin_integration.md`
+- `docs/api/resource_manager.md`
+- `docs/api/robot_state_and_telemetry.md`
+- `docs/api/runtime_examples.md`
+- `docs/api/runtime_scheduler.md`
+- `docs/Milestone_7_Report.md`
 - `docs/Milestone_6_Report.md`
 - `docs/services/telemetry_service.md`
 
@@ -582,7 +594,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.6.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.7.0-alpha`.
 
 Release tags use:
 

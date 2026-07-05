@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.7.0-alpha] - 2026-07-05
+
 ### Added
 
 - Milestone 7.1 Execution Runtime Context: added vendor-independent execution
@@ -31,6 +33,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestone 7.6 Runtime Integration Examples: added runnable hardware-free
   examples for `ExecutionContext`, `Blackboard`, `ResourceManager`,
   `CancellationSource`, and `RuntimeScheduler`, plus example documentation.
+- Milestone 7.7 Execution Runtime Release: completed runtime framework release
+  documentation, version metadata, install/package validation, and the full
+  Debug/Release and Unitree-enabled/disabled validation matrix.
 
 ## [0.6.0-alpha] - 2026-07-05
 
@@ -174,7 +179,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.6.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.7.0-alpha...HEAD
+[0.7.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.6.0-alpha...v0.7.0-alpha
 [0.6.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.5.0-alpha...v0.6.0-alpha
 [0.5.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.4.0-alpha...v0.5.0-alpha
 [0.4.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.3.0-alpha...v0.4.0-alpha

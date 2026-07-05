@@ -1,7 +1,7 @@
 # Runtime Integration Examples
 
 Milestone 7.6 adds runnable examples for the vendor-independent runtime
-primitives introduced in Milestone 7.
+primitives released in Milestone 7.
 
 ## Example Targets
 
@@ -35,3 +35,6 @@ planners, navigation, AI, or robot hardware.
 Each example validates its result and exits with `EXIT_FAILURE` when an
 invariant is not met. This makes the examples suitable for lightweight manual
 smoke validation in both Unitree-enabled and Unitree-disabled builds.
+
+The Milestone 7 release validation matrix is recorded in
+`docs/Milestone_7_Report.md`.

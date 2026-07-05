@@ -243,6 +243,26 @@ stop. It executes injected runtime callbacks only and does not contain mission,
 behavior-tree, command-dispatch, robot adapter, plugin, SDK wrapper, or vendor
 SDK logic.
 
+Milestone 7.6 adds application-layer runtime integration examples:
+
+```text
+Examples
+  -> ExecutionContext
+  -> Blackboard
+  -> ResourceManager
+  -> CancellationSource / CancellationToken
+  -> RuntimeScheduler
+```
+
+The examples validate runtime composition from the application boundary. They
+link only against the vendor-independent core runtime and contain no Unitree,
+SDK, adapter, mission, behavior-tree, ROS2, planner, navigation, or AI
+dependencies.
+
+Milestone 7.7 releases the execution runtime foundation as `0.7.0-alpha`. The
+runtime layer remains a set of reusable primitives for future execution engines,
+not an execution policy engine itself.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:
