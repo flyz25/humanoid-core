@@ -93,6 +93,12 @@
 #include <humanoid/network/Endpoint.hpp>
 #include <humanoid/network/NetworkManager.hpp>
 #include <humanoid/network/TransportProtocol.hpp>
+#include <humanoid/perception/Sensor.h>
+#include <humanoid/perception/SensorCapabilities.h>
+#include <humanoid/perception/SensorFactory.h>
+#include <humanoid/perception/SensorFrame.h>
+#include <humanoid/perception/SensorState.h>
+#include <humanoid/perception/SensorType.h>
 #include <humanoid/planner/Goal.h>
 #include <humanoid/planner/GoalPriority.h>
 #include <humanoid/planner/GoalStatus.h>

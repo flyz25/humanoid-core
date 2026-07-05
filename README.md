@@ -420,6 +420,22 @@ Milestone 9.7 releases the integrated AI Planning Framework as
 rule-based planner, LLM provider abstraction, planning pipeline, and runnable
 planning examples. See `docs/Milestone_9_Report.md`.
 
+Milestone 10.1 adds a vendor-independent sensor abstraction layer:
+
+```text
+Application or future perception manager
+  -> SensorFactory
+    -> Sensor
+      -> SensorFrame
+      -> SensorCapabilities
+      -> SensorHealth / SensorConfiguration
+```
+
+The perception boundary supports camera, depth camera, LiDAR, microphone, IMU,
+radar, and custom sensor categories. It defines interfaces and value types only;
+it does not include OpenCV, PCL, ROS2, Unitree SDK, vendor sensor SDKs, or
+physical sensor communication. See `docs/api/sensor_abstraction.md`.
+
 ## Directory Structure
 
 ```text
@@ -438,6 +454,7 @@ humanoid-core/
   include/humanoid/ai/       Public LLM provider abstraction contracts
   include/humanoid/bt/       Public behavior tree core contracts
   include/humanoid/mission/ Public mission model contracts
+  include/humanoid/perception/ Public sensor abstraction contracts
   include/humanoid/planner/ Public goal and planning request/result contracts
   include/humanoid/runtime/ Public execution runtime contracts
   logging/                   Logging interfaces and routing manager

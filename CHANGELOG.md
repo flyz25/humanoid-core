@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- Milestone 10.1 Sensor Abstraction Layer: added vendor-independent perception
+  sensor types, lifecycle and health state, byte-oriented sensor frames,
+  capabilities, configuration metadata, pure abstract sensor interface,
+  thread-safe sensor factory, API documentation, and hardware-free validation
+  without SDK, OpenCV, PCL, ROS2, or Unitree dependencies.
+
 ## [0.9.0-alpha] - 2026-07-06
 
 ### Added

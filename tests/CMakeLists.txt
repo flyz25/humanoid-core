@@ -79,6 +79,15 @@ humanoid_core_configure_target(humanoid_core_llm_provider_interface_unit_test)
 add_test(NAME humanoid_core_llm_provider_interface_unit_test
          COMMAND humanoid_core_llm_provider_interface_unit_test)
 
+add_executable(humanoid_core_sensor_abstraction_unit_test sensor_abstraction_unit_test.cpp)
+
+target_link_libraries(humanoid_core_sensor_abstraction_unit_test PRIVATE humanoid::humanoid_core)
+
+humanoid_core_configure_target(humanoid_core_sensor_abstraction_unit_test)
+
+add_test(NAME humanoid_core_sensor_abstraction_unit_test
+         COMMAND humanoid_core_sensor_abstraction_unit_test)
+
 add_executable(humanoid_core_execution_context_unit_test execution_context_unit_test.cpp)
 
 target_link_libraries(humanoid_core_execution_context_unit_test PRIVATE humanoid::core)

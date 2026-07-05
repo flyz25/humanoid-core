@@ -496,6 +496,30 @@ pipeline orchestration, and examples remain vendor independent. Physical robot
 execution still requires an application-selected adapter behind the existing
 robot and command boundaries.
 
+## Sensor Abstraction Layer
+
+Milestone 10.1 adds a perception sensor boundary without introducing concrete
+drivers:
+
+```text
+Application or future perception manager
+  -> SensorFactory
+    -> Sensor
+      -> SensorFrame
+      -> SensorCapabilities
+      -> SensorHealth
+      -> SensorConfiguration
+```
+
+`Sensor` is a pure abstract interface for lifecycle, frame read, capabilities,
+health, and configuration. `SensorFrame` is byte-oriented and metadata-driven,
+so the framework does not depend on OpenCV image types, PCL point clouds, ROS2
+messages, DDS samples, Unitree SDK headers, or vendor sensor SDK types.
+
+`SensorFactory` is thread-safe and non-singleton. It stores creator callbacks
+and capability metadata only. It performs no hardware discovery, dynamic
+loading, polling, SDK initialization, or middleware communication.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:
