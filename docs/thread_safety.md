@@ -15,6 +15,7 @@ humanoid-core skeleton.
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `ExecutionContext` | Thread-safe state, mission association, timestamp, current-step, metadata, cancellation, and stored-state snapshot operations. Execution ID and scope are immutable. |
+| `Blackboard` | Thread-safe namespaced store, exact-type lookup, replacement, removal, and clear operations. Returned immutable values have shared lifetime independent of map locks. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |

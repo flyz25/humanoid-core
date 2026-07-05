@@ -65,6 +65,7 @@
 #include <humanoid/robot/Robot.hpp>
 #include <humanoid/robot/RobotAdapter.hpp>
 #include <humanoid/robot/RobotManager.hpp>
+#include <humanoid/runtime/Blackboard.h>
 #include <humanoid/runtime/ExecutionContext.h>
 #include <humanoid/runtime/ExecutionContextId.h>
 #include <humanoid/runtime/ExecutionMetadata.h>

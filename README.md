@@ -236,6 +236,12 @@ Future execution engine
 It has no dependency on `MissionExecutor`, behavior trees, AI planners, ROS2,
 robot adapters, or vendor SDKs. See `docs/api/execution_context.md`.
 
+Milestone 7.2 adds `humanoid::runtime::Blackboard`, a thread-safe namespaced
+store for exact typed values. Values are exposed through immutable shared
+ownership, so retrieved handles remain valid after replacement, removal, or
+clear operations. The blackboard contains no mission, behavior-tree, robot, or
+vendor logic. See `docs/api/blackboard.md`.
+
 ## Directory Structure
 
 ```text
@@ -427,6 +433,10 @@ The always-built `humanoid_core_execution_context_unit_test` validates runtime
 identity, scope and state values, timestamps, current-step tracking, metadata
 replacement, cancellation token propagation, snapshots, and concurrent access.
 
+The always-built `humanoid_core_blackboard_unit_test` validates typed values,
+namespace isolation, shared lifetime, replacement, remove and clear operations,
+plus stress access from concurrent readers and writers.
+
 The always-built `humanoid_core_command_dispatcher_unit_test` validates command
 forwarding, payload rejection, timeout and exception translation, asynchronous
 priority, cancellation, duplicate IDs, and concurrent shutdown without robot
@@ -459,6 +469,7 @@ rejection, and file-extension dispatch.
 API-level documentation:
 
 - `docs/api/command_model.md`
+- `docs/api/blackboard.md`
 - `docs/api/execution_context.md`
 - `docs/api/mission_model.md`
 - `docs/api/robot_state_and_telemetry.md`

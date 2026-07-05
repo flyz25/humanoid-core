@@ -13,6 +13,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   IDs, scope, lifecycle state, cooperative cancellation, metadata, coherent
   stored-state snapshots, thread-safe mutable runtime state, tests, and API
   documentation.
+- Milestone 7.2 Runtime Blackboard: added namespaced exact-type storage,
+  immutable shared ownership, concurrent reads and writes, replacement,
+  removal, clear operations, stress coverage, and API documentation.
 
 ## [0.6.0-alpha] - 2026-07-05
 

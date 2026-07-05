@@ -186,6 +186,18 @@ The context is a synchronized value container. It does not invoke or depend on
 SDK wrappers. Future integrations may depend on the runtime context; the
 runtime context must not depend on those integrations.
 
+Milestone 7.2 adds a sibling runtime data boundary:
+
+```text
+Future execution engines
+  -> Blackboard
+    -> namespaced typed immutable values
+```
+
+The blackboard is not part of mission or behavior-tree policy. It provides
+thread-safe storage and shared value lifetime only, and depends exclusively on
+the C++ standard library.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:
