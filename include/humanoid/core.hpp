@@ -89,6 +89,12 @@
 #include <humanoid/network/Endpoint.hpp>
 #include <humanoid/network/NetworkManager.hpp>
 #include <humanoid/network/TransportProtocol.hpp>
+#include <humanoid/planner/Goal.h>
+#include <humanoid/planner/GoalPriority.h>
+#include <humanoid/planner/GoalStatus.h>
+#include <humanoid/planner/GoalType.h>
+#include <humanoid/planner/PlanningRequest.h>
+#include <humanoid/planner/PlanningResult.h>
 #include <humanoid/robot/Robot.hpp>
 #include <humanoid/robot/RobotAdapter.hpp>
 #include <humanoid/robot/RobotManager.hpp>

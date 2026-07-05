@@ -326,6 +326,22 @@ Milestone 8.8 releases the integrated Behavior Tree Framework as
 integration, and hardware-free examples are validated across Debug/Release and
 Unitree-enabled/disabled configurations. See `docs/Milestone_8_Report.md`.
 
+Milestone 9.1 adds a vendor-independent goal model for user intent:
+
+```text
+Goal
+  -> PlanningRequest
+    -> ExecutionContextSnapshot
+    -> RobotCapabilities
+  -> PlanningResult
+    -> Mission / BehaviorTree / Diagnostics
+```
+
+The planner model contains only framework-owned data. It does not implement a
+planner engine, LLM integration, OpenAI or Claude APIs, robot SDK calls, mission
+execution, behavior tree execution, or adapter communication. See
+`docs/api/planner_goal_model.md`.
+
 ## Directory Structure
 
 ```text
@@ -343,6 +359,7 @@ humanoid-core/
   include/humanoid/adapters/ Public robot adapter and factory contracts
   include/humanoid/bt/       Public behavior tree core contracts
   include/humanoid/mission/ Public mission model contracts
+  include/humanoid/planner/ Public goal and planning request/result contracts
   include/humanoid/runtime/ Public execution runtime contracts
   logging/                   Logging interfaces and routing manager
   motion/                    Motion interfaces and manager
@@ -514,6 +531,11 @@ The always-built `humanoid_core_command_model_unit_test` validates command
 defaults, identity and timeout rules, typed payload values, metadata, lifecycle
 results, and stable enum names without requiring robot hardware.
 
+The always-built `humanoid_core_planner_goal_model_unit_test` validates goal
+defaults, minimum validity rules, typed constraints and context, planning
+request capability input, move-only planning results, diagnostics, and stable
+enum names without requiring robot hardware.
+
 The always-built `humanoid_core_execution_context_unit_test` validates runtime
 identity, scope and state values, timestamps, current-step tracking, metadata
 replacement, cancellation token propagation, snapshots, and concurrent access.
@@ -559,6 +581,7 @@ API-level documentation:
 - `docs/api/cancellation.md`
 - `docs/api/execution_context.md`
 - `docs/api/mission_model.md`
+- `docs/api/planner_goal_model.md`
 - `docs/api/plugin_integration.md`
 - `docs/api/resource_manager.md`
 - `docs/api/robot_state_and_telemetry.md`

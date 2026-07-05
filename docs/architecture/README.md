@@ -368,6 +368,33 @@ Milestone 8.8 releases this complete behavior tree boundary as
 and behavior tree leaves continue to reach robot operations only through the
 existing command and mission framework interfaces.
 
+## Planner Goal Model
+
+Milestone 9.1 adds a vendor-independent user-intent model without adding a
+planner engine:
+
+```text
+Application or future goal producer
+  -> Goal
+  -> PlanningRequest
+    -> ExecutionContextSnapshot
+    -> RobotCapabilities
+  -> PlanningResult
+    -> Mission / BehaviorTree / Diagnostics
+```
+
+`Goal` captures identity, type, description, priority, status, constraints,
+context, metadata, and monotonic timestamp data. `PlanningRequest` captures the
+current runtime context as a value snapshot and includes generic robot
+capabilities. `PlanningResult` can return a mission, behavior tree, and
+diagnostics without owning any planner implementation.
+
+The planner model has no dependency on LLM SDKs, OpenAI APIs, Claude APIs,
+robot SDKs, concrete adapters, mission executors, behavior tree runtime,
+navigation, or AI. Future planners may consume the model, but those planners
+must remain outside the model boundary and keep robot execution behind the
+existing command, mission, runtime, and adapter interfaces.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

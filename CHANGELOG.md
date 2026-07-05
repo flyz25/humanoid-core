@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- Milestone 9.1 Goal Model: added vendor-independent planner goal, goal type,
+  priority, status, planning request, planning result, and diagnostics value
+  types, plus API documentation and always-built validation coverage.
+
 ## [0.8.0-alpha] - 2026-07-05
 
 ### Added
