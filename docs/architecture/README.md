@@ -198,6 +198,20 @@ The blackboard is not part of mission or behavior-tree policy. It provides
 thread-safe storage and shared value lifetime only, and depends exclusively on
 the C++ standard library.
 
+Milestone 7.3 adds a process-local resource ownership boundary:
+
+```text
+Future execution engines
+  -> ResourceManager
+    -> ResourceLock / ResourceHandle
+      -> shared or exclusive logical resource lease
+```
+
+The resource manager prevents incompatible owners from using the same logical
+robot resource at the same time. It supports RAII release, timed acquisition,
+and non-blocking acquisition. It does not know about missions, behavior trees,
+robot adapters, plugins, SDK wrappers, or vendor SDKs.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:

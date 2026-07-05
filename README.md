@@ -242,6 +242,13 @@ ownership, so retrieved handles remain valid after replacement, removal, or
 clear operations. The blackboard contains no mission, behavior-tree, robot, or
 vendor logic. See `docs/api/blackboard.md`.
 
+Milestone 7.3 adds `humanoid::runtime::ResourceManager` for process-local
+coordination of logical robot resources. It returns move-only RAII
+`ResourceLock` leases, supports shared and exclusive ownership, non-blocking
+acquisition, timed acquisition, and handle-based release for integration
+boundaries. The manager is vendor independent and contains no SDK, adapter,
+mission, or behavior-tree logic. See `docs/api/resource_manager.md`.
+
 ## Directory Structure
 
 ```text

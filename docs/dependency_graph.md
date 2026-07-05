@@ -50,6 +50,7 @@ humanoid::core::CoreContext
 Future execution engines
   -> humanoid::runtime::ExecutionContext
   -> humanoid::runtime::Blackboard
+  -> humanoid::runtime::ResourceManager
   -> C++ standard library
 
 Robot state flow
@@ -123,6 +124,8 @@ unitree_sdk2
 - Managers may depend on module interfaces and `common`.
 - Runtime services may depend on core state models and managers.
 - Runtime services receive core services through dependency injection.
+- Runtime resource coordination may depend only on runtime resource primitives
+  and the C++ standard library.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic
@@ -146,6 +149,8 @@ unitree_sdk2
 - Core modules depending on Unitree SDK2, ROS2, OpenCV, AI runtimes, GUI
   frameworks, planners, navigation, behavior trees, or mission execution paths
   that bypass the command framework.
+- Runtime resource primitives depending on robot adapters, plugins, SDK
+  wrappers, vendor SDKs, mission execution, or behavior-tree implementations.
 - Core framework modules depending on concrete plugins.
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - SDK-free plugin skeletons including vendor SDK headers.

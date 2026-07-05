@@ -16,6 +16,7 @@ humanoid-core skeleton.
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `ExecutionContext` | Thread-safe state, mission association, timestamp, current-step, metadata, cancellation, and stored-state snapshot operations. Execution ID and scope are immutable. |
 | `Blackboard` | Thread-safe namespaced store, exact-type lookup, replacement, removal, and clear operations. Returned immutable values have shared lifetime independent of map locks. |
+| `ResourceManager` | Thread-safe shared and exclusive logical resource acquisition, timed acquisition, non-blocking acquisition, handle release, active-count queries, and RAII release through `ResourceLock`. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
@@ -93,6 +94,22 @@ Subscriber storage is protected separately from lifecycle state. The service
 copies the current listener callbacks under a shared lock and invokes callbacks
 after releasing internal locks. A listener may receive one final copied state
 after `Unsubscribe()` if publication was already in progress.
+
+## Runtime Resources
+
+`ResourceManager` protects its resource map with a mutex and coordinates
+waiters through a condition variable. Shared locks may coexist when no exclusive
+owner or waiting exclusive owner exists. Exclusive locks require no active
+shared or exclusive owner. Waiting exclusive owners are given preference over
+new shared owners to prevent starvation.
+
+`ResourceLock` is move-only and releases its lease on destruction. A copied
+`ResourceHandle` may also release an active lease through `ResourceManager`;
+after that, a still-live RAII object will observe that the lease has already
+been released when its own `Release()` runs. Timed acquisition uses a steady
+clock and returns empty on timeout. The manager coordinates one resource per
+lease; callers that need multi-resource ownership must impose a higher-level
+lock ordering policy.
 
 ## Registry
 

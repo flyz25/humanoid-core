@@ -71,6 +71,7 @@
 #include <humanoid/runtime/ExecutionMetadata.h>
 #include <humanoid/runtime/ExecutionScope.h>
 #include <humanoid/runtime/ExecutionState.h>
+#include <humanoid/runtime/ResourceManager.h>
 #include <humanoid/safety/SafetyController.hpp>
 #include <humanoid/safety/SafetyManager.hpp>
 #include <humanoid/safety/SafetyState.hpp>

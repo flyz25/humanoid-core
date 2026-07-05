@@ -13,7 +13,8 @@ add_library(
   ${PROJECT_SOURCE_DIR}/src/mission/MissionParser.cpp
   ${PROJECT_SOURCE_DIR}/src/mission/MissionValidator.cpp
   ${PROJECT_SOURCE_DIR}/src/runtime/Blackboard.cpp
-  ${PROJECT_SOURCE_DIR}/src/runtime/ExecutionContext.cpp)
+  ${PROJECT_SOURCE_DIR}/src/runtime/ExecutionContext.cpp
+  ${PROJECT_SOURCE_DIR}/src/runtime/ResourceManager.cpp)
 
 add_library(humanoid::core ALIAS humanoid_core_core)
 set_target_properties(humanoid_core_core PROPERTIES EXPORT_NAME core)
