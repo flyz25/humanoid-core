@@ -73,6 +73,7 @@
 #include <humanoid/runtime/ExecutionScope.h>
 #include <humanoid/runtime/ExecutionState.h>
 #include <humanoid/runtime/ResourceManager.h>
+#include <humanoid/runtime/RuntimeScheduler.h>
 #include <humanoid/safety/SafetyController.hpp>
 #include <humanoid/safety/SafetyManager.hpp>
 #include <humanoid/safety/SafetyState.hpp>

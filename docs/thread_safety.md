@@ -18,6 +18,7 @@ humanoid-core skeleton.
 | `CancellationSource`, `CancellationToken`, `CancellationRegistration` | Thread-safe cooperative cancellation request, observation, callback registration, callback unregistration, and linked-source propagation. Callbacks run outside internal locks. |
 | `Blackboard` | Thread-safe namespaced store, exact-type lookup, replacement, removal, and clear operations. Returned immutable values have shared lifetime independent of map locks. |
 | `ResourceManager` | Thread-safe shared and exclusive logical resource acquisition, timed acquisition, non-blocking acquisition, handle release, active-count queries, and RAII release through `ResourceLock`. |
+| `RuntimeScheduler` | Thread-safe runtime job submission, priority queueing, parallel and sequential dispatch, cooperative pause/resume, cooperative stop, lifecycle snapshots, statistics, and idempotent shutdown. Job callbacks run outside scheduler locks. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
 | `CommandExecutionPipeline` | Thread-safe submission, queued cancellation, callback subscription, metrics, history snapshots, and idempotent shutdown. Executor and lifecycle callbacks run outside pipeline locks. |
 | `CommandQueue` | Thread-safe bounded submission, priority dequeue, cancellation, statistics, and idempotent shutdown across concurrent producers and consumers. |
@@ -134,6 +135,23 @@ been released when its own `Release()` runs. Timed acquisition uses a steady
 clock and returns empty on timeout. The manager coordinates one resource per
 lease; callers that need multi-resource ownership must impose a higher-level
 lock ordering policy.
+
+## Runtime Scheduler
+
+`RuntimeScheduler` protects job queue, lifecycle snapshots, worker ids, and
+statistics with one mutex. Workers select schedulable jobs under that lock, then
+release it before invoking the injected job callback.
+
+Parallel jobs may run concurrently up to the configured worker count.
+Sequential jobs require exclusive scheduler execution and start only when no
+other job is running. Priority selection uses descending priority and FIFO
+ordering inside the same priority.
+
+Pause and stop are cooperative. `Pause()` marks the job and updates lifecycle
+state; running callbacks must call `RuntimeJobContext::WaitIfPaused()` or poll
+`IsPaused()` to suspend work. `Stop()` cancels queued jobs immediately and
+requests cancellation for running jobs. Shutdown rejects new work, cancels
+queued work, requests cancellation for running callbacks, and joins workers.
 
 ## Registry
 

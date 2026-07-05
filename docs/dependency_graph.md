@@ -52,6 +52,7 @@ Future execution engines
   -> humanoid::runtime::Blackboard
   -> humanoid::runtime::ResourceManager
   -> humanoid::runtime::CancellationSource / CancellationToken
+  -> humanoid::runtime::RuntimeScheduler
   -> C++ standard library
 
 Robot state flow
@@ -129,6 +130,8 @@ unitree_sdk2
   and the C++ standard library.
 - Runtime cancellation primitives may be consumed by mission, command, runtime,
   and future behavior-tree layers, but must not depend on those layers.
+- Runtime scheduler may depend on runtime context and cancellation primitives,
+  and may execute injected callbacks only.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic
@@ -157,6 +160,9 @@ unitree_sdk2
 - Runtime cancellation primitives depending on robot adapters, plugins, SDK
   wrappers, vendor SDKs, command dispatch, mission execution, or behavior-tree
   implementations.
+- Runtime scheduler depending on mission execution, behavior-tree
+  implementation, command dispatch, robot adapters, plugins, SDK wrappers, or
+  vendor SDKs.
 - Core framework modules depending on concrete plugins.
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - SDK-free plugin skeletons including vendor SDK headers.

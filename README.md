@@ -255,6 +255,12 @@ cooperative cancellation. The same primitive can be shared by mission, command,
 runtime, and future behavior-tree execution without adding dependencies between
 those layers. See `docs/api/cancellation.md`.
 
+Milestone 7.5 adds `humanoid::runtime::RuntimeScheduler`, a generic execution
+scheduler for runtime jobs. It provides bounded priority/FIFO queueing,
+parallel and sequential dispatch, lifecycle snapshots, cooperative pause/resume,
+and cooperative stop through runtime cancellation. See
+`docs/api/runtime_scheduler.md`.
+
 ## Directory Structure
 
 ```text

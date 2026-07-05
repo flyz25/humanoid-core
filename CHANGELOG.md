@@ -24,6 +24,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   sources, tokens, RAII callback registrations, linked nested cancellation,
   callback exception containment, ExecutionContext runtime-token bridging,
   concurrent cancellation coverage, and API documentation.
+- Milestone 7.5 Runtime Scheduler: added vendor-independent runtime job
+  scheduling with bounded priority/FIFO queueing, parallel and sequential
+  dispatch, cooperative pause/resume, cooperative stop, lifecycle snapshots,
+  scheduler statistics, concurrent submission coverage, and API documentation.
 
 ## [0.6.0-alpha] - 2026-07-05
 

@@ -226,6 +226,23 @@ observation and callback registration, and linked sources support nested
 execution. The cancellation framework contains no mission, command-dispatch,
 behavior-tree, robot adapter, plugin, SDK wrapper, or vendor SDK logic.
 
+Milestone 7.5 adds a generic scheduler boundary:
+
+```text
+Future execution engine
+  -> RuntimeScheduler
+    -> RuntimeJob callback
+    -> RuntimeJobContext
+      -> ExecutionContext
+      -> CancellationToken
+```
+
+The scheduler owns queueing, priority/FIFO selection, parallel and sequential
+worker dispatch, lifecycle snapshots, cooperative pause/resume, and cooperative
+stop. It executes injected runtime callbacks only and does not contain mission,
+behavior-tree, command-dispatch, robot adapter, plugin, SDK wrapper, or vendor
+SDK logic.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:
