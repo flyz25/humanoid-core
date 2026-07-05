@@ -12,6 +12,7 @@
 #include <string>
 #include <string_view>
 
+#include <humanoid/runtime/Cancellation.h>
 #include <humanoid/runtime/ExecutionContextId.h>
 #include <humanoid/runtime/ExecutionMetadata.h>
 #include <humanoid/runtime/ExecutionScope.h>
@@ -180,6 +181,13 @@ public:
   [[nodiscard]] std::stop_token CancellationToken() const noexcept;
 
   /**
+   * @brief Returns the framework-wide cooperative cancellation token.
+   *
+   * @return Runtime cancellation token shared with this context.
+   */
+  [[nodiscard]] humanoid::runtime::CancellationToken RuntimeCancellationToken() const noexcept;
+
+  /**
    * @brief Reports whether cancellation has been requested.
    *
    * @return True after the context receives a cancellation request.
@@ -243,6 +251,7 @@ private:
   std::optional<ExecutionTimestamp> start_timestamp_;
   std::optional<ExecutionStepId> current_step_;
   std::stop_source cancellation_source_;
+  CancellationSource runtime_cancellation_source_;
   ExecutionMetadata metadata_;
 };
 

@@ -20,6 +20,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   exclusive logical resource leases, move-only RAII locks, opaque handles,
   non-blocking acquisition, timed acquisition, release by handle, concurrent
   ownership validation, timeout coverage, and API documentation.
+- Milestone 7.4 Cancellation Framework: added framework-wide cancellation
+  sources, tokens, RAII callback registrations, linked nested cancellation,
+  callback exception containment, ExecutionContext runtime-token bridging,
+  concurrent cancellation coverage, and API documentation.
 
 ## [0.6.0-alpha] - 2026-07-05
 

@@ -15,6 +15,7 @@ humanoid-core skeleton.
 | `LoggerManager` | Thread-safe sink registration, sink clearing, severity updates, and logging calls. |
 | `RobotStateManager` | Thread-safe state updates, resets, snapshots, and scalar field reads. |
 | `ExecutionContext` | Thread-safe state, mission association, timestamp, current-step, metadata, cancellation, and stored-state snapshot operations. Execution ID and scope are immutable. |
+| `CancellationSource`, `CancellationToken`, `CancellationRegistration` | Thread-safe cooperative cancellation request, observation, callback registration, callback unregistration, and linked-source propagation. Callbacks run outside internal locks. |
 | `Blackboard` | Thread-safe namespaced store, exact-type lookup, replacement, removal, and clear operations. Returned immutable values have shared lifetime independent of map locks. |
 | `ResourceManager` | Thread-safe shared and exclusive logical resource acquisition, timed acquisition, non-blocking acquisition, handle release, active-count queries, and RAII release through `ResourceLock`. |
 | `SafetyValidator` | Immutable after construction; safe to share across threads when callers provide independent validation contexts. |
@@ -94,6 +95,29 @@ Subscriber storage is protected separately from lifecycle state. The service
 copies the current listener callbacks under a shared lock and invokes callbacks
 after releasing internal locks. A listener may receive one final copied state
 after `Unsubscribe()` if publication was already in progress.
+
+## Runtime Cancellation
+
+`CancellationSource` owns a shared cancellation state protected by a mutex.
+`Cancel()` is monotonic: only the first caller transitions the state and drains
+registered callbacks. Callback invocation occurs after the lock is released.
+Callback exceptions are contained so cancellation does not fail partway through
+notification.
+
+`CancellationToken` is copyable and can be read or used for callback
+registration concurrently. `CancellationRegistration` is move-only and
+unregisters its pending callback on destruction. Registration destruction
+prevents future invocation if cancellation has not started; if cancellation is
+already in progress, the callback may have already been selected and can still
+run.
+
+Linked cancellation sources register with their parent token. Parent
+cancellation propagates to children; child cancellation does not propagate back
+to the parent.
+
+`ExecutionContext::RequestCancellation()` requests both the existing
+`std::stop_token` path and the framework `CancellationToken` path. The existing
+standard token API remains available for compatibility.
 
 ## Runtime Resources
 

@@ -51,6 +51,7 @@ Future execution engines
   -> humanoid::runtime::ExecutionContext
   -> humanoid::runtime::Blackboard
   -> humanoid::runtime::ResourceManager
+  -> humanoid::runtime::CancellationSource / CancellationToken
   -> C++ standard library
 
 Robot state flow
@@ -126,6 +127,8 @@ unitree_sdk2
 - Runtime services receive core services through dependency injection.
 - Runtime resource coordination may depend only on runtime resource primitives
   and the C++ standard library.
+- Runtime cancellation primitives may be consumed by mission, command, runtime,
+  and future behavior-tree layers, but must not depend on those layers.
 - Mission models may depend on generic command value types and
   vendor-independent flow-control policy value types.
 - Mission condition evaluation may depend on `RobotStateManager` and generic
@@ -151,6 +154,9 @@ unitree_sdk2
   that bypass the command framework.
 - Runtime resource primitives depending on robot adapters, plugins, SDK
   wrappers, vendor SDKs, mission execution, or behavior-tree implementations.
+- Runtime cancellation primitives depending on robot adapters, plugins, SDK
+  wrappers, vendor SDKs, command dispatch, mission execution, or behavior-tree
+  implementations.
 - Core framework modules depending on concrete plugins.
 - `humanoid::humanoid_core` linking concrete plugins or plugin implementations.
 - SDK-free plugin skeletons including vendor SDK headers.

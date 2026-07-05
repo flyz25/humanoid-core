@@ -249,6 +249,12 @@ acquisition, timed acquisition, and handle-based release for integration
 boundaries. The manager is vendor independent and contains no SDK, adapter,
 mission, or behavior-tree logic. See `docs/api/resource_manager.md`.
 
+Milestone 7.4 adds `humanoid::runtime::CancellationSource`,
+`CancellationToken`, and `CancellationRegistration` for framework-wide
+cooperative cancellation. The same primitive can be shared by mission, command,
+runtime, and future behavior-tree execution without adding dependencies between
+those layers. See `docs/api/cancellation.md`.
+
 ## Directory Structure
 
 ```text

@@ -64,15 +64,21 @@ void ExecutionContext::ClearCurrentStep() {
 }
 
 bool ExecutionContext::RequestCancellation() noexcept {
-  return cancellation_source_.request_stop();
+  const bool stop_requested = cancellation_source_.request_stop();
+  const bool runtime_cancelled = runtime_cancellation_source_.Cancel();
+  return stop_requested || runtime_cancelled;
 }
 
 std::stop_token ExecutionContext::CancellationToken() const noexcept {
   return cancellation_source_.get_token();
 }
 
+humanoid::runtime::CancellationToken ExecutionContext::RuntimeCancellationToken() const noexcept {
+  return runtime_cancellation_source_.Token();
+}
+
 bool ExecutionContext::CancellationRequested() const noexcept {
-  return cancellation_source_.stop_requested();
+  return cancellation_source_.stop_requested() || runtime_cancellation_source_.IsCancelled();
 }
 
 ExecutionMetadata ExecutionContext::Metadata() const {
@@ -111,14 +117,9 @@ bool ExecutionContext::RemoveMetadata(std::string_view key) {
 
 ExecutionContextSnapshot ExecutionContext::Snapshot() const {
   std::lock_guard<std::mutex> lock{mutex_};
-  return ExecutionContextSnapshot{execution_id_,
-                                  mission_id_,
-                                  state_,
-                                  start_timestamp_,
-                                  current_step_,
-                                  scope_,
-                                  cancellation_source_.stop_requested(),
-                                  metadata_};
+  return ExecutionContextSnapshot{execution_id_,           mission_id_,   state_,
+                                  start_timestamp_,        current_step_, scope_,
+                                  CancellationRequested(), metadata_};
 }
 
 } // namespace humanoid::runtime

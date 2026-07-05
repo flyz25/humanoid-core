@@ -212,6 +212,20 @@ robot resource at the same time. It supports RAII release, timed acquisition,
 and non-blocking acquisition. It does not know about missions, behavior trees,
 robot adapters, plugins, SDK wrappers, or vendor SDKs.
 
+Milestone 7.4 adds a framework-wide cooperative cancellation boundary:
+
+```text
+Mission / command / runtime / future behavior-tree execution
+  -> CancellationToken
+  -> CancellationSource
+  -> CancellationRegistration
+```
+
+Cancellation sources own cancellation authority, tokens provide copyable
+observation and callback registration, and linked sources support nested
+execution. The cancellation framework contains no mission, command-dispatch,
+behavior-tree, robot adapter, plugin, SDK wrapper, or vendor SDK logic.
+
 ## Generic Command Model
 
 Milestone 5 adds a vendor-independent command path:
