@@ -9,7 +9,35 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `1.0.0`
+Current release: `1.0.1-validation`
+
+## Hardware Validation Program
+
+humanoid-core includes a Hardware Validation Program under `validation/` for
+repeatable, human-operated testing on physical robots. The HVP provides a test
+case catalog, operator procedures, report templates, checklists, and a small
+result-recording tool. It does not claim that hardware tests have passed; every
+run starts with all cases marked `NOT EXECUTED` until a human operator records
+evidence.
+
+Start a validation run:
+
+```bash
+python3 validation/scripts/hvp.py new-run \
+  --operator "<name>" \
+  --robot-id "<robot-id>" \
+  --vendor "<vendor>" \
+  --model "<model>"
+```
+
+Primary documents:
+
+- `docs/Hardware_Validation_Specification.md`
+- `docs/Hardware_Test_Procedure.md`
+- `docs/Operator_Manual.md`
+- `docs/Test_Case_Catalog.md`
+- `docs/developer_guide.md`
+- `validation/README.md`
 
 ## Architecture
 
@@ -843,7 +871,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `1.0.0`.
+humanoid-core uses Semantic Versioning. Current version: `1.0.1-validation`.
 
 Release tags use:
 

@@ -36,3 +36,4 @@ __pycache__/
 
 logs/*
 !logs/README.md
+validation/reports/runs/

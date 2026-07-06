@@ -5,18 +5,18 @@ humanoid-core uses Semantic Versioning.
 Current semantic version:
 
 ```text
-1.0.0
+1.0.1-validation
 ```
 
 ## Version Fields
 
 - Major: `1`
 - Minor: `0`
-- Patch: `0`
-- Prerelease: none
+- Patch: `1`
+- Prerelease: `validation`
 
-CMake package compatibility uses the numeric project version `1.0.0`. The full
-semantic version string is exposed separately as `1.0.0`.
+CMake package compatibility uses the numeric project version `1.0.1`. The full
+semantic version string is exposed separately as `1.0.1-validation`.
 
 ## Tag Format
 
@@ -30,6 +30,7 @@ Examples:
 
 ```text
 v1.0.0
+v1.0.1-validation
 v0.5.0
 v0.12.0-alpha
 ```

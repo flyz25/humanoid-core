@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: humanoid-core-cloud
-          image: humanoid-core:1.0.0
+          image: humanoid-core:1.0.1-validation
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:

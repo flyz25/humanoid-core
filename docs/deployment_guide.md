@@ -16,7 +16,7 @@ links `humanoid::cloud_platform` and concrete transport adapters.
 ## Docker Build
 
 ```bash
-docker build -f cloud/deployment/docker/Dockerfile -t humanoid-core:1.0.0 .
+docker build -f cloud/deployment/docker/Dockerfile -t humanoid-core:1.0.1-validation .
 ```
 
 ## CMake Package

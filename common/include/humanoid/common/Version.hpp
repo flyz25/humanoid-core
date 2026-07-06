@@ -23,17 +23,17 @@ inline constexpr int kVersionMinor = 0;
 /**
  * @brief Patch version component for the humanoid-core public API.
  */
-inline constexpr int kVersionPatch = 0;
+inline constexpr int kVersionPatch = 1;
 
 /**
  * @brief Prerelease identifier for the current humanoid-core package.
  */
-inline constexpr std::string_view kVersionPrerelease = "";
+inline constexpr std::string_view kVersionPrerelease = "validation";
 
 /**
  * @brief Full semantic version string for the current humanoid-core package.
  */
-inline constexpr std::string_view kVersionString = "1.0.0";
+inline constexpr std::string_view kVersionString = "1.0.1-validation";
 
 /**
  * @brief Represents a semantic version.

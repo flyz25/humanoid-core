@@ -1,0 +1,634 @@
+{
+  "catalog": "humanoid-core Hardware Validation Program",
+  "version": "1.0",
+  "status_values": [
+    "PASS",
+    "FAIL",
+    "SKIPPED",
+    "NOT EXECUTED",
+    "UNKNOWN"
+  ],
+  "cases": [
+    {
+      "id": "HVP-CONN-001",
+      "area": "connection",
+      "title": "Robot connection",
+      "objective": "Verify adapter initialization and connection to the physical robot.",
+      "procedure": [
+        "Confirm robot is powered, on stable ground, and emergency stop is reachable.",
+        "Start the selected humanoid-core robot connection example or operator-approved application.",
+        "Connect to the robot using the documented network configuration.",
+        "Record connection result, latency, logs, and robot state snapshot."
+      ],
+      "expected_result": "Connection completes without SDK leakage, uncaught exception, or unsafe motion.",
+      "safety_notes": [
+        "Do not execute motion commands during connection validation.",
+        "Keep a human operator within emergency-stop reach."
+      ],
+      "evidence": [
+        "application log",
+        "network configuration",
+        "robot information"
+      ]
+    },
+    {
+      "id": "HVP-CONN-002",
+      "area": "connection",
+      "title": "Reconnect after network interruption",
+      "objective": "Verify automatic reconnect and state recovery after a short network outage.",
+      "procedure": [
+        "Connect to the robot and confirm heartbeat is active.",
+        "Disconnect Ethernet or disable Wi-Fi for 10 seconds.",
+        "Restore network connectivity.",
+        "Observe reconnect behavior and state synchronization."
+      ],
+      "expected_result": "Framework reports disconnection, reconnects within the configured policy, and resumes read-only state updates.",
+      "safety_notes": [
+        "Robot must remain stationary.",
+        "Do not combine with motion validation."
+      ],
+      "evidence": [
+        "heartbeat log",
+        "reconnect timestamps",
+        "operator notes"
+      ]
+    },
+    {
+      "id": "HVP-CONN-003",
+      "area": "connection",
+      "title": "Heartbeat timeout",
+      "objective": "Verify heartbeat timeout detection and Result status mapping.",
+      "procedure": [
+        "Connect to the robot.",
+        "Block robot network traffic using an approved lab network method.",
+        "Wait longer than the configured timeout.",
+        "Record reported status and recovery behavior."
+      ],
+      "expected_result": "Timeout is reported without process crash or stale connected state.",
+      "safety_notes": [
+        "Use lab-approved network controls only."
+      ],
+      "evidence": [
+        "timeout log",
+        "configuration snapshot"
+      ]
+    },
+    {
+      "id": "HVP-CONN-004",
+      "area": "connection",
+      "title": "Power cycle recovery",
+      "objective": "Verify framework behavior when the robot is power cycled.",
+      "procedure": [
+        "Connect and confirm stable telemetry.",
+        "Power down the robot using vendor-safe procedure.",
+        "Power up the robot and wait for network availability.",
+        "Record reconnect result and state freshness."
+      ],
+      "expected_result": "Framework detects loss, does not issue commands, and supports operator-controlled reconnect.",
+      "safety_notes": [
+        "Follow vendor power-cycle procedure.",
+        "Stabilize the robot before reconnect."
+      ],
+      "evidence": [
+        "power-cycle timestamp",
+        "connection log"
+      ]
+    },
+    {
+      "id": "HVP-CONN-005",
+      "area": "connection",
+      "title": "Multiple reconnect cycles",
+      "objective": "Verify repeated reconnect behavior across multiple network interruptions.",
+      "procedure": [
+        "Perform 10 controlled disconnect and reconnect cycles.",
+        "Record each disconnect timestamp and reconnect timestamp.",
+        "Confirm state manager freshness after each cycle."
+      ],
+      "expected_result": "No resource leak, deadlock, crash, or stale connected state is observed.",
+      "safety_notes": [
+        "Robot must remain stationary."
+      ],
+      "evidence": [
+        "cycle log",
+        "resource usage sample"
+      ]
+    },
+    {
+      "id": "HVP-TEL-001",
+      "area": "telemetry",
+      "title": "Battery and charging state",
+      "objective": "Verify battery level and charging state mapping into RobotState.",
+      "procedure": [
+        "Connect to the robot with telemetry enabled.",
+        "Record reported battery percentage and charging flag.",
+        "Compare against vendor display or approved operator reference."
+      ],
+      "expected_result": "Battery and charging values are plausible and timestamped.",
+      "safety_notes": [
+        "Do not begin motion validation below the site-defined battery threshold."
+      ],
+      "evidence": [
+        "RobotState snapshot",
+        "operator reference"
+      ]
+    },
+    {
+      "id": "HVP-TEL-002",
+      "area": "telemetry",
+      "title": "IMU and orientation state",
+      "objective": "Verify roll, pitch, and yaw are populated consistently.",
+      "procedure": [
+        "Place robot in a stable standing or supported posture.",
+        "Record orientation telemetry for 60 seconds.",
+        "Optionally apply small operator-approved posture changes."
+      ],
+      "expected_result": "Orientation values are timestamped and change consistently with observed posture.",
+      "safety_notes": [
+        "Use support equipment when required by robot safety procedure."
+      ],
+      "evidence": [
+        "telemetry log",
+        "video reference"
+      ]
+    },
+    {
+      "id": "HVP-TEL-003",
+      "area": "telemetry",
+      "title": "Fault and emergency-stop state",
+      "objective": "Verify emergency stop and fault state propagation.",
+      "procedure": [
+        "Connect to the robot in a safe stationary state.",
+        "Trigger an approved non-destructive fault or emergency-stop condition.",
+        "Record RobotState emergencyStop and faultCode fields.",
+        "Clear the condition using approved recovery procedure."
+      ],
+      "expected_result": "Fault and emergency-stop state are visible and cleared only after operator recovery.",
+      "safety_notes": [
+        "Use only approved safety devices and non-destructive faults."
+      ],
+      "evidence": [
+        "state log",
+        "safety operator sign-off"
+      ]
+    },
+    {
+      "id": "HVP-TEL-004",
+      "area": "telemetry",
+      "title": "Telemetry latency and packet loss",
+      "objective": "Measure telemetry update latency and packet loss under stable network conditions.",
+      "procedure": [
+        "Start telemetry logging for at least 10 minutes.",
+        "Record message timestamps and operator host timestamps.",
+        "Compute latency distribution and missed update estimate."
+      ],
+      "expected_result": "Latency and loss remain within the release acceptance threshold.",
+      "safety_notes": [
+        "Do not run high-speed motion during latency baseline."
+      ],
+      "evidence": [
+        "telemetry CSV",
+        "latency summary"
+      ]
+    },
+    {
+      "id": "HVP-MOT-001",
+      "area": "motion",
+      "title": "Stand command",
+      "objective": "Verify stand command execution through humanoid-core adapter path.",
+      "procedure": [
+        "Prepare robot on approved test surface.",
+        "Execute the stand command once.",
+        "Observe robot posture and command Result.",
+        "Record video and logs."
+      ],
+      "expected_result": "Robot reaches expected standing state or reports a safe failure.",
+      "safety_notes": [
+        "Use spotters and emergency stop.",
+        "Keep the test area clear."
+      ],
+      "evidence": [
+        "command log",
+        "video reference"
+      ]
+    },
+    {
+      "id": "HVP-MOT-002",
+      "area": "motion",
+      "title": "Sit command",
+      "objective": "Verify sit command execution and terminal state.",
+      "procedure": [
+        "Start from approved standing state.",
+        "Execute sit command.",
+        "Record command result and final RobotState."
+      ],
+      "expected_result": "Robot reaches expected sitting state or reports a safe failure.",
+      "safety_notes": [
+        "Use vendor-approved surface and clearance."
+      ],
+      "evidence": [
+        "state snapshot",
+        "video reference"
+      ]
+    },
+    {
+      "id": "HVP-MOT-003",
+      "area": "motion",
+      "title": "Directional walk commands",
+      "objective": "Validate forward, backward, left, right, and rotate command mapping.",
+      "procedure": [
+        "Mark a safe walking area.",
+        "Execute each direction at low velocity.",
+        "Stop between directions.",
+        "Record observed direction and velocity telemetry."
+      ],
+      "expected_result": "Robot motion direction matches command intent and stop returns robot to safe state.",
+      "safety_notes": [
+        "Use low speed first.",
+        "Abort on drift, instability, or unexpected acceleration."
+      ],
+      "evidence": [
+        "command log",
+        "velocity telemetry",
+        "video reference"
+      ]
+    },
+    {
+      "id": "HVP-MOT-004",
+      "area": "motion",
+      "title": "Emergency stop during motion",
+      "objective": "Verify command rejection and safe stop behavior after emergency stop.",
+      "procedure": [
+        "Execute low-speed motion.",
+        "Activate emergency stop using approved procedure.",
+        "Attempt a new motion command after emergency stop is active.",
+        "Record safety validator and adapter responses."
+      ],
+      "expected_result": "Motion stops and subsequent unsafe commands are rejected until recovery.",
+      "safety_notes": [
+        "Spotters and emergency stop operator are mandatory."
+      ],
+      "evidence": [
+        "safety log",
+        "video reference"
+      ]
+    },
+    {
+      "id": "HVP-MOT-005",
+      "area": "motion",
+      "title": "Repeated motion execution 100 cycles",
+      "objective": "Validate repeated command lifecycle and resource stability.",
+      "procedure": [
+        "Execute approved low-risk stand-stop or move-stop sequence 100 times.",
+        "Record failures, latency, CPU, RAM, and robot thermal observations.",
+        "Stop immediately on abnormal motion or fault."
+      ],
+      "expected_result": "No command lifecycle leak, crash, overheating, or unsafe behavior is observed.",
+      "safety_notes": [
+        "Operator may mark SKIPPED if site policy prohibits repetition."
+      ],
+      "evidence": [
+        "cycle log",
+        "resource samples"
+      ]
+    },
+    {
+      "id": "HVP-MOT-006",
+      "area": "motion",
+      "title": "Repeated motion execution 1000 cycles",
+      "objective": "Validate long repeated command execution under controlled conditions.",
+      "procedure": [
+        "Execute the approved low-risk cycle 1000 times or until site limit.",
+        "Record every failure, timeout, or operator abort.",
+        "Capture resource and thermal samples periodically."
+      ],
+      "expected_result": "The sequence completes or is stopped by documented operator decision without framework instability.",
+      "safety_notes": [
+        "Requires safety lead approval.",
+        "Abort on thermal, battery, or stability limits."
+      ],
+      "evidence": [
+        "cycle log",
+        "acceptance sign-off"
+      ]
+    },
+    {
+      "id": "HVP-HAND-001",
+      "area": "hands",
+      "title": "Open and close hand",
+      "objective": "Verify hand open and close command mapping where supported.",
+      "procedure": [
+        "Confirm robot hand capability is advertised.",
+        "Execute open command and record result.",
+        "Execute close command and record result."
+      ],
+      "expected_result": "Supported commands complete; unsupported commands are rejected explicitly.",
+      "safety_notes": [
+        "Keep hands clear of pinch points."
+      ],
+      "evidence": [
+        "capability snapshot",
+        "command log"
+      ]
+    },
+    {
+      "id": "HVP-HAND-002",
+      "area": "hands",
+      "title": "Grip and release",
+      "objective": "Validate grip and release command behavior with approved test object.",
+      "procedure": [
+        "Place approved test object in robot hand.",
+        "Execute grip command.",
+        "Execute release command.",
+        "Record object handling result."
+      ],
+      "expected_result": "Object interaction matches configured capability or returns safe unsupported result.",
+      "safety_notes": [
+        "Use soft approved test object only."
+      ],
+      "evidence": [
+        "video reference",
+        "operator notes"
+      ]
+    },
+    {
+      "id": "HVP-AUD-001",
+      "area": "audio",
+      "title": "Playback, stop, volume, mute",
+      "objective": "Verify audio adapter lifecycle and parameter validation.",
+      "procedure": [
+        "Play approved audio sample.",
+        "Adjust volume within allowed range.",
+        "Mute and unmute.",
+        "Stop playback."
+      ],
+      "expected_result": "Audio commands complete or return explicit unsupported status without robot instability.",
+      "safety_notes": [
+        "Respect site sound-level policy."
+      ],
+      "evidence": [
+        "audio command log",
+        "operator notes"
+      ]
+    },
+    {
+      "id": "HVP-AUD-002",
+      "area": "audio",
+      "title": "Invalid audio input",
+      "objective": "Verify invalid audio commands are rejected safely.",
+      "procedure": [
+        "Submit invalid audio identifier or invalid volume value.",
+        "Record command result.",
+        "Confirm no crash and no unexpected playback."
+      ],
+      "expected_result": "Invalid input is rejected with a framework error result.",
+      "safety_notes": [
+        "Do not use extreme volume values on physical speakers."
+      ],
+      "evidence": [
+        "command result",
+        "application log"
+      ]
+    },
+    {
+      "id": "HVP-MIS-001",
+      "area": "mission",
+      "title": "Mission loading and execution",
+      "objective": "Verify mission file loading and command-framework execution path.",
+      "procedure": [
+        "Load an approved mission file.",
+        "Validate schema before execution.",
+        "Execute mission under operator supervision.",
+        "Record lifecycle status and command results."
+      ],
+      "expected_result": "Mission reaches Completed or a documented safe failure state.",
+      "safety_notes": [
+        "Review every command in the mission before execution."
+      ],
+      "evidence": [
+        "mission file hash",
+        "mission log"
+      ]
+    },
+    {
+      "id": "HVP-MIS-002",
+      "area": "mission",
+      "title": "Pause, resume, and cancel",
+      "objective": "Validate mission control operations.",
+      "procedure": [
+        "Start approved mission.",
+        "Pause mission during a safe step.",
+        "Resume mission.",
+        "Cancel mission and verify terminal state."
+      ],
+      "expected_result": "Mission lifecycle transitions match requested operation and do not bypass command safety.",
+      "safety_notes": [
+        "Use low-risk mission content."
+      ],
+      "evidence": [
+        "lifecycle log",
+        "operator notes"
+      ]
+    },
+    {
+      "id": "HVP-MIS-003",
+      "area": "mission",
+      "title": "Retry, loop, timeout, and nested mission",
+      "objective": "Validate mission flow-control behavior.",
+      "procedure": [
+        "Load approved mission templates covering retry, loop, timeout, and nested mission behavior.",
+        "Execute each template under supervision.",
+        "Record transitions and terminal status."
+      ],
+      "expected_result": "Flow control follows mission policy and stops safely on timeout or abort policy.",
+      "safety_notes": [
+        "Use hardware-safe commands in flow-control missions."
+      ],
+      "evidence": [
+        "mission templates",
+        "execution log"
+      ]
+    },
+    {
+      "id": "HVP-BT-001",
+      "area": "behavior_tree",
+      "title": "Composite and decorator nodes",
+      "objective": "Validate sequence, selector, parallel, retry, and timeout nodes.",
+      "procedure": [
+        "Load approved behavior tree examples.",
+        "Execute trees through runtime integration.",
+        "Record node statuses and terminal result."
+      ],
+      "expected_result": "Behavior tree lifecycle matches expected node semantics.",
+      "safety_notes": [
+        "Use command nodes only with approved safe commands."
+      ],
+      "evidence": [
+        "tree file",
+        "runtime log"
+      ]
+    },
+    {
+      "id": "HVP-BT-002",
+      "area": "behavior_tree",
+      "title": "Mission, command, and condition nodes",
+      "objective": "Validate leaf node integration with mission, command, and runtime context.",
+      "procedure": [
+        "Execute tree with MissionNode, CommandNode, and ConditionNode.",
+        "Change condition input through approved runtime blackboard setup.",
+        "Record resulting branch selection and command execution."
+      ],
+      "expected_result": "Leaf nodes use existing framework services and do not bypass safety validation.",
+      "safety_notes": [
+        "Review all mission and command content before execution."
+      ],
+      "evidence": [
+        "tree log",
+        "blackboard snapshot"
+      ]
+    },
+    {
+      "id": "HVP-PLAN-001",
+      "area": "planner",
+      "title": "Goal to execution pipeline",
+      "objective": "Validate Goal to Mission to BehaviorTree to Execution flow.",
+      "procedure": [
+        "Submit an approved goal such as Wave to audience.",
+        "Review generated mission and behavior tree before execution.",
+        "Execute only after operator approval.",
+        "Record diagnostics and execution result."
+      ],
+      "expected_result": "Planner produces a valid plan and execution follows existing runtime paths.",
+      "safety_notes": [
+        "Do not execute planner output without human review."
+      ],
+      "evidence": [
+        "goal record",
+        "planner diagnostics",
+        "execution log"
+      ]
+    },
+    {
+      "id": "HVP-PERC-001",
+      "area": "perception",
+      "title": "Camera and lighting conditions",
+      "objective": "Validate camera frame routing under normal, dark, backlight, and outdoor conditions.",
+      "procedure": [
+        "Start approved camera sensor backend.",
+        "Capture frames in each lighting condition.",
+        "Record frame timestamps, dropped frames, and operator image-quality notes."
+      ],
+      "expected_result": "Frames are timestamped and routed without framework crash or stale health state.",
+      "safety_notes": [
+        "Do not record sensitive personal data without site approval."
+      ],
+      "evidence": [
+        "frame metadata",
+        "operator notes"
+      ]
+    },
+    {
+      "id": "HVP-PERC-002",
+      "area": "perception",
+      "title": "Detection and sensor fusion",
+      "objective": "Validate detection result and fusion output contracts with approved backends.",
+      "procedure": [
+        "Run approved YOLO, face, pose, QR, AprilTag, and fusion adapters where available.",
+        "Record detection confidence, labels, timestamps, and tracking identifiers.",
+        "Compare against operator truth set."
+      ],
+      "expected_result": "Backends produce framework-owned DetectionResult records or explicit unsupported status.",
+      "safety_notes": [
+        "Respect privacy and site data policy."
+      ],
+      "evidence": [
+        "detection log",
+        "truth set"
+      ]
+    },
+    {
+      "id": "HVP-ROS2-001",
+      "area": "ros2",
+      "title": "ROS2 bridge topics, services, actions, RViz, and launch",
+      "objective": "Validate optional ROS2 bridge operation in a ROS2 environment.",
+      "procedure": [
+        "Source the ROS2 environment.",
+        "Start the humanoid-core ROS2 launch file.",
+        "Verify documented topics, services, and actions.",
+        "Open RViz configuration and verify visual status outputs.",
+        "Restart bridge and record recovery behavior."
+      ],
+      "expected_result": "ROS2 bridge exposes documented contracts without requiring ROS2 in core framework targets.",
+      "safety_notes": [
+        "Do not execute motion actions without robot safety approval."
+      ],
+      "evidence": [
+        "ros2 topic list",
+        "ros2 service list",
+        "launch log"
+      ]
+    },
+    {
+      "id": "HVP-CLOUD-001",
+      "area": "cloud",
+      "title": "Fleet, REST, gRPC, WebSocket, OTA, dashboard, auth, and RBAC",
+      "objective": "Validate optional cloud platform contracts in a deployment environment.",
+      "procedure": [
+        "Deploy approved cloud backend or contract test harness.",
+        "Register robot and verify fleet status.",
+        "Exercise REST, gRPC, and WebSocket contract paths.",
+        "Verify OTA planning, dashboard backend metadata, authentication, and RBAC decisions."
+      ],
+      "expected_result": "Cloud components honor optional dependency boundaries and enforce deployment authentication policy.",
+      "safety_notes": [
+        "Remote control must remain disabled unless approved by the safety lead."
+      ],
+      "evidence": [
+        "API logs",
+        "audit records",
+        "deployment manifest"
+      ]
+    },
+    {
+      "id": "HVP-STR-001",
+      "area": "stress",
+      "title": "Continuous runtime stress",
+      "objective": "Observe runtime stability for 4, 8, 12, and 24 hour windows.",
+      "procedure": [
+        "Start approved long-running workload.",
+        "Record CPU, RAM, thermal, network, command, mission, and telemetry metrics.",
+        "Checkpoint at 4, 8, 12, and 24 hours or site-approved duration.",
+        "Stop on safety, battery, thermal, or network limits."
+      ],
+      "expected_result": "No memory leak, deadlock, unbounded resource growth, or unsafe robot behavior is observed.",
+      "safety_notes": [
+        "A human operator must monitor robot safety throughout hardware stress tests."
+      ],
+      "evidence": [
+        "resource log",
+        "daily validation log",
+        "operator sign-off"
+      ]
+    },
+    {
+      "id": "HVP-FAULT-001",
+      "area": "fault_injection",
+      "title": "Network, process, disk, configuration, battery, and robot restart faults",
+      "objective": "Validate framework failure handling under controlled fault injection.",
+      "procedure": [
+        "Inject one approved fault at a time: Ethernet disconnect, Wi-Fi disable, SDK restart, robot restart, low battery, latency, packet loss, process kill, runtime kill, disk full, or configuration corruption.",
+        "Record framework response, operator intervention, recovery result, and data integrity.",
+        "Return system to baseline before the next fault."
+      ],
+      "expected_result": "Faults are detected, unsafe commands are rejected, and recovery is explicit and traceable.",
+      "safety_notes": [
+        "Do not inject faults during high-risk motion.",
+        "Low-battery tests require safety lead approval."
+      ],
+      "evidence": [
+        "fault log",
+        "recovery log",
+        "operator sign-off"
+      ]
+    }
+  ]
+}

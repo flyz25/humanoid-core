@@ -132,6 +132,28 @@ ctest --test-dir build-no-unitree --output-on-failure
 GoogleTest-based tests are built when GoogleTest is available. The smoke test
 does not require GoogleTest or physical robot hardware.
 
+## Hardware Validation Program
+
+Physical robot validation is performed through the Hardware Validation Program
+under `validation/`. Automation may create runs and record operator-supplied
+results, but it must not claim physical hardware tests passed without human
+evidence.
+
+List HVP cases:
+
+```bash
+python3 validation/scripts/hvp.py list-cases
+```
+
+Create a hardware validation run:
+
+```bash
+python3 validation/scripts/hvp.py new-run --operator "<name>"
+```
+
+Generated run directories under `validation/reports/runs/` are local evidence
+artifacts and must not be committed.
+
 ## Pre-Commit Hooks
 
 Install pre-commit:
@@ -155,10 +177,10 @@ available, and Markdown linting when a markdownlint executable is installed.
 
 The GitHub Actions matrix builds these combinations:
 
-- `Debug`, `ENABLE_UNITREE=ON`
-- `Debug`, `ENABLE_UNITREE=OFF`
-- `Release`, `ENABLE_UNITREE=ON`
-- `Release`, `ENABLE_UNITREE=OFF`
+- `Debug` and `Release`
+- `ENABLE_UNITREE=ON` and `ENABLE_UNITREE=OFF`
+- `ENABLE_ROS2=ON` and `ENABLE_ROS2=OFF`
+- `ENABLE_CLOUD=ON` and `ENABLE_CLOUD=OFF`
 
 To reproduce one matrix leg locally:
 

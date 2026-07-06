@@ -7,6 +7,15 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [1.0.1-validation] - 2026-07-06
+
+### Added
+
+- Hardware Validation Program: added operator-executed validation procedures,
+  reusable result-recording tooling, test catalog, checklists, report
+  templates, stress and fault-injection guides, and documentation for hardware
+  validation without claiming physical robot tests were executed by automation.
+
 ## [1.0.0] - 2026-07-06
 
 ### Added

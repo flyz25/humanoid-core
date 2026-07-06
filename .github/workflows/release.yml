@@ -25,7 +25,7 @@ jobs:
 
       - name: Validate semantic version tag
         run: |
-          test "${GITHUB_REF_NAME}" = "v1.0.0"
+          test "${GITHUB_REF_NAME}" = "v1.0.1-validation"
 
       - name: Configure
         run: |
@@ -61,15 +61,15 @@ jobs:
         with:
           path: .
           format: spdx-json
-          output-file: build/humanoid-core-v1.0.0.sbom.spdx.json
+          output-file: build/humanoid-core-v1.0.1-validation.sbom.spdx.json
 
       - name: Docker image
-        run: docker build -f cloud/deployment/docker/Dockerfile -t humanoid-core:1.0.0 .
+        run: docker build -f cloud/deployment/docker/Dockerfile -t humanoid-core:1.0.1-validation .
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/humanoid-core-1.0.0-Linux.tar.gz
-            build/humanoid-core-v1.0.0.sbom.spdx.json
-          body_path: docs/v1_Release_Notes.md
+            build/humanoid-core-1.0.1-validation-Linux.tar.gz
+            build/humanoid-core-v1.0.1-validation.sbom.spdx.json
+          body_path: docs/Hardware_Validation_Program_Report.md
