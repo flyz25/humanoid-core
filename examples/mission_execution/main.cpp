@@ -16,6 +16,7 @@
 
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/CommandStatus.h>
 #include <humanoid/mission/MissionExecutor.h>
 #include <humanoid/mission/MissionLoader.h>
 
@@ -25,80 +26,103 @@ enum class ExecutionMode { Execute, PauseResume, Cancel };
 
 class ExampleRobotAdapter final : public humanoid::adapters::IRobotAdapter {
 public:
-  humanoid::adapters::Result Initialize() override {
+  humanoid::common::Status Initialize() override {
     std::lock_guard<std::mutex> lock{mutex_};
     initialized_ = true;
-    return Success("Example adapter initialized");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Connect() override {
+  humanoid::common::Status Connect() override {
     std::lock_guard<std::mutex> lock{mutex_};
     if (!initialized_) {
-      return Failure("Example adapter is not initialized");
+      return humanoid::common::Status::error(humanoid::common::StatusCode::kFailedPrecondition,
+                                             "Example adapter is not initialized");
     }
     connected_ = true;
-    return Success("Example adapter connected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Disconnect() override {
+  humanoid::common::Status Disconnect() override {
     std::lock_guard<std::mutex> lock{mutex_};
     connected_ = false;
-    return Success("Example adapter disconnected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Shutdown() override {
+  humanoid::common::Status Shutdown() override {
     std::lock_guard<std::mutex> lock{mutex_};
     connected_ = false;
     initialized_ = false;
-    return Success("Example adapter shut down");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result StandUp() override { return Record("Stand"); }
+  [[nodiscard]] bool IsConnected() const noexcept override { return connected_; }
 
-  humanoid::adapters::Result BalanceStand() override { return Record("BalanceStand"); }
-
-  humanoid::adapters::Result Move(float vx, float vy, float omega) override {
-    std::cout << "adapter: Move(" << vx << ", " << vy << ", " << omega << ")\n";
-    return ConnectedResult("Move");
-  }
-
-  humanoid::adapters::Result Stop() override { return Record("Stop"); }
-
-  humanoid::adapters::Result EmergencyStop() override { return Record("EmergencyStop"); }
-
-  [[nodiscard]] humanoid::adapters::RobotStateResult GetRobotState() const override {
+  [[nodiscard]] humanoid::core::RobotState GetRobotState() const override {
     std::lock_guard<std::mutex> lock{mutex_};
-    humanoid::adapters::RobotState state;
-    state.vendor = "Example";
-    state.model = "ProcessLocal";
-    state.initialized = initialized_;
-    state.connected = connected_;
-    if (connected_) {
-      state.connection_state = humanoid::adapters::RobotConnectionState::kConnected;
-    } else if (initialized_) {
-      state.connection_state = humanoid::adapters::RobotConnectionState::kDisconnected;
-    }
-    return {Success("Example state returned"), std::move(state)};
+    humanoid::core::RobotState state;
+    state.connection.connected = connected_;
+    state.power.batteryLevel = 100.0F;
+    state.motion.standing = true;
+    return state;
   }
+
+  [[nodiscard]] humanoid::core::RobotInformation GetRobotInformation() const override {
+    humanoid::core::RobotInformation information;
+    information.vendor = "Example";
+    information.model = "ProcessLocal";
+    information.adapterName = "ExampleRobotAdapter";
+    return information;
+  }
+
+  [[nodiscard]] humanoid::core::RobotCapabilities GetCapabilities() const override {
+    humanoid::core::RobotCapabilities capabilities;
+    capabilities.supportsLifecycle = true;
+    capabilities.supportsConnectionManagement = true;
+    capabilities.supportsStateFeedback = true;
+    capabilities.supportsPowerState = true;
+    capabilities.supportsCommandExecution = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override {
+    humanoid::core::CommandCapabilitySet capabilities;
+    capabilities.stand = true;
+    capabilities.stop = true;
+    capabilities.move = true;
+    capabilities.custom = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override {
+    switch (command.type) {
+    case humanoid::core::CommandType::Stand:
+      return Record("Stand");
+    case humanoid::core::CommandType::Move:
+      std::cout << "adapter: Move\n";
+      return ConnectedResult("Move");
+    case humanoid::core::CommandType::Stop:
+      return Record("Stop");
+    case humanoid::core::CommandType::Custom:
+      return Record("Custom");
+    default:
+      return {humanoid::core::CommandStatus::Rejected, "unsupported example command"};
+    }
+  }
+
+  [[nodiscard]] humanoid::common::Status Update() override { return humanoid::common::Status::ok(); }
 
 private:
-  [[nodiscard]] static humanoid::adapters::Result Success(std::string message) {
-    return {humanoid::adapters::ErrorCode::kSuccess, std::move(message)};
-  }
-
-  [[nodiscard]] static humanoid::adapters::Result Failure(std::string message) {
-    return {humanoid::adapters::ErrorCode::kConnectionFailed, std::move(message)};
-  }
-
-  humanoid::adapters::Result ConnectedResult(std::string_view action) const {
+  humanoid::core::CommandResult ConnectedResult(std::string_view action) const {
     std::lock_guard<std::mutex> lock{mutex_};
     if (!connected_) {
-      return Failure(std::string{action} + " rejected: adapter is disconnected");
+      return {humanoid::core::CommandStatus::Rejected,
+              std::string{action} + " rejected: adapter is disconnected"};
     }
-    return Success(std::string{action} + " completed");
+    return {humanoid::core::CommandStatus::Completed, std::string{action} + " completed"};
   }
 
-  humanoid::adapters::Result Record(std::string_view action) const {
+  humanoid::core::CommandResult Record(std::string_view action) const {
     std::cout << "adapter: " << action << '\n';
     return ConnectedResult(action);
   }
@@ -108,9 +132,9 @@ private:
   bool connected_{false};
 };
 
-[[nodiscard]] bool Succeeded(const humanoid::adapters::Result& result) {
-  if (!result.Succeeded()) {
-    std::cerr << result.message << '\n';
+[[nodiscard]] bool Succeeded(const humanoid::common::Status& status) {
+  if (!status.isOk()) {
+    std::cerr << status.message() << '\n';
     return false;
   }
   return true;

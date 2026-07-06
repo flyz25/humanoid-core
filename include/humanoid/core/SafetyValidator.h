@@ -50,6 +50,16 @@ struct CommandCapabilitySet final {
   bool rotate{false};
 
   /**
+   * @brief True when direct velocity commands are supported.
+   */
+  bool velocity{false};
+
+  /**
+   * @brief True when emergency stop commands are supported.
+   */
+  bool emergencyStop{false};
+
+  /**
    * @brief True when hand-open commands are supported.
    */
   bool handOpen{false};
@@ -60,6 +70,11 @@ struct CommandCapabilitySet final {
   bool handClose{false};
 
   /**
+   * @brief True when named gesture commands are supported.
+   */
+  bool gesture{false};
+
+  /**
    * @brief True when audio playback commands are supported.
    */
   bool playAudio{false};
@@ -68,6 +83,16 @@ struct CommandCapabilitySet final {
    * @brief True when audio stop commands are supported.
    */
   bool stopAudio{false};
+
+  /**
+   * @brief True when audio volume commands are supported.
+   */
+  bool setVolume{false};
+
+  /**
+   * @brief True when audio mute commands are supported.
+   */
+  bool muteAudio{false};
 
   /**
    * @brief True when application-defined custom commands are supported.
@@ -86,6 +111,8 @@ struct CommandCapabilitySet final {
     capabilities.stop = true;
     capabilities.move = true;
     capabilities.rotate = true;
+    capabilities.velocity = true;
+    capabilities.emergencyStop = true;
     return capabilities;
   }
 
@@ -109,14 +136,24 @@ struct CommandCapabilitySet final {
       return move;
     case CommandType::Rotate:
       return rotate;
+    case CommandType::Velocity:
+      return velocity;
+    case CommandType::EmergencyStop:
+      return emergencyStop;
     case CommandType::HandOpen:
       return handOpen;
     case CommandType::HandClose:
       return handClose;
+    case CommandType::Gesture:
+      return gesture;
     case CommandType::PlayAudio:
       return playAudio;
     case CommandType::StopAudio:
       return stopAudio;
+    case CommandType::SetVolume:
+      return setVolume;
+    case CommandType::MuteAudio:
+      return muteAudio;
     case CommandType::Custom:
       return custom;
     }
@@ -256,12 +293,17 @@ public:
     case CommandType::Walk:
     case CommandType::Move:
     case CommandType::Rotate:
+    case CommandType::Velocity:
     case CommandType::HandOpen:
     case CommandType::HandClose:
+    case CommandType::Gesture:
       return true;
     case CommandType::Stop:
+    case CommandType::EmergencyStop:
     case CommandType::PlayAudio:
     case CommandType::StopAudio:
+    case CommandType::SetVolume:
+    case CommandType::MuteAudio:
     case CommandType::Custom:
       return false;
     }
@@ -280,14 +322,19 @@ public:
     case CommandType::Walk:
     case CommandType::Move:
     case CommandType::Rotate:
+    case CommandType::Velocity:
       return true;
     case CommandType::Stand:
     case CommandType::Sit:
     case CommandType::Stop:
+    case CommandType::EmergencyStop:
     case CommandType::HandOpen:
     case CommandType::HandClose:
+    case CommandType::Gesture:
     case CommandType::PlayAudio:
     case CommandType::StopAudio:
+    case CommandType::SetVolume:
+    case CommandType::MuteAudio:
     case CommandType::Custom:
       return false;
     }

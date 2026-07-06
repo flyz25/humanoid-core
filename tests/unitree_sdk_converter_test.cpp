@@ -34,22 +34,6 @@ namespace unitree_sdk = humanoid::plugins::unitree::sdk;
   return true;
 }
 
-[[nodiscard]] bool TestConnectionStateConversion() {
-  constexpr std::string_view kTestName{"Unitree SDK connection conversion"};
-
-  if (unitree_sdk::ToAdapterConnectionState(unitree_sdk::SdkConnectionState::kConnected) !=
-      humanoid::adapters::RobotConnectionState::kConnected) {
-    return Fail(kTestName, "connected state did not convert");
-  }
-
-  if (unitree_sdk::ToAdapterConnectionState(unitree_sdk::SdkConnectionState::kFaulted) !=
-      humanoid::adapters::RobotConnectionState::kFaulted) {
-    return Fail(kTestName, "faulted state did not convert");
-  }
-
-  return true;
-}
-
 [[nodiscard]] bool TestRobotStateConversion() {
   constexpr std::string_view kTestName{"Unitree SDK robot state conversion"};
 
@@ -128,8 +112,8 @@ namespace unitree_sdk = humanoid::plugins::unitree::sdk;
 
 int main() {
   const std::vector<bool (*)()> tests{
-      TestResultConversion, TestConnectionStateConversion, TestRobotStateConversion,
-      TestStringConversion, TestCommunicationTypeDefaults,
+      TestResultConversion, TestRobotStateConversion, TestStringConversion,
+      TestCommunicationTypeDefaults,
   };
 
   for (const auto test : tests) {

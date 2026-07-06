@@ -4,10 +4,14 @@
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <utility>
+
+#include <unitree/idl/hg/LowState_.hpp>
+#include <unitree/robot/channel/channel_subscriber.hpp>
 
 #include "LocoAdapter.h"
 #include "SdkClientSupport.h"
@@ -19,6 +23,7 @@ namespace {
 constexpr std::chrono::milliseconds kDefaultHeartbeatInterval{500};
 constexpr std::chrono::milliseconds kDefaultReconnectInterval{1000};
 constexpr std::chrono::milliseconds kDefaultConnectionTimeout{1500};
+constexpr const char* kLowStateTopic = "rt/lowstate";
 
 [[nodiscard]] std::chrono::time_point<std::chrono::steady_clock, std::chrono::nanoseconds>
 NowTimestamp() {
@@ -63,6 +68,7 @@ void UpdateStateSample(SdkRobotState& state, SdkConnectionState connection_state
                        std::int32_t fault_code) {
   state.connection_state = connection_state;
   state.motion_mode = motion_mode;
+  state.motion_mode_id = static_cast<std::int32_t>(motion_mode);
   state.emergency_stop = emergency_stop;
   state.fault_code = fault_code;
   state.fsm_id = fsm_id;
@@ -87,6 +93,55 @@ void PublishStateUpdate(const SdkWrapper::StateUpdateCallback& callback,
   }
 }
 
+[[nodiscard]] SdkRobotState
+WithLowState(const SdkRobotState& current, const ::unitree_hg::msg::dds_::LowState_& low_state,
+             std::uint64_t heartbeat_count, std::uint64_t reconnect_attempt_count) {
+  SdkRobotState next = current;
+  next.low_state_available = true;
+  next.low_state_tick = low_state.tick();
+  next.robot_mode = static_cast<std::int32_t>(low_state.mode_pr());
+  next.motion_mode_id = static_cast<std::int32_t>(low_state.mode_machine());
+  next.heartbeat_count = heartbeat_count;
+  next.reconnect_attempt_count = reconnect_attempt_count;
+  next.timestamp = NowTimestamp();
+
+  const auto& imu = low_state.imu_state();
+  next.imu_quaternion = imu.quaternion();
+  next.imu_angular_velocity = imu.gyroscope();
+  next.imu_linear_acceleration = imu.accelerometer();
+  next.imu_temperature_celsius = static_cast<float>(imu.temperature());
+  const auto& rpy = imu.rpy();
+  next.roll = rpy[0];
+  next.pitch = rpy[1];
+  next.yaw = rpy[2];
+
+  const auto& motors = low_state.motor_state();
+  next.joint_count = static_cast<std::uint32_t>(
+      motors.size() > kSdkMaxJointStates ? kSdkMaxJointStates : motors.size());
+  std::uint32_t aggregate_fault_code = 0U;
+  for (std::uint32_t index = 0U; index < next.joint_count; ++index) {
+    const auto& motor = motors[index];
+    next.joint_position[index] = motor.q();
+    next.joint_velocity[index] = motor.dq();
+    next.joint_acceleration[index] = motor.ddq();
+    next.joint_torque[index] = motor.tau_est();
+    next.joint_voltage[index] = motor.vol();
+    next.joint_temperature_celsius[index] = static_cast<float>(motor.temperature()[0]);
+    next.joint_mode[index] = static_cast<std::uint32_t>(motor.mode());
+    next.joint_fault[index] = motor.motorstate();
+    if (aggregate_fault_code == 0U && motor.motorstate() != 0U) {
+      aggregate_fault_code = motor.motorstate();
+    }
+  }
+
+  next.fault_code =
+      aggregate_fault_code > static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max())
+          ? std::numeric_limits<std::int32_t>::max()
+          : static_cast<std::int32_t>(aggregate_fault_code);
+  next.emergency_stop = next.fault_code != 0;
+  return next;
+}
+
 } // namespace
 
 class SdkWrapper::Impl final {
@@ -100,6 +155,8 @@ public:
   Impl& operator=(Impl&&) = delete;
 
   LocoAdapter loco_adapter_;
+  std::unique_ptr<::unitree::robot::ChannelSubscriber<::unitree_hg::msg::dds_::LowState_>>
+      low_state_subscriber_;
   mutable std::mutex mutex_;
   std::condition_variable communication_condition_;
   std::thread communication_thread_;
@@ -129,7 +186,7 @@ SdkWrapper::~SdkWrapper() noexcept {
 }
 
 SdkResult SdkWrapper::Initialize(const SdkConfiguration& configuration) {
-  std::lock_guard<std::mutex> lock{impl_->mutex_};
+  std::unique_lock<std::mutex> lock{impl_->mutex_};
 
   if (impl_->initialized_) {
     return internal::Success("Unitree SDK2 wrapper already initialized");
@@ -151,6 +208,40 @@ SdkResult SdkWrapper::Initialize(const SdkConfiguration& configuration) {
   impl_->latest_state_ = SdkRobotState{};
   UpdateStateSample(impl_->latest_state_, impl_->connection_state_, impl_->motion_mode_, -1, false,
                     0);
+  lock.unlock();
+
+  try {
+    auto subscriber =
+        std::make_unique<::unitree::robot::ChannelSubscriber<::unitree_hg::msg::dds_::LowState_>>(
+            kLowStateTopic);
+    subscriber->InitChannel(
+        [this](const void* message) {
+          if (message == nullptr) {
+            return;
+          }
+
+          StateUpdateCallback callback;
+          SdkRobotState state_snapshot;
+          {
+            std::lock_guard<std::mutex> callback_lock{impl_->mutex_};
+            const auto& low_state =
+                *static_cast<const ::unitree_hg::msg::dds_::LowState_*>(message);
+            impl_->latest_state_ =
+                WithLowState(impl_->latest_state_, low_state, impl_->heartbeat_count_,
+                             impl_->reconnect_attempt_count_);
+            callback = impl_->state_update_callback_;
+            state_snapshot = impl_->latest_state_;
+          }
+          PublishStateUpdate(callback, state_snapshot);
+        },
+        1);
+
+    std::lock_guard<std::mutex> subscriber_lock{impl_->mutex_};
+    impl_->low_state_subscriber_ = std::move(subscriber);
+  } catch (...) {
+    std::lock_guard<std::mutex> subscriber_lock{impl_->mutex_};
+    impl_->low_state_subscriber_.reset();
+  }
   return internal::Success("Unitree SDK2 wrapper initialized");
 }
 
@@ -204,6 +295,8 @@ SdkResult SdkWrapper::Connect() {
     UpdateStateSample(impl_->latest_state_, impl_->connection_state_, impl_->motion_mode_, fsm_id,
                       impl_->connection_state_ == SdkConnectionState::kFaulted,
                       result.Succeeded() ? 0 : 1);
+    impl_->latest_state_.heartbeat_count = impl_->heartbeat_count_;
+    impl_->latest_state_.reconnect_attempt_count = impl_->reconnect_attempt_count_;
     callback = impl_->state_update_callback_;
     state_snapshot = impl_->latest_state_;
   }
@@ -363,6 +456,8 @@ SdkResult SdkWrapper::SynchronizeState() {
       }
     }
 
+    impl_->latest_state_.heartbeat_count = impl_->heartbeat_count_;
+    impl_->latest_state_.reconnect_attempt_count = impl_->reconnect_attempt_count_;
     callback = impl_->state_update_callback_;
     state_snapshot = impl_->latest_state_;
   }
@@ -422,6 +517,23 @@ SdkResult SdkWrapper::StandUp() {
   return result;
 }
 
+SdkResult SdkWrapper::Sit() {
+  std::lock_guard<std::mutex> lock{impl_->mutex_};
+
+  if (!impl_->initialized_ || !impl_->connected_) {
+    return internal::Failure(SdkErrorCode::kConnectionFailed,
+                             "Unitree SDK2 wrapper is not connected");
+  }
+
+  SdkResult result = impl_->loco_adapter_.Sit();
+  impl_->motion_mode_ = result.Succeeded() ? SdkMotionMode::kSitting : SdkMotionMode::kFaulted;
+  impl_->connection_state_ =
+      result.Succeeded() ? impl_->connection_state_ : SdkConnectionState::kFaulted;
+  UpdateStateAfterCommand(impl_->latest_state_, impl_->connection_state_, impl_->motion_mode_,
+                          result.Succeeded());
+  return result;
+}
+
 SdkResult SdkWrapper::BalanceStand() {
   std::lock_guard<std::mutex> lock{impl_->mutex_};
 
@@ -467,6 +579,10 @@ SdkResult SdkWrapper::Shutdown() {
     std::lock_guard<std::mutex> lock{impl_->mutex_};
     impl_->connected_ = false;
     impl_->initialized_ = false;
+    if (impl_->low_state_subscriber_) {
+      impl_->low_state_subscriber_->CloseChannel();
+      impl_->low_state_subscriber_.reset();
+    }
     static_cast<void>(impl_->loco_adapter_.Shutdown());
     impl_->motion_mode_ = SdkMotionMode::kIdle;
     impl_->connection_state_ = SdkConnectionState::kShutdown;

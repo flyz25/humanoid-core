@@ -29,7 +29,7 @@ humanoid::plugins::PluginMetadata UnitreeG1Plugin::CreateMetadata() {
   metadata.plugin_id = "com.unitree.g1";
   metadata.name = "Unitree G1 Plugin";
   metadata.vendor = "Unitree";
-  metadata.description = "Unitree G1 plugin skeleton without SDK communication";
+  metadata.description = "Unitree G1 plugin using the humanoid-core Unitree SDK abstraction";
   metadata.version = humanoid::common::apiVersion();
   metadata.compatibility = humanoid::plugins::PluginVersionCompatibility{
       humanoid::common::apiVersion(), humanoid::common::apiVersion()};
@@ -73,7 +73,7 @@ UnitreeG1Plugin::Initialize(humanoid::plugins::IPluginRegistrar& registrar) {
 humanoid::common::Status UnitreeG1Plugin::Start() {
   std::lock_guard<std::mutex> lock{mutex_};
   if (!initialized_) {
-    return FailedPrecondition("Unitree G1 plugin skeleton is not initialized");
+    return FailedPrecondition("Unitree G1 plugin is not initialized");
   }
 
   started_ = true;

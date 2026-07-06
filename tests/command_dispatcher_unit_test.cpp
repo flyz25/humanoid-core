@@ -12,14 +12,15 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
-#include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/RobotAdapter.h>
 
 namespace {
 
-class MockRobotAdapter final : public humanoid::adapters::IRobotAdapter {
+class MockRobotAdapter final : public humanoid::core::RobotAdapter {
 public:
   struct Velocity final {
     float linear_x{0.0F};
@@ -27,37 +28,88 @@ public:
     float angular_z{0.0F};
   };
 
-  humanoid::adapters::Result Initialize() override { return Success("initialized"); }
+  humanoid::common::Status Initialize() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Connect() override { return Success("connected"); }
+  humanoid::common::Status Connect() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Disconnect() override { return Success("disconnected"); }
+  humanoid::common::Status Disconnect() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Shutdown() override { return Success("shutdown"); }
+  humanoid::common::Status Shutdown() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result StandUp() override { return Invoke("Stand"); }
+  [[nodiscard]] bool IsConnected() const noexcept override { return true; }
 
-  humanoid::adapters::Result BalanceStand() override { return Invoke("BalanceStand"); }
+  [[nodiscard]] humanoid::core::RobotState GetRobotState() const override {
+    humanoid::core::RobotState state;
+    state.connection.connected = true;
+    state.power.batteryLevel = 100.0F;
+    state.motion.standing = true;
+    return state;
+  }
 
-  humanoid::adapters::Result Move(float vx, float vy, float omega) override {
-    {
-      std::lock_guard<std::mutex> lock{mutex_};
-      velocities_.push_back(Velocity{vx, vy, omega});
+  [[nodiscard]] humanoid::core::RobotInformation GetRobotInformation() const override {
+    humanoid::core::RobotInformation information;
+    information.vendor = "Mock";
+    information.model = "Dispatcher";
+    information.adapterName = "MockRobotAdapter";
+    return information;
+  }
+
+  [[nodiscard]] humanoid::core::RobotCapabilities GetCapabilities() const override {
+    humanoid::core::RobotCapabilities capabilities;
+    capabilities.supportsLifecycle = true;
+    capabilities.supportsConnectionManagement = true;
+    capabilities.supportsStateFeedback = true;
+    capabilities.supportsPowerState = true;
+    capabilities.supportsCommandExecution = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override {
+    humanoid::core::CommandCapabilitySet capabilities;
+    capabilities.stand = true;
+    capabilities.sit = true;
+    capabilities.walk = true;
+    capabilities.stop = true;
+    capabilities.move = true;
+    capabilities.rotate = true;
+    capabilities.velocity = true;
+    capabilities.emergencyStop = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override {
+    switch (command.type) {
+    case humanoid::core::CommandType::Stand:
+      return Invoke("Stand");
+    case humanoid::core::CommandType::Sit:
+      return Invoke("Sit");
+    case humanoid::core::CommandType::Walk:
+    case humanoid::core::CommandType::Move:
+    case humanoid::core::CommandType::Velocity:
+      RecordVelocity(command, false);
+      return Invoke("Move");
+    case humanoid::core::CommandType::Rotate:
+      RecordVelocity(command, true);
+      return Invoke("Move");
+    case humanoid::core::CommandType::Stop:
+      return Invoke("Stop");
+    case humanoid::core::CommandType::EmergencyStop:
+      return Invoke("EmergencyStop");
+    case humanoid::core::CommandType::HandOpen:
+    case humanoid::core::CommandType::HandClose:
+    case humanoid::core::CommandType::Gesture:
+    case humanoid::core::CommandType::PlayAudio:
+    case humanoid::core::CommandType::StopAudio:
+    case humanoid::core::CommandType::SetVolume:
+    case humanoid::core::CommandType::MuteAudio:
+    case humanoid::core::CommandType::Custom:
+      return {humanoid::core::CommandStatus::Rejected, "unsupported mock command"};
     }
-    return Invoke("Move");
+    return {humanoid::core::CommandStatus::Rejected, "unknown mock command"};
   }
 
-  humanoid::adapters::Result Stop() override { return Invoke("Stop"); }
-
-  humanoid::adapters::Result EmergencyStop() override { return Invoke("EmergencyStop"); }
-
-  [[nodiscard]] humanoid::adapters::RobotStateResult GetRobotState() const override {
-    humanoid::adapters::RobotState state;
-    state.initialized = true;
-    state.connected = true;
-    state.connection_state = humanoid::adapters::RobotConnectionState::kConnected;
-    return humanoid::adapters::RobotStateResult{Success("state"), state};
-  }
+  [[nodiscard]] humanoid::common::Status Update() override { return humanoid::common::Status::ok(); }
 
   void BlockNextCommand() {
     std::lock_guard<std::mutex> lock{mutex_};
@@ -79,9 +131,9 @@ public:
     condition_.notify_all();
   }
 
-  void FailNextCommand(humanoid::adapters::ErrorCode error_code) {
+  void FailNextCommand(humanoid::core::CommandStatus status) {
     std::lock_guard<std::mutex> lock{mutex_};
-    next_error_ = error_code;
+    next_status_ = status;
   }
 
   void ThrowOnNextCommand() {
@@ -100,12 +152,29 @@ public:
   }
 
 private:
-  static humanoid::adapters::Result Success(std::string message) {
-    return {humanoid::adapters::ErrorCode::kSuccess, std::move(message)};
+  void RecordVelocity(const humanoid::core::Command& command, bool rotate_only) {
+    const auto number = [&command](const std::string& key) -> float {
+      const auto value = command.payload.find(key);
+      if (value == command.payload.end()) {
+        return 0.0F;
+      }
+      if (std::holds_alternative<double>(value->second)) {
+        return static_cast<float>(std::get<double>(value->second));
+      }
+      if (std::holds_alternative<std::int64_t>(value->second)) {
+        return static_cast<float>(std::get<std::int64_t>(value->second));
+      }
+      return 0.0F;
+    };
+    const float linear_x = rotate_only ? 0.0F : number("linear_x");
+    const float linear_y = rotate_only ? 0.0F : number("linear_y");
+    const float angular_z = number("angular_z");
+    std::lock_guard<std::mutex> lock{mutex_};
+    velocities_.push_back(Velocity{linear_x, linear_y, angular_z});
   }
 
-  humanoid::adapters::Result Invoke(std::string action) {
-    humanoid::adapters::ErrorCode error_code = humanoid::adapters::ErrorCode::kSuccess;
+  humanoid::core::CommandResult Invoke(std::string action) {
+    humanoid::core::CommandStatus status = humanoid::core::CommandStatus::Completed;
     bool should_throw = false;
     {
       std::unique_lock<std::mutex> lock{mutex_};
@@ -117,8 +186,10 @@ private:
         condition_.wait(lock, [this]() { return release_blocked_command_; });
       }
 
-      error_code = next_error_;
-      next_error_ = humanoid::adapters::ErrorCode::kSuccess;
+      if (next_status_ != humanoid::core::CommandStatus::Pending) {
+        status = next_status_;
+        next_status_ = humanoid::core::CommandStatus::Pending;
+      }
       should_throw = throw_on_next_command_;
       throw_on_next_command_ = false;
     }
@@ -126,17 +197,17 @@ private:
     if (should_throw) {
       throw std::runtime_error{"mock adapter failure"};
     }
-    if (error_code != humanoid::adapters::ErrorCode::kSuccess) {
-      return {error_code, "mock adapter error"};
+    if (status != humanoid::core::CommandStatus::Completed) {
+      return {status, "mock adapter error"};
     }
-    return Success("command completed");
+    return {humanoid::core::CommandStatus::Completed, "command completed"};
   }
 
   mutable std::mutex mutex_;
   std::condition_variable condition_;
   std::vector<std::string> actions_;
   std::vector<Velocity> velocities_;
-  humanoid::adapters::ErrorCode next_error_{humanoid::adapters::ErrorCode::kSuccess};
+  humanoid::core::CommandStatus next_status_{humanoid::core::CommandStatus::Pending};
   bool block_next_command_{false};
   bool blocked_command_started_{false};
   bool release_blocked_command_{false};
@@ -226,9 +297,9 @@ void TestValidationAndFailureTranslation() {
   Check(dispatcher.Execute(malformed_move).status == humanoid::core::CommandStatus::Rejected,
         "Malformed Move payload was accepted");
 
-  Check(dispatcher.Execute(MakeCommand(11U, humanoid::core::CommandType::Sit)).status ==
+  Check(dispatcher.Execute(MakeCommand(11U, humanoid::core::CommandType::HandOpen)).status ==
             humanoid::core::CommandStatus::Rejected,
-        "Unsupported Sit command was accepted");
+        "Unsupported HandOpen command was accepted");
 
   humanoid::core::Command expired = MakeCommand(12U, humanoid::core::CommandType::Stop);
   expired.timestamp -= std::chrono::milliseconds{10};
@@ -236,7 +307,7 @@ void TestValidationAndFailureTranslation() {
   Check(dispatcher.Execute(expired).status == humanoid::core::CommandStatus::Timeout,
         "Expired command did not time out");
 
-  adapter->FailNextCommand(humanoid::adapters::ErrorCode::kTimeout);
+  adapter->FailNextCommand(humanoid::core::CommandStatus::Timeout);
   Check(dispatcher.Execute(MakeCommand(13U, humanoid::core::CommandType::Stop)).status ==
             humanoid::core::CommandStatus::Timeout,
         "Adapter timeout was not translated");

@@ -8,7 +8,6 @@
 #include <string>
 #include <string_view>
 
-#include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/adapters/Result.h>
 #include <humanoid/core/RobotState.hpp>
 
@@ -23,15 +22,6 @@ namespace humanoid::plugins::unitree::sdk {
  * @return Adapter result.
  */
 [[nodiscard]] humanoid::adapters::Result ToAdapterResult(const SdkResult& result);
-
-/**
- * @brief Converts SDK abstraction connection state to the legacy adapter connection state.
- *
- * @param state SDK abstraction connection state.
- * @return Adapter connection state.
- */
-[[nodiscard]] humanoid::adapters::RobotConnectionState
-ToAdapterConnectionState(SdkConnectionState state) noexcept;
 
 /**
  * @brief Converts normalized SDK robot state into the core RobotState model.

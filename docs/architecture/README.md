@@ -25,7 +25,7 @@ changing the core architecture:
 Application
   -> RobotFactoryRegistry
     -> IRobotFactory
-      -> IRobotAdapter
+      -> core::RobotAdapter
         -> UnitreeG1Adapter
           -> LocoClientWrapper
             -> SdkWrapper
@@ -33,11 +33,13 @@ Application
                 -> Unitree SDK2
 ```
 
-`IRobotAdapter` is the application-facing dependency. `UnitreeRobotFactory`
-creates `UnitreeG1Adapter` through the generic factory interface.
-`UnitreeG1Adapter` translates generic commands such as `Move`, `Stop`, `StandUp`,
-`BalanceStand`, and `EmergencyStop`. `LocoClientWrapper` is a compatibility
-facade over `plugins/unitree/sdk/SdkWrapper`. Only implementation files under
+`humanoid::core::RobotAdapter` is the single public robot adapter abstraction.
+`humanoid::adapters::IRobotAdapter` remains only as a source-compatible alias to
+that interface. `UnitreeRobotFactory` creates `UnitreeG1Adapter` through the
+generic factory interface. `UnitreeG1Adapter` translates generic commands such
+as `Stand`, `Sit`, `Move`, `Velocity`, `Stop`, `EmergencyStop`, gesture, and
+audio commands. `LocoClientWrapper` is a compatibility facade over
+`plugins/unitree/sdk/SdkWrapper`. Only implementation files under
 `plugins/unitree/sdk/` include Unitree SDK2 headers and own SDK client objects.
 
 Milestone 4.6 adds read-only SDK2 communication monitoring inside `SdkWrapper`.
@@ -66,7 +68,7 @@ Example application
 Example application
   -> RobotFactoryRegistry
     -> UnitreeRobotFactory
-      -> IRobotAdapter
+      -> core::RobotAdapter
         -> LocoClientWrapper
           -> SdkWrapper
 ```
@@ -157,7 +159,7 @@ MissionLoader -> MissionParser -> MissionValidator -> Mission
 MissionStep -> WaitStep / DelayStep
             -> RetryPolicy / LoopPolicy / TimeoutPolicy
             -> MissionCondition -> ConditionEvaluator -> RobotStateManager
-            -> Command -> CommandDispatcher -> SafetyValidator -> IRobotAdapter
+            -> Command -> CommandDispatcher -> SafetyValidator -> core::RobotAdapter
 ```
 
 The executor applies wait, delay, retry, loop, timeout, skip, abort, and
@@ -574,7 +576,7 @@ Application or future command producer
     -> injected executor
       -> CommandDispatcher
         -> SafetyValidator
-        -> IRobotAdapter
+        -> core::RobotAdapter
   -> CommandQueue
   <- CommandResult / CommandStatus
 ```
@@ -587,7 +589,8 @@ injected executor. `CommandQueue` owns bounded asynchronous priority scheduling,
 worker threads, timeout, cancellation, and statistics. `SafetyValidator` gates
 execution using generic state, capability, emergency stop, fault, battery, and
 posture data. `CommandDispatcher` composes the validator and queue, validates
-commands, serializes adapter access, and forwards through `IRobotAdapter`.
+commands, serializes adapter access, and forwards through
+`humanoid::core::RobotAdapter`.
 These components have no SDK headers, concrete adapter dependencies, mission
 logic, or global state. See `docs/api/command_model.md` for the complete public
 contract.
@@ -616,11 +619,12 @@ registration, and lifecycle state. Plugin hosts may use
 `humanoid::plugins::PluginFactory` to register creator callables, create plugin
 instances, destroy plugin instances, and enumerate registered plugin records.
 
-Milestone 4.4 adds the SDK-free Unitree G1 plugin skeleton. It packages
-metadata, lifecycle, a plugin-local adapter skeleton, a manifest, and mock robot
-state feedback without communicating with Unitree SDK2 or commanding motion.
-Milestone 4 does not implement dynamic shared-library loading, manifest
-parsing, or physical robot communication plugins.
+The Unitree G1 plugin packages metadata, lifecycle, factory creation,
+capability declaration, state snapshots, and command routing through the
+production `humanoid::core::RobotAdapter` boundary. With `ENABLE_UNITREE=ON` it
+delegates to the Unitree SDK abstraction; without SDK support it reports
+unavailability without leaking SDK types. Milestone 4 does not implement
+dynamic shared-library loading or manifest parsing.
 
 ## Module Ownership
 
@@ -696,4 +700,4 @@ direction.
 
 Vendor SDK headers must never be included by application code, manager headers,
 or manager source files. Vendor SDK dependencies belong in adapter packages that
-implement `IRobotAdapter` or other module interfaces.
+implement `humanoid::core::RobotAdapter` or other module interfaces.

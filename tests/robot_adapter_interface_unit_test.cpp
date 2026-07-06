@@ -60,7 +60,23 @@ public:
     capabilities.supportsStateFeedback = true;
     capabilities.supportsRobotInformation = true;
     capabilities.supportsPeriodicUpdate = true;
+    capabilities.supportsCommandExecution = true;
     return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override {
+    humanoid::core::CommandCapabilitySet capabilities;
+    capabilities.stop = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override {
+    static_cast<void>(command);
+    humanoid::core::CommandResult result;
+    result.status = humanoid::core::CommandStatus::Completed;
+    result.message = "executed";
+    return result;
   }
 
   [[nodiscard]] humanoid::common::Status Update() override {

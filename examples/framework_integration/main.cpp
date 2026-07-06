@@ -51,7 +51,13 @@ int main() {
     }
 
     std::unique_ptr<humanoid::core::RobotAdapter> adapter = unitree_plugin->CreateAdapter();
-    RequireOk(adapter->Initialize(), "Adapter.Initialize");
+    const humanoid::common::Status initialize_status = adapter->Initialize();
+    if (!initialize_status.isOk()) {
+      std::cout << "Adapter initialization unavailable: " << initialize_status.message() << '\n';
+      RequireOk(plugin_result.plugin->Stop(), "Plugin.Stop");
+      RequireOk(plugin_factory.DestroyPlugin(plugin_result.plugin), "DestroyPlugin");
+      return EXIT_SUCCESS;
+    }
     RequireOk(adapter->Update(), "Adapter.Update");
 
     auto state_manager = std::make_shared<humanoid::core::RobotStateManager>();

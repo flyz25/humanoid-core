@@ -101,30 +101,36 @@ using humanoid::plugins::unitree::g1::UnitreeG1Plugin;
   return true;
 }
 
-[[nodiscard]] bool TestAdapterSkeletonContract() {
-  constexpr std::string_view kTestName{"Unitree G1 adapter skeleton"};
+[[nodiscard]] bool TestAdapterProductionContract() {
+  constexpr std::string_view kTestName{"Unitree G1 adapter production contract"};
 
   UnitreeG1Adapter adapter;
 
   if (adapter.IsConnected()) {
-    return Fail(kTestName, "fresh skeleton adapter reported connected");
+    return Fail(kTestName, "fresh adapter reported connected");
   }
 
   if (adapter.Connect().code() != StatusCode::kFailedPrecondition) {
     return Fail(kTestName, "connect before initialize did not fail precondition");
   }
 
-  if (!adapter.Initialize().isOk()) {
-    return Fail(kTestName, "initialize failed");
+  const Status initialize_status = adapter.Initialize();
+  if (!initialize_status.isOk() && initialize_status.code() != StatusCode::kUnavailable) {
+    return Fail(kTestName, "initialize failed with an unexpected status");
   }
 
-  if (!adapter.Update().isOk()) {
-    return Fail(kTestName, "update failed after initialize");
+  if (initialize_status.isOk()) {
+    const Status update_status = adapter.Update();
+    if (update_status.code() != StatusCode::kOk &&
+        update_status.code() != StatusCode::kUnavailable) {
+      return Fail(kTestName, "update failed with an unexpected status");
+    }
   }
 
   const Status connect_status = adapter.Connect();
-  if (connect_status.code() != StatusCode::kUnavailable || adapter.IsConnected()) {
-    return Fail(kTestName, "skeleton connect did not report unavailable");
+  if (connect_status.code() != StatusCode::kOk && connect_status.code() != StatusCode::kUnavailable &&
+      connect_status.code() != StatusCode::kFailedPrecondition) {
+    return Fail(kTestName, "connect failed with an unexpected status");
   }
 
   const humanoid::core::RobotInformation information = adapter.GetRobotInformation();
@@ -133,14 +139,24 @@ using humanoid::plugins::unitree::g1::UnitreeG1Plugin;
   }
 
   const humanoid::core::RobotCapabilities capabilities = adapter.GetCapabilities();
-  if (!capabilities.supportsLifecycle || capabilities.supportsConnectionManagement ||
-      !capabilities.supportsStateFeedback || !capabilities.supportsRobotInformation) {
+  if (!capabilities.supportsLifecycle || !capabilities.supportsConnectionManagement ||
+      !capabilities.supportsStateFeedback || !capabilities.supportsRobotInformation ||
+      !capabilities.supportsCommandExecution) {
     return Fail(kTestName, "capability declaration is incorrect");
   }
 
+  const humanoid::core::CommandCapabilitySet command_capabilities =
+      adapter.GetCommandCapabilities();
+  if (!command_capabilities.stand || !command_capabilities.stop ||
+      !command_capabilities.emergencyStop || !command_capabilities.move ||
+      !command_capabilities.velocity) {
+    return Fail(kTestName, "motion command capabilities are incomplete");
+  }
+
   const humanoid::core::RobotState state = adapter.GetRobotState();
-  if (state.connection.connected || state.health.emergencyStop || state.health.faultCode != 0) {
-    return Fail(kTestName, "mock robot state is not conservative");
+  if (state.connection.connected != adapter.IsConnected() || state.health.emergencyStop ||
+      state.health.faultCode != 0) {
+    return Fail(kTestName, "robot state is not conservative");
   }
 
   if (!adapter.Disconnect().isOk() || !adapter.Shutdown().isOk()) {
@@ -156,7 +172,7 @@ int main() {
   const std::vector<bool (*)()> tests{
       TestMetadataAndManifestContract,
       TestFactoryRegistrationAndPluginLifecycle,
-      TestAdapterSkeletonContract,
+      TestAdapterProductionContract,
   };
 
   for (const auto test : tests) {

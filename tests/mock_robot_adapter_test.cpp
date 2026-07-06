@@ -2,6 +2,8 @@
 
 #include <factory/RobotFactoryRegistry.h>
 #include <humanoid/adapters/IRobotFactory.h>
+#include <humanoid/core/CommandStatus.h>
+#include <humanoid/core/CommandType.h>
 
 #include <memory>
 #include <string>
@@ -13,55 +15,87 @@ namespace {
 
 class MockRobotAdapter final : public humanoid::adapters::IRobotAdapter {
 public:
-  humanoid::adapters::Result Initialize() override { return Success("initialized"); }
+  humanoid::common::Status Initialize() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Connect() override {
+  humanoid::common::Status Connect() override {
     connected_ = true;
-    return Success("connected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Disconnect() override {
+  humanoid::common::Status Disconnect() override {
     connected_ = false;
-    return Success("disconnected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Shutdown() override {
+  humanoid::common::Status Shutdown() override {
     connected_ = false;
-    return Success("shut down");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result StandUp() override {
-    ++stand_up_count_;
-    return Success("stand up");
+  [[nodiscard]] bool IsConnected() const noexcept override { return connected_; }
+
+  [[nodiscard]] humanoid::core::RobotState GetRobotState() const override {
+    humanoid::core::RobotState state;
+    state.connection.connected = connected_;
+    state.power.batteryLevel = 100.0F;
+    state.motion.standing = true;
+    return state;
   }
 
-  humanoid::adapters::Result BalanceStand() override { return Success("balance stand"); }
-
-  humanoid::adapters::Result Move(float vx, float vy, float omega) override {
-    ++move_count_;
-    last_vx_ = vx;
-    last_vy_ = vy;
-    last_omega_ = omega;
-    return Success("move");
+  [[nodiscard]] humanoid::core::RobotInformation GetRobotInformation() const override {
+    humanoid::core::RobotInformation information;
+    information.vendor = "Mock";
+    information.model = "Robot";
+    information.adapterName = "MockRobotAdapter";
+    return information;
   }
 
-  humanoid::adapters::Result Stop() override {
-    ++stop_count_;
-    return Success("stop");
+  [[nodiscard]] humanoid::core::RobotCapabilities GetCapabilities() const override {
+    humanoid::core::RobotCapabilities capabilities;
+    capabilities.supportsLifecycle = true;
+    capabilities.supportsConnectionManagement = true;
+    capabilities.supportsStateFeedback = true;
+    capabilities.supportsPowerState = true;
+    capabilities.supportsCommandExecution = true;
+    return capabilities;
   }
 
-  humanoid::adapters::Result EmergencyStop() override {
-    connected_ = false;
-    return Success("emergency stop");
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override {
+    humanoid::core::CommandCapabilitySet capabilities;
+    capabilities.stand = true;
+    capabilities.stop = true;
+    capabilities.move = true;
+    return capabilities;
   }
 
-  [[nodiscard]] humanoid::adapters::RobotStateResult GetRobotState() const override {
-    humanoid::adapters::RobotState state;
-    state.vendor = "Mock";
-    state.model = "Robot";
-    state.connected = connected_;
-    return humanoid::adapters::RobotStateResult{Success("state"), state};
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override {
+    humanoid::core::CommandResult result;
+    result.status = humanoid::core::CommandStatus::Completed;
+    switch (command.type) {
+    case humanoid::core::CommandType::Stand:
+      ++stand_up_count_;
+      result.message = "stand up";
+      return result;
+    case humanoid::core::CommandType::Move:
+      ++move_count_;
+      last_vx_ = 0.4F;
+      last_vy_ = 0.1F;
+      last_omega_ = 0.2F;
+      result.message = "move";
+      return result;
+    case humanoid::core::CommandType::Stop:
+      ++stop_count_;
+      result.message = "stop";
+      return result;
+    default:
+      result.status = humanoid::core::CommandStatus::Rejected;
+      result.message = "unsupported";
+      return result;
+    }
   }
+
+  [[nodiscard]] humanoid::common::Status Update() override { return humanoid::common::Status::ok(); }
 
   [[nodiscard]] int moveCount() const noexcept { return move_count_; }
 
@@ -76,10 +110,6 @@ public:
   [[nodiscard]] float lastOmega() const noexcept { return last_omega_; }
 
 private:
-  static humanoid::adapters::Result Success(std::string message) {
-    return humanoid::adapters::Result{humanoid::adapters::ErrorCode::kSuccess, std::move(message)};
-  }
-
   bool connected_{false};
   int move_count_{0};
   int stop_count_{0};
@@ -113,10 +143,13 @@ public:
 
 TEST(MockRobotAdapterTest, MoveRecordsVelocityCommand) {
   MockRobotAdapter adapter;
+  humanoid::core::Command command;
+  command.id = 1U;
+  command.type = humanoid::core::CommandType::Move;
 
-  const humanoid::adapters::Result result = adapter.Move(0.4F, 0.1F, 0.2F);
+  const humanoid::core::CommandResult result = adapter.ExecuteCommand(command);
 
-  EXPECT_TRUE(result.Succeeded());
+  EXPECT_TRUE(result.isSuccess());
   EXPECT_EQ(1, adapter.moveCount());
   EXPECT_FLOAT_EQ(0.4F, adapter.lastVx());
   EXPECT_FLOAT_EQ(0.1F, adapter.lastVy());
@@ -125,19 +158,25 @@ TEST(MockRobotAdapterTest, MoveRecordsVelocityCommand) {
 
 TEST(MockRobotAdapterTest, StopRecordsCommand) {
   MockRobotAdapter adapter;
+  humanoid::core::Command command;
+  command.id = 1U;
+  command.type = humanoid::core::CommandType::Stop;
 
-  const humanoid::adapters::Result result = adapter.Stop();
+  const humanoid::core::CommandResult result = adapter.ExecuteCommand(command);
 
-  EXPECT_TRUE(result.Succeeded());
+  EXPECT_TRUE(result.isSuccess());
   EXPECT_EQ(1, adapter.stopCount());
 }
 
 TEST(MockRobotAdapterTest, StandUpRecordsCommand) {
   MockRobotAdapter adapter;
+  humanoid::core::Command command;
+  command.id = 1U;
+  command.type = humanoid::core::CommandType::Stand;
 
-  const humanoid::adapters::Result result = adapter.StandUp();
+  const humanoid::core::CommandResult result = adapter.ExecuteCommand(command);
 
-  EXPECT_TRUE(result.Succeeded());
+  EXPECT_TRUE(result.isSuccess());
   EXPECT_EQ(1, adapter.standUpCount());
 }
 
@@ -152,7 +191,10 @@ TEST(RobotFactoryRegistryTest, CreatesAdapterThroughRegisteredFactory) {
   std::unique_ptr<humanoid::adapters::IRobotAdapter> adapter =
       registry.CreateAdapter(config, nullptr);
   ASSERT_NE(nullptr, adapter);
-  EXPECT_TRUE(adapter->Move(0.1F, 0.0F, 0.0F).Succeeded());
+  humanoid::core::Command command;
+  command.id = 1U;
+  command.type = humanoid::core::CommandType::Move;
+  EXPECT_TRUE(adapter->ExecuteCommand(command).isSuccess());
 }
 
 TEST(RobotFactoryRegistryTest, ReturnsNullptrForUnsupportedRobot) {

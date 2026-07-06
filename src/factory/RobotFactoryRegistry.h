@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <humanoid/adapters/IRobotFactory.h>
+#include <humanoid/adapters/Result.h>
 
 namespace humanoid::factory {
 

@@ -4,14 +4,17 @@
  */
 
 #include <chrono>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <variant>
 
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/CommandStatus.h>
 #include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/core/SafetyValidator.h>
 
@@ -21,58 +24,88 @@ class SafetyMockAdapter final : public humanoid::adapters::IRobotAdapter {
 public:
   explicit SafetyMockAdapter(bool connected = true) noexcept : connected_(connected) {}
 
-  humanoid::adapters::Result Initialize() override { return Success("initialized"); }
+  humanoid::common::Status Initialize() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Connect() override {
+  humanoid::common::Status Connect() override {
     connected_ = true;
-    return Success("connected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Disconnect() override {
+  humanoid::common::Status Disconnect() override {
     connected_ = false;
-    return Success("disconnected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Shutdown() override {
+  humanoid::common::Status Shutdown() override {
     connected_ = false;
-    return Success("shutdown");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result StandUp() override {
+  [[nodiscard]] bool IsConnected() const noexcept override { return connected_; }
+
+  [[nodiscard]] humanoid::core::RobotState GetRobotState() const override {
+    humanoid::core::RobotState state;
+    state.connection.connected = connected_;
+    state.power.batteryLevel = 100.0F;
+    state.motion.standing = true;
+    return state;
+  }
+
+  [[nodiscard]] humanoid::core::RobotInformation GetRobotInformation() const override {
+    humanoid::core::RobotInformation information;
+    information.vendor = "Mock";
+    information.model = "Safety";
+    information.adapterName = "SafetyMockAdapter";
+    return information;
+  }
+
+  [[nodiscard]] humanoid::core::RobotCapabilities GetCapabilities() const override {
+    humanoid::core::RobotCapabilities capabilities;
+    capabilities.supportsLifecycle = true;
+    capabilities.supportsConnectionManagement = true;
+    capabilities.supportsStateFeedback = true;
+    capabilities.supportsPowerState = true;
+    capabilities.supportsCommandExecution = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override {
+    humanoid::core::CommandCapabilitySet capabilities;
+    capabilities.stand = true;
+    capabilities.stop = true;
+    capabilities.move = true;
+    capabilities.rotate = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override {
     std::lock_guard<std::mutex> lock{mutex_};
-    ++stand_count_;
-    return Success("stand");
+    humanoid::core::CommandResult result;
+    result.status = humanoid::core::CommandStatus::Completed;
+    switch (command.type) {
+    case humanoid::core::CommandType::Stand:
+      ++stand_count_;
+      return result;
+    case humanoid::core::CommandType::Move:
+    case humanoid::core::CommandType::Rotate:
+      ++move_count_;
+      last_vx_ = command.type == humanoid::core::CommandType::Move ? NumberPayload(command, "linear_x")
+                                                                   : 0.0F;
+      last_vy_ = command.type == humanoid::core::CommandType::Move ? NumberPayload(command, "linear_y")
+                                                                   : 0.0F;
+      last_omega_ = NumberPayload(command, "angular_z");
+      return result;
+    case humanoid::core::CommandType::Stop:
+      ++stop_count_;
+      return result;
+    default:
+      result.status = humanoid::core::CommandStatus::Rejected;
+      return result;
+    }
   }
 
-  humanoid::adapters::Result BalanceStand() override { return Success("balance"); }
-
-  // NOLINTBEGIN(bugprone-easily-swappable-parameters)
-  humanoid::adapters::Result Move(float vx, float vy, float omega) override {
-    std::lock_guard<std::mutex> lock{mutex_};
-    ++move_count_;
-    last_vx_ = vx;
-    last_vy_ = vy;
-    last_omega_ = omega;
-    return Success("move");
-  }
-  // NOLINTEND(bugprone-easily-swappable-parameters)
-
-  humanoid::adapters::Result Stop() override {
-    std::lock_guard<std::mutex> lock{mutex_};
-    ++stop_count_;
-    return Success("stop");
-  }
-
-  humanoid::adapters::Result EmergencyStop() override { return Success("emergency stop"); }
-
-  [[nodiscard]] humanoid::adapters::RobotStateResult GetRobotState() const override {
-    humanoid::adapters::RobotState state;
-    state.initialized = true;
-    state.connected = connected_;
-    state.connection_state = connected_ ? humanoid::adapters::RobotConnectionState::kConnected
-                                        : humanoid::adapters::RobotConnectionState::kDisconnected;
-    return humanoid::adapters::RobotStateResult{Success("state"), state};
-  }
+  [[nodiscard]] humanoid::common::Status Update() override { return humanoid::common::Status::ok(); }
 
   [[nodiscard]] int standCount() const {
     std::lock_guard<std::mutex> lock{mutex_};
@@ -95,8 +128,19 @@ public:
   }
 
 private:
-  static humanoid::adapters::Result Success(std::string message) {
-    return {humanoid::adapters::ErrorCode::kSuccess, std::move(message)};
+  [[nodiscard]] static float NumberPayload(const humanoid::core::Command& command,
+                                           const std::string& key) {
+    const auto value = command.payload.find(key);
+    if (value == command.payload.end()) {
+      return 0.0F;
+    }
+    if (std::holds_alternative<double>(value->second)) {
+      return static_cast<float>(std::get<double>(value->second));
+    }
+    if (std::holds_alternative<std::int64_t>(value->second)) {
+      return static_cast<float>(std::get<std::int64_t>(value->second));
+    }
+    return 0.0F;
   }
 
   mutable std::mutex mutex_;
@@ -262,6 +306,9 @@ int main() {
     TestRejectsBatteryAndUnsafeState();
     TestDispatcherUsesInjectedStateManager();
     TestLegacyDispatcherRejectsDisconnectedAdapter();
+  } catch (const std::exception& exception) {
+    std::cerr << exception.what() << '\n';
+    return 1;
   } catch (...) {
     return 1;
   }

@@ -7,6 +7,8 @@
 
 #include <factory/RobotFactoryRegistry.h>
 #include <humanoid/adapters/IRobotAdapter.h>
+#include <humanoid/adapters/Result.h>
+#include <humanoid/common/Status.hpp>
 #include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/logging/LoggerManager.hpp>
 
@@ -17,12 +19,25 @@
 namespace {
 
 /**
- * @brief Throws when an adapter result reports failure.
+ * @brief Throws when an operation status reports failure.
+ *
+ * @param status Status to inspect.
+ * @param operation Operation name.
+ */
+void RequireSuccess(const humanoid::common::Status& status, const char* operation) {
+  if (!status.isOk()) {
+    throw std::runtime_error(std::string{operation} + " failed: " + status.message());
+  }
+}
+
+/**
+ * @brief Throws when a registry result reports failure.
  *
  * @param result Result to inspect.
  * @param operation Operation name.
  */
-void RequireSuccess(const humanoid::adapters::Result& result, const char* operation) {
+[[maybe_unused]] void RequireSuccess(const humanoid::adapters::Result& result,
+                                     const char* operation) {
   if (!result.Succeeded()) {
     throw std::runtime_error(std::string{operation} + " failed: " + result.message);
   }
@@ -60,16 +75,16 @@ int main(int argc, char* argv[]) {
       return EXIT_SUCCESS;
     }
 
-    const humanoid::adapters::Result initialize = adapter->Initialize();
-    if (!initialize.Succeeded()) {
-      std::cout << "Robot initialization unavailable: " << initialize.message << '\n';
+    const humanoid::common::Status initialize = adapter->Initialize();
+    if (!initialize.isOk()) {
+      std::cout << "Robot initialization unavailable: " << initialize.message() << '\n';
       return EXIT_SUCCESS;
     }
 
-    const humanoid::adapters::Result connect = adapter->Connect();
-    if (!connect.Succeeded()) {
+    const humanoid::common::Status connect = adapter->Connect();
+    if (!connect.isOk()) {
       static_cast<void>(adapter->Shutdown());
-      std::cout << "Robot connection unavailable: " << connect.message << '\n';
+      std::cout << "Robot connection unavailable: " << connect.message() << '\n';
       return EXIT_SUCCESS;
     }
 

@@ -7,6 +7,16 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+
+- Repository Repair Sprint for Unitree G1 bring-up: unified the public robot
+  adapter abstraction around `humanoid::core::RobotAdapter`, converted the
+  legacy `IRobotAdapter` header into a compatibility alias, completed Unitree G1
+  plugin routing through the SDK abstraction, expanded command coverage and
+  explicit unsupported-command rejection, broadened SDK-to-`RobotState`
+  synchronization, corrected CMake dependency direction, and validated
+  Debug/Release builds with Unitree enabled and disabled.
+
 ## [1.0.1-validation] - 2026-07-06
 
 ### Added

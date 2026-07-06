@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <humanoid/adapters/IRobotAdapter.h>
+#include <humanoid/adapters/Result.h>
 
 namespace humanoid::logging {
 class ILogger;

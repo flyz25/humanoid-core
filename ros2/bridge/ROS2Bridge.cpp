@@ -54,17 +54,32 @@ commandTypeFromName(std::string_view name) noexcept {
   if (name == "Rotate") {
     return humanoid::core::CommandType::Rotate;
   }
+  if (name == "Velocity") {
+    return humanoid::core::CommandType::Velocity;
+  }
+  if (name == "EmergencyStop") {
+    return humanoid::core::CommandType::EmergencyStop;
+  }
   if (name == "HandOpen") {
     return humanoid::core::CommandType::HandOpen;
   }
   if (name == "HandClose") {
     return humanoid::core::CommandType::HandClose;
   }
+  if (name == "Gesture") {
+    return humanoid::core::CommandType::Gesture;
+  }
   if (name == "PlayAudio") {
     return humanoid::core::CommandType::PlayAudio;
   }
   if (name == "StopAudio") {
     return humanoid::core::CommandType::StopAudio;
+  }
+  if (name == "SetVolume") {
+    return humanoid::core::CommandType::SetVolume;
+  }
+  if (name == "MuteAudio") {
+    return humanoid::core::CommandType::MuteAudio;
   }
 
   return humanoid::core::CommandType::Custom;

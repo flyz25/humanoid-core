@@ -2,7 +2,7 @@
 
 /**
  * @file UnitreeG1Plugin.hpp
- * @brief Defines the Unitree G1 plugin skeleton.
+ * @brief Defines the Unitree G1 plugin.
  */
 
 #include <memory>
@@ -20,21 +20,21 @@ class PluginFactory;
 namespace humanoid::plugins::unitree::g1 {
 
 /**
- * @brief Unitree G1 plugin skeleton.
+ * @brief Unitree G1 plugin.
  *
  * The plugin owns lifecycle state and exposes a factory method for creating the
- * Unitree G1 adapter skeleton. It contains no Unitree SDK2 headers and performs
- * no robot communication.
+ * Unitree G1 adapter. The plugin contains no Unitree SDK2 headers; concrete
+ * robot communication is delegated to the SDK abstraction layer.
  */
 class UnitreeG1Plugin final : public humanoid::plugins::IPlugin {
 public:
   /**
-   * @brief Constructs the Unitree G1 plugin skeleton.
+   * @brief Constructs the Unitree G1 plugin.
    */
   UnitreeG1Plugin();
 
   /**
-   * @brief Destroys the plugin skeleton.
+   * @brief Destroys the plugin.
    */
   ~UnitreeG1Plugin() override = default;
 
@@ -44,7 +44,7 @@ public:
   UnitreeG1Plugin& operator=(UnitreeG1Plugin&&) = delete;
 
   /**
-   * @brief Creates metadata for the Unitree G1 plugin skeleton.
+   * @brief Creates metadata for the Unitree G1 plugin.
    *
    * @return Plugin metadata.
    */
@@ -67,28 +67,28 @@ public:
   Initialize(humanoid::plugins::IPluginRegistrar& registrar) override;
 
   /**
-   * @brief Starts the initialized plugin skeleton.
+   * @brief Starts the initialized plugin.
    *
    * @return Operation status.
    */
   [[nodiscard]] humanoid::common::Status Start() override;
 
   /**
-   * @brief Stops the plugin skeleton.
+   * @brief Stops the plugin.
    *
    * @return Operation status.
    */
   [[nodiscard]] humanoid::common::Status Stop() override;
 
   /**
-   * @brief Shuts down the plugin skeleton.
+   * @brief Shuts down the plugin.
    *
    * @return Operation status.
    */
   [[nodiscard]] humanoid::common::Status Shutdown() override;
 
   /**
-   * @brief Creates a Unitree G1 adapter skeleton instance.
+   * @brief Creates a Unitree G1 adapter instance.
    *
    * @return Adapter owned through the generic robot adapter interface.
    */
@@ -102,7 +102,7 @@ private:
 };
 
 /**
- * @brief Registers the Unitree G1 plugin skeleton with a plugin factory.
+ * @brief Registers the Unitree G1 plugin with a plugin factory.
  *
  * @param factory Plugin factory owned by the host composition root.
  * @return Operation status.

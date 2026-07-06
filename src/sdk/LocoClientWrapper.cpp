@@ -113,6 +113,10 @@ adapters::Result LocoClientWrapper::StandUp() {
   return unitree_sdk::ToAdapterResult(impl_->sdk_wrapper_.StandUp());
 }
 
+adapters::Result LocoClientWrapper::Sit() {
+  return unitree_sdk::ToAdapterResult(impl_->sdk_wrapper_.Sit());
+}
+
 adapters::Result LocoClientWrapper::BalanceStand() {
   return unitree_sdk::ToAdapterResult(impl_->sdk_wrapper_.BalanceStand());
 }

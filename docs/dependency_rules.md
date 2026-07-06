@@ -15,6 +15,7 @@ robot adapters -> SDK wrapper facades
 SDK wrapper facades -> vendor SDK abstraction targets
 vendor SDK abstraction targets -> vendor SDKs
 core -> logging, configuration, common
+adapter compatibility interfaces -> core, common
 managers -> module interfaces, common
 utilities -> common
 common -> standard library only
@@ -27,6 +28,7 @@ Forbidden dependencies:
 - Managers depending on concrete adapters or communication backends.
 - SDK wrapper facades directly including vendor SDK headers.
 - Core modules depending on concrete plugins or plugin implementations.
+- Core modules depending on legacy adapter compatibility headers.
 - `humanoid::humanoid_core` linking concrete plugins.
 - Core modules depending on ROS2, OpenCV, AI runtimes, GUI frameworks, or Unitree
   SDKs.

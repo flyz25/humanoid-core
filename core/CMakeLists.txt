@@ -64,8 +64,7 @@ target_link_libraries(
   humanoid_core_core
   PUBLIC humanoid::common
          humanoid::configuration
-         humanoid::logging
-  PRIVATE humanoid::adapter_interfaces)
+         humanoid::logging)
 
 humanoid_core_configure_target(humanoid_core_core)
 

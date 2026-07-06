@@ -25,10 +25,15 @@ namespace {
   case humanoid::core::CommandType::Stop:
   case humanoid::core::CommandType::Move:
   case humanoid::core::CommandType::Rotate:
+  case humanoid::core::CommandType::Velocity:
+  case humanoid::core::CommandType::EmergencyStop:
   case humanoid::core::CommandType::HandOpen:
   case humanoid::core::CommandType::HandClose:
+  case humanoid::core::CommandType::Gesture:
   case humanoid::core::CommandType::PlayAudio:
   case humanoid::core::CommandType::StopAudio:
+  case humanoid::core::CommandType::SetVolume:
+  case humanoid::core::CommandType::MuteAudio:
   case humanoid::core::CommandType::Custom:
     return true;
   }

@@ -16,6 +16,7 @@
 
 #include <humanoid/adapters/IRobotAdapter.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/CommandStatus.h>
 #include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/mission/ConditionEvaluator.h>
 #include <humanoid/mission/MissionExecutor.h>
@@ -24,31 +25,68 @@ namespace {
 
 class MockRobotAdapter final : public humanoid::adapters::IRobotAdapter {
 public:
-  humanoid::adapters::Result Initialize() override { return Success("initialized"); }
+  humanoid::common::Status Initialize() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Connect() override { return Success("connected"); }
+  humanoid::common::Status Connect() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Disconnect() override { return Success("disconnected"); }
+  humanoid::common::Status Disconnect() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Shutdown() override { return Success("shutdown"); }
+  humanoid::common::Status Shutdown() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result StandUp() override { return Invoke("Stand"); }
+  [[nodiscard]] bool IsConnected() const noexcept override { return true; }
 
-  humanoid::adapters::Result BalanceStand() override { return Invoke("BalanceStand"); }
-
-  humanoid::adapters::Result Move(float, float, float) override { return Invoke("Move"); }
-
-  humanoid::adapters::Result Stop() override { return Invoke("Stop"); }
-
-  humanoid::adapters::Result EmergencyStop() override { return Invoke("EmergencyStop"); }
-
-  [[nodiscard]] humanoid::adapters::RobotStateResult GetRobotState() const override {
-    humanoid::adapters::RobotState state;
-    state.initialized = true;
-    state.connected = true;
-    state.connection_state = humanoid::adapters::RobotConnectionState::kConnected;
-    return humanoid::adapters::RobotStateResult{Success("state"), state};
+  [[nodiscard]] humanoid::core::RobotState GetRobotState() const override {
+    humanoid::core::RobotState state;
+    state.connection.connected = true;
+    state.power.batteryLevel = 100.0F;
+    state.motion.standing = true;
+    return state;
   }
+
+  [[nodiscard]] humanoid::core::RobotInformation GetRobotInformation() const override {
+    humanoid::core::RobotInformation information;
+    information.vendor = "Mock";
+    information.model = "Mission";
+    information.adapterName = "MockRobotAdapter";
+    return information;
+  }
+
+  [[nodiscard]] humanoid::core::RobotCapabilities GetCapabilities() const override {
+    humanoid::core::RobotCapabilities capabilities;
+    capabilities.supportsLifecycle = true;
+    capabilities.supportsConnectionManagement = true;
+    capabilities.supportsStateFeedback = true;
+    capabilities.supportsPowerState = true;
+    capabilities.supportsCommandExecution = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override {
+    humanoid::core::CommandCapabilitySet capabilities;
+    capabilities.stand = true;
+    capabilities.stop = true;
+    capabilities.move = true;
+    capabilities.custom = true;
+    return capabilities;
+  }
+
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override {
+    switch (command.type) {
+    case humanoid::core::CommandType::Stand:
+      return Invoke("Stand");
+    case humanoid::core::CommandType::Move:
+      return Invoke("Move");
+    case humanoid::core::CommandType::Stop:
+      return Invoke("Stop");
+    case humanoid::core::CommandType::Custom:
+      return Invoke("Custom");
+    default:
+      return {humanoid::core::CommandStatus::Rejected, "unsupported mock command"};
+    }
+  }
+
+  [[nodiscard]] humanoid::common::Status Update() override { return humanoid::common::Status::ok(); }
 
   void BlockNextCommand() {
     std::lock_guard<std::mutex> lock{mutex_};
@@ -86,11 +124,7 @@ public:
   }
 
 private:
-  static humanoid::adapters::Result Success(std::string message) {
-    return {humanoid::adapters::ErrorCode::kSuccess, std::move(message)};
-  }
-
-  humanoid::adapters::Result Invoke(std::string action) {
+  humanoid::core::CommandResult Invoke(std::string action) {
     bool should_fail = false;
     {
       std::unique_lock<std::mutex> lock{mutex_};
@@ -109,9 +143,9 @@ private:
     }
 
     if (should_fail) {
-      return {humanoid::adapters::ErrorCode::kUnknown, "mock adapter failure"};
+      return {humanoid::core::CommandStatus::Failed, "mock adapter failure"};
     }
-    return Success("command completed");
+    return {humanoid::core::CommandStatus::Completed, "command completed"};
   }
 
   mutable std::mutex mutex_;

@@ -1,6 +1,8 @@
 #include <factory/RobotFactoryRegistry.h>
 #include <humanoid/adapters/IRobotFactory.h>
 #include <humanoid/core/CoreContext.hpp>
+#include <humanoid/core/CommandStatus.h>
+#include <humanoid/core/CommandType.h>
 #include <humanoid/core/RobotState.hpp>
 #include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/services/TelemetryService.h>
@@ -19,55 +21,87 @@ namespace {
 
 class SmokeRobotAdapter final : public humanoid::adapters::IRobotAdapter {
 public:
-  humanoid::adapters::Result Initialize() override { return Success("initialized"); }
+  humanoid::common::Status Initialize() override { return humanoid::common::Status::ok(); }
 
-  humanoid::adapters::Result Connect() override {
+  humanoid::common::Status Connect() override {
     connected_ = true;
-    return Success("connected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Disconnect() override {
+  humanoid::common::Status Disconnect() override {
     connected_ = false;
-    return Success("disconnected");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result Shutdown() override {
+  humanoid::common::Status Shutdown() override {
     connected_ = false;
-    return Success("shutdown");
+    return humanoid::common::Status::ok();
   }
 
-  humanoid::adapters::Result StandUp() override {
-    ++stand_count_;
-    return Success("stand");
+  [[nodiscard]] bool IsConnected() const noexcept override { return connected_; }
+
+  [[nodiscard]] humanoid::core::RobotState GetRobotState() const override {
+    humanoid::core::RobotState state;
+    state.connection.connected = connected_;
+    state.power.batteryLevel = 100.0F;
+    state.motion.standing = true;
+    return state;
   }
 
-  humanoid::adapters::Result BalanceStand() override { return Success("balance"); }
-
-  humanoid::adapters::Result Move(float vx, float vy, float omega) override {
-    ++move_count_;
-    last_vx_ = vx;
-    last_vy_ = vy;
-    last_omega_ = omega;
-    return Success("move");
+  [[nodiscard]] humanoid::core::RobotInformation GetRobotInformation() const override {
+    humanoid::core::RobotInformation information;
+    information.vendor = "Mock";
+    information.model = "Robot";
+    information.adapterName = "SmokeRobotAdapter";
+    return information;
   }
 
-  humanoid::adapters::Result Stop() override {
-    ++stop_count_;
-    return Success("stop");
+  [[nodiscard]] humanoid::core::RobotCapabilities GetCapabilities() const override {
+    humanoid::core::RobotCapabilities capabilities;
+    capabilities.supportsLifecycle = true;
+    capabilities.supportsConnectionManagement = true;
+    capabilities.supportsStateFeedback = true;
+    capabilities.supportsPowerState = true;
+    capabilities.supportsCommandExecution = true;
+    return capabilities;
   }
 
-  humanoid::adapters::Result EmergencyStop() override {
-    connected_ = false;
-    return Success("emergency stop");
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override {
+    humanoid::core::CommandCapabilitySet capabilities;
+    capabilities.stand = true;
+    capabilities.stop = true;
+    capabilities.move = true;
+    return capabilities;
   }
 
-  [[nodiscard]] humanoid::adapters::RobotStateResult GetRobotState() const override {
-    humanoid::adapters::RobotState state;
-    state.vendor = "Mock";
-    state.model = "Robot";
-    state.connected = connected_;
-    return humanoid::adapters::RobotStateResult{Success("state"), state};
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override {
+    humanoid::core::CommandResult result;
+    result.status = humanoid::core::CommandStatus::Completed;
+    switch (command.type) {
+    case humanoid::core::CommandType::Stand:
+      ++stand_count_;
+      result.message = "stand";
+      return result;
+    case humanoid::core::CommandType::Move:
+      ++move_count_;
+      last_vx_ = 0.2F;
+      last_vy_ = 0.0F;
+      last_omega_ = 0.1F;
+      result.message = "move";
+      return result;
+    case humanoid::core::CommandType::Stop:
+      ++stop_count_;
+      result.message = "stop";
+      return result;
+    default:
+      result.status = humanoid::core::CommandStatus::Rejected;
+      result.message = "unsupported";
+      return result;
+    }
   }
+
+  [[nodiscard]] humanoid::common::Status Update() override { return humanoid::common::Status::ok(); }
 
   [[nodiscard]] int moveCount() const noexcept { return move_count_; }
 
@@ -82,10 +116,6 @@ public:
   [[nodiscard]] float lastOmega() const noexcept { return last_omega_; }
 
 private:
-  static humanoid::adapters::Result Success(std::string message) {
-    return humanoid::adapters::Result{humanoid::adapters::ErrorCode::kSuccess, std::move(message)};
-  }
-
   bool connected_{false};
   int move_count_{0};
   int stand_count_{0};
@@ -234,15 +264,24 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  if (!adapter->Move(0.2F, 0.0F, 0.1F).Succeeded()) {
+  humanoid::core::Command move;
+  move.id = 1U;
+  move.type = humanoid::core::CommandType::Move;
+  if (!adapter->ExecuteCommand(move).isSuccess()) {
     return EXIT_FAILURE;
   }
 
-  if (!adapter->StandUp().Succeeded()) {
+  humanoid::core::Command stand;
+  stand.id = 2U;
+  stand.type = humanoid::core::CommandType::Stand;
+  if (!adapter->ExecuteCommand(stand).isSuccess()) {
     return EXIT_FAILURE;
   }
 
-  if (!adapter->Stop().Succeeded()) {
+  humanoid::core::Command stop;
+  stop.id = 3U;
+  stop.type = humanoid::core::CommandType::Stop;
+  if (!adapter->ExecuteCommand(stop).isSuccess()) {
     return EXIT_FAILURE;
   }
 

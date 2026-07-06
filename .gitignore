@@ -11,6 +11,8 @@ compile_commands.json
 Testing/
 .ninja_deps
 .ninja_log
+_CPack_Packages/
+humanoid-core-*-Linux.tar.gz
 
 *.o
 *.a

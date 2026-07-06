@@ -8,6 +8,7 @@
 #include <memory>
 
 #include <humanoid/adapters/IRobotAdapter.h>
+#include <humanoid/adapters/Result.h>
 
 namespace humanoid::core {
 class RobotStateManager;
@@ -112,6 +113,13 @@ public:
    * @return Command result.
    */
   adapters::Result StandUp();
+
+  /**
+   * @brief Requests seated posture.
+   *
+   * @return Command result.
+   */
+  adapters::Result Sit();
 
   /**
    * @brief Requests balance standing mode.

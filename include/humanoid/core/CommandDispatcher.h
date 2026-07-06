@@ -12,20 +12,17 @@
 #include <humanoid/core/CommandResult.h>
 #include <humanoid/core/SafetyValidator.h>
 
-namespace humanoid::adapters {
-class IRobotAdapter;
-} // namespace humanoid::adapters
-
 namespace humanoid::core {
 
+class RobotAdapter;
 class RobotStateManager;
 
 /**
  * @brief Validates and forwards generic commands to an injected robot adapter.
  *
  * CommandDispatcher owns no vendor SDK objects and contains no robot business
- * logic. Supported generic command types are translated to the existing
- * `IRobotAdapter` interface. The dispatcher applies `SafetyValidator` before
+ * logic. Generic command values are forwarded to the unified `RobotAdapter`
+ * interface after validation. The dispatcher applies `SafetyValidator` before
  * adapter forwarding so disconnected, faulted, unsupported, or unsafe-state
  * commands are rejected. Adapter calls are serialized so synchronous and
  * asynchronous callers cannot invoke a non-thread-safe adapter concurrently.
@@ -50,7 +47,7 @@ public:
    *
    * @param adapter Shared ownership of the adapter used for command forwarding.
    */
-  explicit CommandDispatcher(std::shared_ptr<adapters::IRobotAdapter> adapter);
+  explicit CommandDispatcher(std::shared_ptr<RobotAdapter> adapter);
 
   /**
    * @brief Constructs a dispatcher with injected robot state and safety policy.
@@ -64,7 +61,7 @@ public:
    * @param capabilities Generic command capabilities for the active robot.
    * @param safety_validator Policy object used for safety validation.
    */
-  CommandDispatcher(std::shared_ptr<adapters::IRobotAdapter> adapter,
+  CommandDispatcher(std::shared_ptr<RobotAdapter> adapter,
                     std::shared_ptr<const RobotStateManager> state_manager,
                     CommandCapabilitySet capabilities,
                     SafetyValidator safety_validator = SafetyValidator{});

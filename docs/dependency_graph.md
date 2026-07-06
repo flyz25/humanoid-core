@@ -57,8 +57,11 @@ humanoid::core
   -> humanoid::common
   -> humanoid::configuration
   -> humanoid::logging
-  -> humanoid::adapter_interfaces
   -> humanoid::perception value types, pipeline, inference, detection, and fusion
+
+humanoid::adapter_interfaces
+  -> humanoid::core
+  -> humanoid::common
 
 humanoid::core::CoreContext
   -> injected RobotStateManager
@@ -132,7 +135,7 @@ Command execution flow
   -> humanoid::core::Command
   -> humanoid::core::SafetyValidator
   -> humanoid::core::CommandQueue
-  -> injected humanoid::adapters::IRobotAdapter
+  -> injected humanoid::core::RobotAdapter
   -> concrete adapter
   -> SDK wrapper
 

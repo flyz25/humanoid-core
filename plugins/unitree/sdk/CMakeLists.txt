@@ -1,3 +1,5 @@
+install(FILES SdkTypes.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/humanoid/plugins/unitree/sdk)
+
 if(NOT ENABLE_UNITREE)
   return()
 endif()
@@ -19,7 +21,10 @@ add_library(
 
 add_library(humanoid::unitree_sdk_abstraction ALIAS humanoid_core_unitree_sdk_abstraction)
 set_target_properties(humanoid_core_unitree_sdk_abstraction
-                      PROPERTIES EXPORT_NAME unitree_sdk_abstraction)
+                      PROPERTIES EXPORT_NAME unitree_sdk_abstraction
+                                 CXX_STANDARD 17
+                                 CXX_STANDARD_REQUIRED ON
+                                 CXX_EXTENSIONS OFF)
 
 target_include_directories(
   humanoid_core_unitree_sdk_abstraction
@@ -33,12 +38,7 @@ target_link_libraries(
   humanoid_core_unitree_sdk_abstraction
   PRIVATE unitree_sdk2)
 
-set_target_properties(
-  humanoid_core_unitree_sdk_abstraction
-  PROPERTIES CXX_STANDARD 17
-             CXX_STANDARD_REQUIRED ON
-             CXX_EXTENSIONS OFF)
-
+target_compile_features(humanoid_core_unitree_sdk_abstraction PUBLIC cxx_std_17)
 humanoid_core_configure_warnings(humanoid_core_unitree_sdk_abstraction)
 
 install(

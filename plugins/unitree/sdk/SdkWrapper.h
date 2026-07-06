@@ -122,6 +122,13 @@ public:
   [[nodiscard]] SdkResult StandUp();
 
   /**
+   * @brief Requests Unitree sit behavior.
+   *
+   * @return Operation result.
+   */
+  [[nodiscard]] SdkResult Sit();
+
+  /**
    * @brief Requests Unitree balance stand behavior.
    *
    * @return Operation result.

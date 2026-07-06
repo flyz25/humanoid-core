@@ -6,6 +6,7 @@
  */
 
 #include <string>
+#include <utility>
 
 #include <humanoid/core/CommandStatus.h>
 
@@ -32,6 +33,15 @@ struct CommandResult final {
    * @brief Constructs a pending command result with no diagnostic message.
    */
   CommandResult() = default;
+
+  /**
+   * @brief Constructs a command result with explicit status and message.
+   *
+   * @param status_value Lifecycle status represented by this result.
+   * @param message_value Diagnostic message.
+   */
+  CommandResult(CommandStatus status_value, std::string message_value)
+      : status(status_value), message(std::move(message_value)) {}
 
   /**
    * @brief Reports whether command execution completed successfully.

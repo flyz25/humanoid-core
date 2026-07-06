@@ -2,11 +2,15 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <exception>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 
 #include <humanoid/logging/LogMessage.hpp>
 #include <humanoid/logging/Logger.hpp>
@@ -35,6 +39,44 @@ Result Success(std::string message) { return Result{ErrorCode::kSuccess, std::mo
  * @return Error result.
  */
 Result Failure(ErrorCode code, std::string message) { return Result{code, std::move(message)}; }
+
+humanoid::common::Status ToStatus(const Result& result) {
+  if (result.Succeeded()) {
+    return humanoid::common::Status::ok();
+  }
+
+  switch (result.code) {
+  case ErrorCode::kSuccess:
+    return humanoid::common::Status::ok();
+  case ErrorCode::kSDKUnavailable:
+  case ErrorCode::kConnectionFailed:
+  case ErrorCode::kTimeout:
+    return humanoid::common::Status::error(humanoid::common::StatusCode::kUnavailable,
+                                           result.message);
+  case ErrorCode::kRobotFault:
+    return humanoid::common::Status::error(humanoid::common::StatusCode::kFailedPrecondition,
+                                           result.message);
+  case ErrorCode::kUnknown:
+    return humanoid::common::Status::error(humanoid::common::StatusCode::kInternalError,
+                                           result.message);
+  }
+
+  return humanoid::common::Status::error(humanoid::common::StatusCode::kInternalError,
+                                         result.message);
+}
+
+humanoid::core::CommandResult ToCommandResult(const Result& result) {
+  humanoid::core::CommandResult command_result;
+  command_result.message = result.message;
+  if (result.Succeeded()) {
+    command_result.status = humanoid::core::CommandStatus::Completed;
+  } else if (result.code == ErrorCode::kTimeout) {
+    command_result.status = humanoid::core::CommandStatus::Timeout;
+  } else {
+    command_result.status = humanoid::core::CommandStatus::Failed;
+  }
+  return command_result;
+}
 
 /**
  * @brief Reports whether a string contains only decimal digits.
@@ -136,14 +178,14 @@ UnitreeG1Adapter::~UnitreeG1Adapter() noexcept {
   }
 }
 
-Result UnitreeG1Adapter::Initialize() {
+humanoid::common::Status UnitreeG1Adapter::Initialize() {
   std::lock_guard<std::mutex> lock{mutex_};
   Log(logging::LogLevel::kInfo, "Initialize", "command received");
 
   Result validation = ValidateConfig();
   if (!validation.Succeeded()) {
     Log(logging::LogLevel::kError, "Initialize", validation.message);
-    return validation;
+    return ToStatus(validation);
   }
 
   if (!client_) {
@@ -155,13 +197,13 @@ Result UnitreeG1Adapter::Initialize() {
                   std::string{"Unitree SDK wrapper construction failed: "} + exception.what());
       MarkFailureIfNeeded(result);
       Log(logging::LogLevel::kError, "Initialize", result.message);
-      return result;
+      return ToStatus(result);
     } catch (...) {
       Result result = Failure(ErrorCode::kSDKUnavailable,
                               "Unitree SDK wrapper construction failed with an unknown exception");
       MarkFailureIfNeeded(result);
       Log(logging::LogLevel::kError, "Initialize", result.message);
-      return result;
+      return ToStatus(result);
     }
   }
 
@@ -173,24 +215,23 @@ Result UnitreeG1Adapter::Initialize() {
   if (result.Succeeded()) {
     initialized_ = true;
     connected_ = false;
-    connection_state_ = RobotConnectionState::kInitialized;
   } else {
     MarkFailureIfNeeded(result);
   }
 
   Log(result.Succeeded() ? logging::LogLevel::kInfo : logging::LogLevel::kError, "Initialize",
       result.message);
-  return result;
+  return ToStatus(result);
 }
 
-Result UnitreeG1Adapter::Connect() {
+humanoid::common::Status UnitreeG1Adapter::Connect() {
   std::lock_guard<std::mutex> lock{mutex_};
   Log(logging::LogLevel::kInfo, "Connect", "command received");
 
   if (!client_) {
     Result result = Failure(ErrorCode::kSDKUnavailable, "Unitree SDK wrapper is unavailable");
     Log(logging::LogLevel::kError, "Connect", result.message);
-    return result;
+    return ToStatus(result);
   }
 
   Result result = client_->Connect();
@@ -206,61 +247,56 @@ Result UnitreeG1Adapter::Connect() {
   if (result.Succeeded()) {
     initialized_ = true;
     connected_ = true;
-    connection_state_ = RobotConnectionState::kConnected;
   } else {
     MarkFailureIfNeeded(result);
   }
 
   Log(result.Succeeded() ? logging::LogLevel::kInfo : logging::LogLevel::kError, "Connect",
       result.message);
-  return result;
+  return ToStatus(result);
 }
 
-Result UnitreeG1Adapter::Disconnect() {
+humanoid::common::Status UnitreeG1Adapter::Disconnect() {
   std::lock_guard<std::mutex> lock{mutex_};
   Log(logging::LogLevel::kInfo, "Disconnect", "command received");
 
   if (!client_) {
     Result result = Failure(ErrorCode::kSDKUnavailable, "Unitree SDK wrapper is unavailable");
     Log(logging::LogLevel::kError, "Disconnect", result.message);
-    return result;
+    return ToStatus(result);
   }
 
   Result result = client_->Disconnect();
   if (result.Succeeded()) {
     connected_ = false;
-    connection_state_ = RobotConnectionState::kDisconnected;
   } else {
     MarkFailureIfNeeded(result);
   }
 
   Log(result.Succeeded() ? logging::LogLevel::kInfo : logging::LogLevel::kError, "Disconnect",
       result.message);
-  return result;
+  return ToStatus(result);
 }
 
-Result UnitreeG1Adapter::Shutdown() {
+humanoid::common::Status UnitreeG1Adapter::Shutdown() {
   std::lock_guard<std::mutex> lock{mutex_};
   Log(logging::LogLevel::kInfo, "Shutdown", "command received");
 
   if (!client_) {
     initialized_ = false;
     connected_ = false;
-    connection_state_ = RobotConnectionState::kShutdown;
     Result result = Success("Unitree adapter already shut down");
     Log(logging::LogLevel::kInfo, "Shutdown", result.message);
-    return result;
+    return ToStatus(result);
   }
 
   Result result = client_->Shutdown();
   initialized_ = false;
   connected_ = false;
-  connection_state_ =
-      result.Succeeded() ? RobotConnectionState::kShutdown : RobotConnectionState::kFaulted;
 
   Log(result.Succeeded() ? logging::LogLevel::kInfo : logging::LogLevel::kError, "Shutdown",
       result.message);
-  return result;
+  return ToStatus(result);
 }
 
 Result UnitreeG1Adapter::StandUp() {
@@ -276,6 +312,23 @@ Result UnitreeG1Adapter::StandUp() {
   Result result = client_->StandUp();
   MarkFailureIfNeeded(result);
   Log(result.Succeeded() ? logging::LogLevel::kInfo : logging::LogLevel::kError, "StandUp",
+      result.message);
+  return result;
+}
+
+Result UnitreeG1Adapter::Sit() {
+  std::lock_guard<std::mutex> lock{mutex_};
+  Log(logging::LogLevel::kInfo, "Sit", "command received");
+
+  if (!client_) {
+    Result result = Failure(ErrorCode::kSDKUnavailable, "Unitree SDK wrapper is unavailable");
+    Log(logging::LogLevel::kError, "Sit", result.message);
+    return result;
+  }
+
+  Result result = client_->Sit();
+  MarkFailureIfNeeded(result);
+  Log(result.Succeeded() ? logging::LogLevel::kInfo : logging::LogLevel::kError, "Sit",
       result.message);
   return result;
 }
@@ -349,23 +402,121 @@ Result UnitreeG1Adapter::EmergencyStop() {
 
   Result result = client_->EmergencyStop();
   connected_ = false;
-  connection_state_ = RobotConnectionState::kFaulted;
   Log(result.Succeeded() ? logging::LogLevel::kCritical : logging::LogLevel::kError,
       "EmergencyStop", result.message);
   return result;
 }
 
-RobotStateResult UnitreeG1Adapter::GetRobotState() const {
+bool UnitreeG1Adapter::IsConnected() const noexcept {
+  std::lock_guard<std::mutex> lock{mutex_};
+  return connected_;
+}
+
+humanoid::core::RobotState UnitreeG1Adapter::GetRobotState() const {
   std::lock_guard<std::mutex> lock{mutex_};
 
-  RobotState state;
-  state.vendor = "Unitree";
-  state.model = "G1";
-  state.connection_state = connection_state_;
-  state.initialized = initialized_;
-  state.connected = connected_;
+  humanoid::core::RobotState state;
+  state.connection.connected = connected_;
+  state.motion.robotMode = initialized_ ? 1 : 0;
+  state.timestamp =
+      std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now());
+  return state;
+}
 
-  return RobotStateResult{Success("robot state returned"), std::move(state)};
+humanoid::core::RobotInformation UnitreeG1Adapter::GetRobotInformation() const {
+  humanoid::core::RobotInformation information;
+  information.vendor = "Unitree";
+  information.model = "G1";
+  information.adapterName = "UnitreeG1Adapter";
+  information.serialNumber = config_.serial_number;
+  information.firmwareVersion = config_.firmware;
+  return information;
+}
+
+humanoid::core::RobotCapabilities UnitreeG1Adapter::GetCapabilities() const {
+  humanoid::core::RobotCapabilities capabilities;
+  capabilities.supportsLifecycle = true;
+  capabilities.supportsConnectionManagement = true;
+  capabilities.supportsStateFeedback = true;
+  capabilities.supportsRobotInformation = true;
+  capabilities.supportsPeriodicUpdate = true;
+  capabilities.supportsPowerState = true;
+  capabilities.supportsHealthState = true;
+  capabilities.supportsCommandExecution = true;
+  return capabilities;
+}
+
+humanoid::core::CommandCapabilitySet UnitreeG1Adapter::GetCommandCapabilities() const {
+  humanoid::core::CommandCapabilitySet capabilities;
+  capabilities.stand = true;
+  capabilities.sit = true;
+  capabilities.walk = true;
+  capabilities.stop = true;
+  capabilities.move = true;
+  capabilities.rotate = true;
+  capabilities.velocity = true;
+  capabilities.emergencyStop = true;
+  return capabilities;
+}
+
+humanoid::core::CommandResult
+UnitreeG1Adapter::ExecuteCommand(const humanoid::core::Command& command) {
+  auto number = [&command](std::string_view key) -> double {
+    const auto value = command.payload.find(key);
+    if (value == command.payload.end()) {
+      return 0.0;
+    }
+    if (std::holds_alternative<double>(value->second)) {
+      return std::get<double>(value->second);
+    }
+    if (std::holds_alternative<std::int64_t>(value->second)) {
+      return static_cast<double>(std::get<std::int64_t>(value->second));
+    }
+    return 0.0;
+  };
+
+  switch (command.type) {
+  case humanoid::core::CommandType::Stand:
+    return ToCommandResult(StandUp());
+  case humanoid::core::CommandType::Sit:
+    return ToCommandResult(Sit());
+  case humanoid::core::CommandType::Walk:
+  case humanoid::core::CommandType::Move:
+  case humanoid::core::CommandType::Velocity:
+    return ToCommandResult(Move(static_cast<float>(number("linear_x")),
+                                static_cast<float>(number("linear_y")),
+                                static_cast<float>(number("angular_z"))));
+  case humanoid::core::CommandType::Rotate:
+    return ToCommandResult(Move(0.0F, 0.0F, static_cast<float>(number("angular_z"))));
+  case humanoid::core::CommandType::Stop:
+    return ToCommandResult(Stop());
+  case humanoid::core::CommandType::EmergencyStop:
+    return ToCommandResult(EmergencyStop());
+  case humanoid::core::CommandType::HandOpen:
+  case humanoid::core::CommandType::HandClose:
+  case humanoid::core::CommandType::Gesture:
+  case humanoid::core::CommandType::PlayAudio:
+  case humanoid::core::CommandType::StopAudio:
+  case humanoid::core::CommandType::SetVolume:
+  case humanoid::core::CommandType::MuteAudio:
+  case humanoid::core::CommandType::Custom:
+    return humanoid::core::CommandResult{
+        humanoid::core::CommandStatus::Rejected,
+        "Command type is not supported by this Unitree factory adapter"};
+  }
+
+  return humanoid::core::CommandResult{humanoid::core::CommandStatus::Rejected,
+                                       "Unknown command type"};
+}
+
+humanoid::common::Status UnitreeG1Adapter::Update() {
+  std::lock_guard<std::mutex> lock{mutex_};
+  if (!client_) {
+    return humanoid::common::Status::error(humanoid::common::StatusCode::kUnavailable,
+                                           "Unitree SDK wrapper is unavailable");
+  }
+
+  return ToStatus(client_->SynchronizeState());
 }
 
 Result UnitreeG1Adapter::ValidateConfig() const {
@@ -412,7 +563,6 @@ void UnitreeG1Adapter::MarkFailureIfNeeded(const Result& result) noexcept {
   }
 
   connected_ = false;
-  connection_state_ = RobotConnectionState::kFaulted;
 }
 
 } // namespace humanoid::adapters::unitree

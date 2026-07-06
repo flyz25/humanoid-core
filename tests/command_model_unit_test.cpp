@@ -78,7 +78,13 @@ void TestStableEnumNames() {
   using humanoid::core::toString;
 
   assert(toString(humanoid::core::CommandType::Stand) == "Stand");
+  assert(toString(humanoid::core::CommandType::Sit) == "Sit");
+  assert(toString(humanoid::core::CommandType::Velocity) == "Velocity");
+  assert(toString(humanoid::core::CommandType::EmergencyStop) == "EmergencyStop");
+  assert(toString(humanoid::core::CommandType::Gesture) == "Gesture");
   assert(toString(humanoid::core::CommandType::PlayAudio) == "PlayAudio");
+  assert(toString(humanoid::core::CommandType::SetVolume) == "SetVolume");
+  assert(toString(humanoid::core::CommandType::MuteAudio) == "MuteAudio");
   assert(toString(humanoid::core::CommandStatus::Running) == "Running");
   assert(toString(humanoid::core::CommandStatus::Timeout) == "Timeout");
   assert(toString(humanoid::core::CommandPriority::Critical) == "Critical");

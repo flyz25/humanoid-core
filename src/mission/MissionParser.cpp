@@ -89,17 +89,32 @@ struct JsonValue final {
   if (value == "Rotate") {
     return core::CommandType::Rotate;
   }
+  if (value == "Velocity") {
+    return core::CommandType::Velocity;
+  }
+  if (value == "EmergencyStop") {
+    return core::CommandType::EmergencyStop;
+  }
   if (value == "HandOpen") {
     return core::CommandType::HandOpen;
   }
   if (value == "HandClose") {
     return core::CommandType::HandClose;
   }
+  if (value == "Gesture") {
+    return core::CommandType::Gesture;
+  }
   if (value == "PlayAudio") {
     return core::CommandType::PlayAudio;
   }
   if (value == "StopAudio") {
     return core::CommandType::StopAudio;
+  }
+  if (value == "SetVolume") {
+    return core::CommandType::SetVolume;
+  }
+  if (value == "MuteAudio") {
+    return core::CommandType::MuteAudio;
   }
   if (value == "Custom") {
     return core::CommandType::Custom;

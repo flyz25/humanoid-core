@@ -18,17 +18,22 @@ namespace humanoid::core {
  * it without exposing vendor-specific types to the core framework.
  */
 enum class CommandType : std::uint8_t {
-  Stand,     ///< Request an upright standing posture.
-  Sit,       ///< Request a seated posture.
-  Walk,      ///< Request walking using payload-defined parameters.
-  Stop,      ///< Request that active robot motion stop.
-  Move,      ///< Request translational motion using payload-defined parameters.
-  Rotate,    ///< Request rotational motion using payload-defined parameters.
-  HandOpen,  ///< Request that a supported hand open.
-  HandClose, ///< Request that a supported hand close.
-  PlayAudio, ///< Request audio playback using payload-defined parameters.
-  StopAudio, ///< Request that active audio playback stop.
-  Custom     ///< Request an extension command defined above the vendor boundary.
+  Stand,         ///< Request an upright standing posture.
+  Sit,           ///< Request a seated posture.
+  Walk,          ///< Request walking using payload-defined parameters.
+  Stop,          ///< Request that active robot motion stop.
+  Move,          ///< Request translational motion using payload-defined parameters.
+  Rotate,        ///< Request rotational motion using payload-defined parameters.
+  Velocity,      ///< Request direct velocity control using payload-defined parameters.
+  EmergencyStop, ///< Request emergency stop handling.
+  HandOpen,      ///< Request that a supported hand open.
+  HandClose,     ///< Request that a supported hand close.
+  Gesture,       ///< Request a named hand or upper-body gesture.
+  PlayAudio,     ///< Request audio playback using payload-defined parameters.
+  StopAudio,     ///< Request that active audio playback stop.
+  SetVolume,     ///< Request audio volume change using payload-defined parameters.
+  MuteAudio,     ///< Request audio mute.
+  Custom         ///< Request an extension command defined above the vendor boundary.
 };
 
 /**
@@ -51,14 +56,24 @@ enum class CommandType : std::uint8_t {
     return "Move";
   case CommandType::Rotate:
     return "Rotate";
+  case CommandType::Velocity:
+    return "Velocity";
+  case CommandType::EmergencyStop:
+    return "EmergencyStop";
   case CommandType::HandOpen:
     return "HandOpen";
   case CommandType::HandClose:
     return "HandClose";
+  case CommandType::Gesture:
+    return "Gesture";
   case CommandType::PlayAudio:
     return "PlayAudio";
   case CommandType::StopAudio:
     return "StopAudio";
+  case CommandType::SetVolume:
+    return "SetVolume";
+  case CommandType::MuteAudio:
+    return "MuteAudio";
   case CommandType::Custom:
     return "Custom";
   }

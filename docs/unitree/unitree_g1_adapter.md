@@ -17,9 +17,16 @@ Application
               -> Unitree SDK2
 ```
 
-Applications depend on `IRobotFactory` and `IRobotAdapter`, not Unitree SDK2.
-`LocoClientWrapper` preserves the Milestone 2 adapter-facing API. Only
-implementation files under `plugins/unitree/sdk/` include Unitree SDK2 headers.
+Applications depend on `IRobotFactory` and `humanoid::core::RobotAdapter`, not
+Unitree SDK2. `humanoid::adapters::IRobotAdapter` is retained only as a
+source-compatible alias to the same public interface. `LocoClientWrapper`
+preserves the Milestone 2 adapter-facing API. Only implementation files under
+`plugins/unitree/sdk/` include Unitree SDK2 headers.
+
+The Unitree G1 plugin (`plugins/unitree/g1`) uses the same SDK abstraction as
+the factory adapter. It owns plugin lifecycle, adapter creation, capability
+declaration, state snapshots, command forwarding, and error translation without
+exposing SDK headers or vendor types through public plugin headers.
 
 ## SDK Source
 
@@ -49,6 +56,12 @@ cmake --build build --parallel
 
 If SDK2 is unavailable, CMake prints an informative status message and disables
 only the Unitree targets.
+
+The SDK abstraction target compiles with a C++17 dialect even though the public
+framework uses C++20. This is intentional: the pinned Unitree SDK2 release
+contains CycloneDDS C++ headers that GCC 11 rejects in C++20 mode. The dialect
+boundary is confined to `plugins/unitree/sdk/` and does not change the public
+C++20 framework API.
 
 ## Configuration
 
@@ -102,6 +115,13 @@ Milestone 4.7 adds SDK-boundary adapters for command translation:
 These adapters are vendor-specific and contain no mission logic, behavior
 sequencing, planning, AI, or application workflow decisions.
 
+`CommandDispatcher` forwards framework `Command` values to
+`humanoid::core::RobotAdapter::ExecuteCommand()`. The Unitree G1 adapter routes
+supported stand, sit, walk/move/velocity, rotate, stop, emergency stop, gesture,
+play-audio, stop-audio, volume, and mute commands through SDK-boundary
+adapters. Finger-level open/close and arbitrary custom commands are rejected
+explicitly when unsupported by the SDK boundary.
+
 On Linux, SDK initialization performs a preflight check for the configured
 network interface and route netlink socket access before constructing the
 Unitree SDK client. If the process is running in a restricted WSL2, container,
@@ -116,3 +136,9 @@ manager into created `UnitreeG1Adapter` instances. The adapter passes it to
 `LocoClientWrapper`, which installs a callback on `SdkWrapper`. Each successful
 or failed synchronization publishes a converted, vendor-independent
 `humanoid::core::RobotState` snapshot.
+
+State synchronization maps SDK-side connection state, robot mode, motion mode,
+battery and charging fields when available, IMU orientation and angular/linear
+signals, fixed-size joint state samples, contact samples, fault code,
+emergency-stop state, heartbeat counters, reconnect counters, latency, and
+diagnostic health data into the generic `RobotState` model.

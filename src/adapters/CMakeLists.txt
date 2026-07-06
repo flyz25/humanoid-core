@@ -7,7 +7,9 @@ target_include_directories(
   INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(humanoid_core_adapter_interfaces INTERFACE humanoid::compiler_options)
+target_link_libraries(
+  humanoid_core_adapter_interfaces
+  INTERFACE humanoid::compiler_options humanoid::core humanoid::common)
 
 install(
   TARGETS humanoid_core_adapter_interfaces

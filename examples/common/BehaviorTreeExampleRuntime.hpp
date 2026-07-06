@@ -22,6 +22,7 @@
 #include <humanoid/bt/BehaviorTreeRuntime.h>
 #include <humanoid/core/Command.h>
 #include <humanoid/core/CommandDispatcher.h>
+#include <humanoid/core/CommandStatus.h>
 #include <humanoid/core/CommandType.h>
 #include <humanoid/mission/Mission.h>
 #include <humanoid/mission/MissionExecutor.h>
@@ -43,88 +44,113 @@ namespace humanoid::examples {
 class ExampleRobotAdapter final : public adapters::IRobotAdapter {
 public:
   /** @brief Initializes process-local adapter state. */
-  adapters::Result Initialize() override {
+  common::Status Initialize() override {
     std::lock_guard<std::mutex> lock{mutex_};
     initialized_ = true;
-    return Success("example adapter initialized");
+    return common::Status::ok();
   }
 
   /** @brief Connects process-local adapter state. */
-  adapters::Result Connect() override {
+  common::Status Connect() override {
     std::lock_guard<std::mutex> lock{mutex_};
     if (!initialized_) {
-      return Failure("example adapter is not initialized");
+      return common::Status::error(common::StatusCode::kFailedPrecondition,
+                                   "example adapter is not initialized");
     }
     connected_ = true;
-    return Success("example adapter connected");
+    return common::Status::ok();
   }
 
   /** @brief Disconnects process-local adapter state. */
-  adapters::Result Disconnect() override {
+  common::Status Disconnect() override {
     std::lock_guard<std::mutex> lock{mutex_};
     connected_ = false;
-    return Success("example adapter disconnected");
+    return common::Status::ok();
   }
 
   /** @brief Releases process-local adapter state. */
-  adapters::Result Shutdown() override {
+  common::Status Shutdown() override {
     std::lock_guard<std::mutex> lock{mutex_};
     connected_ = false;
     initialized_ = false;
-    return Success("example adapter shut down");
+    return common::Status::ok();
   }
 
-  /** @brief Records a generic stand command. */
-  adapters::Result StandUp() override { return Record("Stand"); }
+  /** @brief Returns current process-local connection state. */
+  [[nodiscard]] bool IsConnected() const noexcept override { return connected_; }
 
-  /** @brief Records a generic balanced-stand command. */
-  adapters::Result BalanceStand() override { return Record("BalanceStand"); }
-
-  /** @brief Records a generic velocity command. */
-  adapters::Result Move(float linear_x, float linear_y, float angular_z) override {
+  /** @brief Returns process-local robot state. */
+  [[nodiscard]] core::RobotState GetRobotState() const override {
     std::lock_guard<std::mutex> lock{mutex_};
-    if (!connected_) {
-      return Failure("Move rejected: example adapter is disconnected");
+    core::RobotState state;
+    state.connection.connected = connected_;
+    state.power.batteryLevel = 100.0F;
+    state.motion.standing = true;
+    return state;
+  }
+
+  /** @brief Returns process-local robot metadata. */
+  [[nodiscard]] core::RobotInformation GetRobotInformation() const override {
+    core::RobotInformation information;
+    information.vendor = "Example";
+    information.model = "ProcessLocal";
+    information.adapterName = "ExampleRobotAdapter";
+    return information;
+  }
+
+  /** @brief Returns process-local adapter capabilities. */
+  [[nodiscard]] core::RobotCapabilities GetCapabilities() const override {
+    core::RobotCapabilities capabilities;
+    capabilities.supportsLifecycle = true;
+    capabilities.supportsConnectionManagement = true;
+    capabilities.supportsStateFeedback = true;
+    capabilities.supportsPowerState = true;
+    capabilities.supportsCommandExecution = true;
+    return capabilities;
+  }
+
+  /** @brief Returns command capabilities used by example missions and trees. */
+  [[nodiscard]] core::CommandCapabilitySet GetCommandCapabilities() const override {
+    core::CommandCapabilitySet capabilities;
+    capabilities.stand = true;
+    capabilities.stop = true;
+    capabilities.move = true;
+    capabilities.custom = true;
+    return capabilities;
+  }
+
+  /** @brief Executes a command through the unified adapter boundary. */
+  [[nodiscard]] core::CommandResult ExecuteCommand(const core::Command& command) override {
+    switch (command.type) {
+    case core::CommandType::Stand:
+      return Record("Stand");
+    case core::CommandType::Move:
+      return Record("Move");
+    case core::CommandType::Stop:
+      return Record("Stop");
+    case core::CommandType::Custom:
+      return Record("Custom");
+    default:
+      return {core::CommandStatus::Rejected, "unsupported example command"};
     }
-    std::cout << "adapter: Move(" << linear_x << ", " << linear_y << ", " << angular_z << ")\n";
-    return Success("Move completed");
   }
 
-  /** @brief Records a generic stop command. */
-  adapters::Result Stop() override { return Record("Stop"); }
-
-  /** @brief Records a generic emergency-stop command. */
-  adapters::Result EmergencyStop() override { return Record("EmergencyStop"); }
-
-  /** @brief Returns process-local connection state. */
-  [[nodiscard]] adapters::RobotStateResult GetRobotState() const override {
-    std::lock_guard<std::mutex> lock{mutex_};
-    adapters::RobotState state;
-    state.vendor = "Example";
-    state.model = "ProcessLocal";
-    state.initialized = initialized_;
-    state.connected = connected_;
-    state.connection_state = connected_ ? adapters::RobotConnectionState::kConnected
-                                        : adapters::RobotConnectionState::kDisconnected;
-    return {Success("example state returned"), std::move(state)};
-  }
+  /** @brief Advances process-local adapter state. */
+  [[nodiscard]] common::Status Update() override { return common::Status::ok(); }
 
 private:
-  [[nodiscard]] static adapters::Result Success(std::string message) {
-    return {adapters::ErrorCode::kSuccess, std::move(message)};
-  }
-
-  [[nodiscard]] static adapters::Result Failure(std::string message) {
-    return {adapters::ErrorCode::kConnectionFailed, std::move(message)};
-  }
-
-  adapters::Result Record(std::string_view command) {
+  core::CommandResult ConnectedResult(std::string_view command) const {
     std::lock_guard<std::mutex> lock{mutex_};
     if (!connected_) {
-      return Failure(std::string{command} + " rejected: example adapter is disconnected");
+      return {core::CommandStatus::Rejected,
+              std::string{command} + " rejected: example adapter is disconnected"};
     }
+    return {core::CommandStatus::Completed, std::string{command} + " completed"};
+  }
+
+  core::CommandResult Record(std::string_view command) const {
     std::cout << "adapter: " << command << '\n';
-    return Success(std::string{command} + " completed");
+    return ConnectedResult(command);
   }
 
   mutable std::mutex mutex_;
@@ -153,14 +179,14 @@ public:
         factory_(std::make_shared<bt::BehaviorTreeFactory>()),
         behavior_tree_runtime_(std::make_unique<bt::BehaviorTreeRuntime>(
             scheduler_, blackboard_, resource_manager_, factory_)) {
-    const adapters::Result initialize_result = adapter_->Initialize();
-    if (!initialize_result.Succeeded()) {
-      throw std::runtime_error{initialize_result.message};
+    const common::Status initialize_result = adapter_->Initialize();
+    if (!initialize_result.isOk()) {
+      throw std::runtime_error{initialize_result.message()};
     }
-    const adapters::Result connect_result = adapter_->Connect();
-    if (!connect_result.Succeeded()) {
+    const common::Status connect_result = adapter_->Connect();
+    if (!connect_result.isOk()) {
       static_cast<void>(adapter_->Shutdown());
-      throw std::runtime_error{connect_result.message};
+      throw std::runtime_error{connect_result.message()};
     }
   }
 

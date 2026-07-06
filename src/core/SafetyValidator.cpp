@@ -23,10 +23,15 @@ namespace {
   case CommandType::Stop:
   case CommandType::Move:
   case CommandType::Rotate:
+  case CommandType::Velocity:
+  case CommandType::EmergencyStop:
   case CommandType::HandOpen:
   case CommandType::HandClose:
+  case CommandType::Gesture:
   case CommandType::PlayAudio:
   case CommandType::StopAudio:
+  case CommandType::SetVolume:
+  case CommandType::MuteAudio:
   case CommandType::Custom:
     return true;
   }
@@ -56,7 +61,9 @@ namespace {
   return now >= command.timestamp && now - command.timestamp >= command.timeout;
 }
 
-[[nodiscard]] bool IsStopCommand(CommandType type) noexcept { return type == CommandType::Stop; }
+[[nodiscard]] bool IsStopCommand(CommandType type) noexcept {
+  return type == CommandType::Stop || type == CommandType::EmergencyStop;
+}
 
 [[nodiscard]] bool IsBatteryPercent(float value) noexcept {
   constexpr float kMinimumBatteryPercent{0.0F};

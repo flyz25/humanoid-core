@@ -1,6 +1,5 @@
 #include <humanoid/core/CommandDispatcher.h>
 
-#include <array>
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
@@ -14,10 +13,10 @@
 #include <string_view>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 
-#include <humanoid/adapters/IRobotAdapter.h>
-#include <humanoid/adapters/Result.h>
 #include <humanoid/core/CommandQueue.h>
+#include <humanoid/core/RobotAdapter.h>
 #include <humanoid/core/RobotStateManager.hpp>
 
 namespace humanoid::core {
@@ -43,10 +42,15 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
   case CommandType::Stop:
   case CommandType::Move:
   case CommandType::Rotate:
+  case CommandType::Velocity:
+  case CommandType::EmergencyStop:
   case CommandType::HandOpen:
   case CommandType::HandClose:
+  case CommandType::Gesture:
   case CommandType::PlayAudio:
   case CommandType::StopAudio:
+  case CommandType::SetVolume:
+  case CommandType::MuteAudio:
   case CommandType::Custom:
     return true;
   }
@@ -61,26 +65,6 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
   case CommandPriority::High:
   case CommandPriority::Critical:
     return true;
-  }
-
-  return false;
-}
-
-[[nodiscard]] bool IsSupported(CommandType type) noexcept {
-  switch (type) {
-  case CommandType::Stand:
-  case CommandType::Walk:
-  case CommandType::Stop:
-  case CommandType::Move:
-  case CommandType::Rotate:
-    return true;
-  case CommandType::Sit:
-  case CommandType::HandOpen:
-  case CommandType::HandClose:
-  case CommandType::PlayAudio:
-  case CommandType::StopAudio:
-  case CommandType::Custom:
-    return false;
   }
 
   return false;
@@ -114,35 +98,29 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
   return value.has_value() && IsFiniteFloat(*value);
 }
 
-[[nodiscard]] std::array<float, 3> VelocityPayload(const Command& command) {
-  const double linear_x = *NumericPayloadValue(command.payload, kLinearXKey);
-  const double linear_y = *NumericPayloadValue(command.payload, kLinearYKey);
-  const double angular_z = *NumericPayloadValue(command.payload, kAngularZKey);
-  return {static_cast<float>(linear_x), static_cast<float>(linear_y),
-          static_cast<float>(angular_z)};
-}
-
-[[nodiscard]] float RotationPayload(const Command& command) {
-  return static_cast<float>(*NumericPayloadValue(command.payload, kAngularZKey));
-}
-
 [[nodiscard]] std::optional<CommandResult> ValidatePayload(const Command& command) {
   switch (command.type) {
   case CommandType::Stand:
+  case CommandType::Sit:
   case CommandType::Stop:
+  case CommandType::EmergencyStop:
+  case CommandType::HandOpen:
+  case CommandType::HandClose:
+  case CommandType::MuteAudio:
     if (!command.payload.empty()) {
-      return Result(CommandStatus::Rejected,
-                    "Stand and Stop commands do not accept payload parameters");
+      return Result(CommandStatus::Rejected, "Command type does not accept payload parameters");
     }
     return std::nullopt;
 
   case CommandType::Walk:
   case CommandType::Move:
+  case CommandType::Velocity:
     if (command.payload.size() != 3U || !HasValidNumber(command.payload, kLinearXKey) ||
         !HasValidNumber(command.payload, kLinearYKey) ||
         !HasValidNumber(command.payload, kAngularZKey)) {
-      return Result(CommandStatus::Rejected,
-                    "Walk and Move require finite linear_x, linear_y, and angular_z values");
+      return Result(
+          CommandStatus::Rejected,
+          "Velocity commands require finite linear_x, linear_y, and angular_z values");
     }
     return std::nullopt;
 
@@ -152,14 +130,50 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
     }
     return std::nullopt;
 
-  case CommandType::Sit:
-  case CommandType::HandOpen:
-  case CommandType::HandClose:
+  case CommandType::Gesture:
+    if (command.payload.size() != 1U ||
+        command.payload.find("gesture") == command.payload.end() ||
+        !std::holds_alternative<std::string>(command.payload.find("gesture")->second)) {
+      return Result(CommandStatus::Rejected, "Gesture requires one string gesture payload value");
+    }
+    return std::nullopt;
+
   case CommandType::PlayAudio:
+    if (command.payload.find("app_name") == command.payload.end() ||
+        command.payload.find("stream_id") == command.payload.end() ||
+        command.payload.find("pcm_data") == command.payload.end() ||
+        !std::holds_alternative<std::string>(command.payload.find("app_name")->second) ||
+        !std::holds_alternative<std::string>(command.payload.find("stream_id")->second) ||
+        !std::holds_alternative<std::string>(command.payload.find("pcm_data")->second)) {
+      return Result(
+          CommandStatus::Rejected,
+          "PlayAudio requires string app_name, stream_id, and pcm_data payload values");
+    }
+    return std::nullopt;
+
   case CommandType::StopAudio:
+    if (command.payload.size() != 1U ||
+        command.payload.find("app_name") == command.payload.end() ||
+        !std::holds_alternative<std::string>(command.payload.find("app_name")->second)) {
+      return Result(CommandStatus::Rejected, "StopAudio requires one string app_name payload value");
+    }
+    return std::nullopt;
+
+  case CommandType::SetVolume: {
+    const auto value = command.payload.find("volume");
+    if (command.payload.size() != 1U || value == command.payload.end() ||
+        !std::holds_alternative<std::int64_t>(value->second)) {
+      return Result(CommandStatus::Rejected, "SetVolume requires one integer volume payload value");
+    }
+    const auto volume = std::get<std::int64_t>(value->second);
+    if (volume < 0 || volume > 100) {
+      return Result(CommandStatus::Rejected, "SetVolume volume must be in range [0, 100]");
+    }
+    return std::nullopt;
+  }
+
   case CommandType::Custom:
-    return Result(CommandStatus::Rejected,
-                  "Command type is not supported by the robot adapter interface");
+    return std::nullopt;
   }
 
   return Result(CommandStatus::Rejected, "Command type is invalid");
@@ -178,11 +192,6 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
   if (!IsKnown(command.priority)) {
     return Result(CommandStatus::Rejected, "Command priority is invalid");
   }
-  if (!IsSupported(command.type)) {
-    return Result(CommandStatus::Rejected,
-                  "Command type is not supported by the robot adapter interface");
-  }
-
   if (command.hasTimeout()) {
     const CommandTimestamp now =
         std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now());
@@ -221,16 +230,6 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
   return SafetyValidator{options};
 }
 
-[[nodiscard]] CommandResult FromAdapterResult(const adapters::Result& adapter_result) {
-  if (adapter_result.Succeeded()) {
-    return Result(CommandStatus::Completed, adapter_result.message);
-  }
-  if (adapter_result.code == adapters::ErrorCode::kTimeout) {
-    return Result(CommandStatus::Timeout, adapter_result.message);
-  }
-  return Result(CommandStatus::Failed, adapter_result.message);
-}
-
 [[nodiscard]] std::future<CommandResult> ReadyFuture(CommandResult result) {
   std::promise<CommandResult> promise;
   std::future<CommandResult> future = promise.get_future();
@@ -242,15 +241,21 @@ constexpr std::size_t kDispatcherMaximumQueueSize{1024U};
 
 class CommandDispatcher::Impl final {
 public:
-  explicit Impl(std::shared_ptr<adapters::IRobotAdapter> adapter)
+  explicit Impl(std::shared_ptr<RobotAdapter> adapter)
       : Impl(std::move(adapter), nullptr, CommandCapabilitySet::LegacyAdapterDefaults(),
-             LegacySafetyValidator()) {}
+             LegacySafetyValidator(), false) {}
 
-  Impl(std::shared_ptr<adapters::IRobotAdapter> adapter,
+  Impl(std::shared_ptr<RobotAdapter> adapter,
        std::shared_ptr<const RobotStateManager> state_manager, CommandCapabilitySet capabilities,
        SafetyValidator safety_validator)
+      : Impl(std::move(adapter), std::move(state_manager), capabilities, safety_validator, true) {}
+
+  Impl(std::shared_ptr<RobotAdapter> adapter,
+       std::shared_ptr<const RobotStateManager> state_manager, CommandCapabilitySet capabilities,
+       SafetyValidator safety_validator, bool capabilities_overridden)
       : adapter_(std::move(adapter)), state_manager_(std::move(state_manager)),
         capabilities_(capabilities), safety_validator_(safety_validator),
+        capabilities_overridden_(capabilities_overridden),
         queue_([this](const Command& command) { return Dispatch(command); },
                CommandQueueOptions{kDispatcherMaximumQueueSize, 1U}) {}
 
@@ -401,7 +406,7 @@ private:
       return Result(CommandStatus::Timeout, "Command expired before adapter execution");
     }
 
-    adapters::Result adapter_result;
+    CommandResult adapter_result;
     {
       std::lock_guard<std::mutex> lock{adapter_mutex_};
       if (HasExpired(command)) {
@@ -414,42 +419,19 @@ private:
         return safety_result;
       }
 
-      switch (command.type) {
-      case CommandType::Stand:
-        adapter_result = adapter_->StandUp();
-        break;
-      case CommandType::Walk:
-      case CommandType::Move: {
-        const std::array<float, 3> velocity = VelocityPayload(command);
-        adapter_result = adapter_->Move(velocity[0], velocity[1], velocity[2]);
-        break;
-      }
-      case CommandType::Rotate:
-        adapter_result = adapter_->Move(0.0F, 0.0F, RotationPayload(command));
-        break;
-      case CommandType::Stop:
-        adapter_result = adapter_->Stop();
-        break;
-      case CommandType::Sit:
-      case CommandType::HandOpen:
-      case CommandType::HandClose:
-      case CommandType::PlayAudio:
-      case CommandType::StopAudio:
-      case CommandType::Custom:
-        return Result(CommandStatus::Rejected,
-                      "Command type is not supported by the robot adapter interface");
-      }
+      adapter_result = adapter_->ExecuteCommand(command);
     }
 
     if (HasExpired(command)) {
       return Result(CommandStatus::Timeout, "Command completed after its timeout");
     }
-    return FromAdapterResult(adapter_result);
+    return adapter_result;
   }
 
   [[nodiscard]] SafetyValidationContext BuildSafetyContextLocked() const {
     SafetyValidationContext context;
-    context.capabilities = capabilities_;
+    context.capabilities =
+        capabilities_overridden_ || !adapter_ ? capabilities_ : adapter_->GetCommandCapabilities();
     context.capabilitiesAvailable = true;
 
     if (state_manager_) {
@@ -462,9 +444,10 @@ private:
     context.robotStateAvailable = false;
     context.batteryStateAvailable = false;
     try {
-      const adapters::RobotStateResult adapter_state = adapter_->GetRobotState();
-      context.robotStateAvailable = adapter_state.result.Succeeded();
-      context.robotState.connection.connected = adapter_state.state.connected;
+      context.robotState = adapter_->GetRobotState();
+      context.robotStateAvailable = true;
+      context.batteryStateAvailable =
+          adapter_->GetCapabilities().supportsPowerState || context.robotState.power.batteryLevel > 0.0F;
     } catch (...) {
       context.robotStateAvailable = false;
     }
@@ -472,10 +455,11 @@ private:
     return context;
   }
 
-  std::shared_ptr<adapters::IRobotAdapter> adapter_;
+  std::shared_ptr<RobotAdapter> adapter_;
   std::shared_ptr<const RobotStateManager> state_manager_;
   CommandCapabilitySet capabilities_{};
   SafetyValidator safety_validator_{};
+  bool capabilities_overridden_{false};
   std::mutex adapter_mutex_;
   std::mutex state_mutex_;
   std::condition_variable state_condition_;
@@ -486,10 +470,10 @@ private:
   CommandQueue queue_;
 };
 
-CommandDispatcher::CommandDispatcher(std::shared_ptr<adapters::IRobotAdapter> adapter)
+CommandDispatcher::CommandDispatcher(std::shared_ptr<RobotAdapter> adapter)
     : impl_(std::make_unique<Impl>(std::move(adapter))) {}
 
-CommandDispatcher::CommandDispatcher(std::shared_ptr<adapters::IRobotAdapter> adapter,
+CommandDispatcher::CommandDispatcher(std::shared_ptr<RobotAdapter> adapter,
                                      std::shared_ptr<const RobotStateManager> state_manager,
                                      CommandCapabilitySet capabilities,
                                      SafetyValidator safety_validator)

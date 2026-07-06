@@ -9,6 +9,11 @@
 #include <mutex>
 
 #include <humanoid/adapters/IRobotAdapter.h>
+#include <humanoid/adapters/Result.h>
+#include <humanoid/common/Status.hpp>
+#include <humanoid/core/Command.h>
+#include <humanoid/core/CommandResult.h>
+#include <humanoid/core/SafetyValidator.h>
 
 namespace humanoid::logging {
 class ILogger;
@@ -85,42 +90,56 @@ public:
    *
    * @return Operation result.
    */
-  Result Initialize() override;
+  humanoid::common::Status Initialize() override;
 
   /**
    * @brief Establishes or verifies robot communication.
    *
    * @return Operation result.
    */
-  Result Connect() override;
+  humanoid::common::Status Connect() override;
 
   /**
    * @brief Disconnects robot communication.
    *
    * @return Operation result.
    */
-  Result Disconnect() override;
+  humanoid::common::Status Disconnect() override;
 
   /**
    * @brief Releases adapter resources.
    *
    * @return Operation result.
    */
-  Result Shutdown() override;
+  humanoid::common::Status Shutdown() override;
+
+  /**
+   * @brief Reports whether SDK communication is connected.
+   *
+   * @return True when connected.
+   */
+  [[nodiscard]] bool IsConnected() const noexcept override;
 
   /**
    * @brief Commands the robot to stand up.
    *
    * @return Operation result.
    */
-  Result StandUp() override;
+  Result StandUp();
 
   /**
    * @brief Commands balance stand mode.
    *
    * @return Operation result.
    */
-  Result BalanceStand() override;
+  Result BalanceStand();
+
+  /**
+   * @brief Commands a seated posture.
+   *
+   * @return Operation result.
+   */
+  Result Sit();
 
   /**
    * @brief Sends a velocity command.
@@ -130,28 +149,65 @@ public:
    * @param omega Yaw velocity in radians per second.
    * @return Operation result.
    */
-  Result Move(float vx, float vy, float omega) override;
+  Result Move(float vx, float vy, float omega);
 
   /**
    * @brief Stops active motion.
    *
    * @return Operation result.
    */
-  Result Stop() override;
+  Result Stop();
 
   /**
    * @brief Requests emergency stop.
    *
    * @return Operation result.
    */
-  Result EmergencyStop() override;
+  Result EmergencyStop();
 
   /**
    * @brief Returns generic robot state.
    *
    * @return State query result.
    */
-  [[nodiscard]] RobotStateResult GetRobotState() const override;
+  [[nodiscard]] humanoid::core::RobotState GetRobotState() const override;
+
+  /**
+   * @brief Returns static Unitree G1 adapter information.
+   *
+   * @return Robot information.
+   */
+  [[nodiscard]] humanoid::core::RobotInformation GetRobotInformation() const override;
+
+  /**
+   * @brief Returns generic adapter capabilities.
+   *
+   * @return Robot capabilities.
+   */
+  [[nodiscard]] humanoid::core::RobotCapabilities GetCapabilities() const override;
+
+  /**
+   * @brief Returns supported generic command capabilities.
+   *
+   * @return Command capability set.
+   */
+  [[nodiscard]] humanoid::core::CommandCapabilitySet GetCommandCapabilities() const override;
+
+  /**
+   * @brief Executes one generic command through the Unitree SDK wrapper.
+   *
+   * @param command Generic command.
+   * @return Command result.
+   */
+  [[nodiscard]] humanoid::core::CommandResult
+  ExecuteCommand(const humanoid::core::Command& command) override;
+
+  /**
+   * @brief Performs one state synchronization cycle.
+   *
+   * @return Operation status.
+   */
+  [[nodiscard]] humanoid::common::Status Update() override;
 
 private:
   /**
@@ -182,7 +238,6 @@ private:
   std::unique_ptr<sdk::LocoClientWrapper> client_;
   std::shared_ptr<core::RobotStateManager> state_manager_;
   std::shared_ptr<logging::ILogger> logger_;
-  RobotConnectionState connection_state_{RobotConnectionState::kUninitialized};
   bool initialized_{false};
   bool connected_{false};
 };

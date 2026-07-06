@@ -5,12 +5,17 @@
  * @brief Defines SDK-abstraction types for Unitree integrations.
  */
 
+#include <array>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace humanoid::plugins::unitree::sdk {
+
+inline constexpr std::size_t kSdkMaxJointStates = 35U;
+inline constexpr std::size_t kSdkMaxContactStates = 4U;
 
 /**
  * @brief Normalized operation status used inside the Unitree SDK boundary.
@@ -399,6 +404,16 @@ struct SdkRobotState final {
   SdkMotionMode motion_mode{SdkMotionMode::kUnknown};
 
   /**
+   * @brief Vendor robot mode from low-state feedback when available.
+   */
+  std::int32_t robot_mode{0};
+
+  /**
+   * @brief Vendor motion mode from low-state feedback when available.
+   */
+  std::int32_t motion_mode_id{0};
+
+  /**
    * @brief Battery charge level in percent.
    */
   float battery_level{0.0F};
@@ -467,6 +482,111 @@ struct SdkRobotState final {
    * @brief Last read-only Unitree FSM identifier observed by the communication heartbeat.
    */
   std::int32_t fsm_id{-1};
+
+  /**
+   * @brief True when low-state DDS feedback has populated this sample.
+   */
+  bool low_state_available{false};
+
+  /**
+   * @brief Latest low-state tick value.
+   */
+  std::uint64_t low_state_tick{0U};
+
+  /**
+   * @brief Latest heartbeat count from the communication worker.
+   */
+  std::uint64_t heartbeat_count{0U};
+
+  /**
+   * @brief Latest reconnect attempt count from the communication worker.
+   */
+  std::uint64_t reconnect_attempt_count{0U};
+
+  /**
+   * @brief State feedback latency estimate in milliseconds.
+   */
+  float latency_ms{0.0F};
+
+  /**
+   * @brief IMU quaternion in x, y, z, w order.
+   */
+  std::array<float, 4> imu_quaternion{0.0F, 0.0F, 0.0F, 1.0F};
+
+  /**
+   * @brief IMU angular velocity in radians per second.
+   */
+  std::array<float, 3> imu_angular_velocity{0.0F, 0.0F, 0.0F};
+
+  /**
+   * @brief IMU linear acceleration in meters per second squared.
+   */
+  std::array<float, 3> imu_linear_acceleration{0.0F, 0.0F, 0.0F};
+
+  /**
+   * @brief IMU temperature in degrees Celsius.
+   */
+  float imu_temperature_celsius{0.0F};
+
+  /**
+   * @brief Number of populated joint entries.
+   */
+  std::uint32_t joint_count{0U};
+
+  /**
+   * @brief Joint position samples.
+   */
+  std::array<float, kSdkMaxJointStates> joint_position{};
+
+  /**
+   * @brief Joint velocity samples.
+   */
+  std::array<float, kSdkMaxJointStates> joint_velocity{};
+
+  /**
+   * @brief Joint acceleration samples.
+   */
+  std::array<float, kSdkMaxJointStates> joint_acceleration{};
+
+  /**
+   * @brief Joint torque samples.
+   */
+  std::array<float, kSdkMaxJointStates> joint_torque{};
+
+  /**
+   * @brief Joint voltage samples.
+   */
+  std::array<float, kSdkMaxJointStates> joint_voltage{};
+
+  /**
+   * @brief Primary joint temperature samples.
+   */
+  std::array<float, kSdkMaxJointStates> joint_temperature_celsius{};
+
+  /**
+   * @brief Vendor-normalized joint mode samples.
+   */
+  std::array<std::uint32_t, kSdkMaxJointStates> joint_mode{};
+
+  /**
+   * @brief Vendor-normalized joint fault samples.
+   */
+  std::array<std::uint32_t, kSdkMaxJointStates> joint_fault{};
+
+  /**
+   * @brief Number of populated contact entries.
+   */
+  std::uint32_t contact_count{0U};
+
+  /**
+   * @brief Foot/contact force samples when available.
+   */
+  std::array<float, kSdkMaxContactStates> contact_force{};
+
+  /**
+   * @brief Foot/contact temperature samples when available.
+   */
+  std::array<float, kSdkMaxContactStates> contact_temperature_celsius{};
 
   /**
    * @brief Monotonic timestamp for this state sample.

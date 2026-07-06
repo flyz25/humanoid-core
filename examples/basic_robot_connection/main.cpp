@@ -1,4 +1,5 @@
 #include <humanoid/adapters/IRobotAdapter.h>
+#include <humanoid/common/Status.hpp>
 #include <humanoid/core/RobotStateManager.hpp>
 #include <humanoid/logging/LoggerManager.hpp>
 
@@ -173,9 +174,22 @@ humanoid::adapters::RobotConfig LoadRobotConfig(const std::filesystem::path& pat
  * @param result Command result.
  * @param command Command name.
  */
-void RequireSuccess(const humanoid::adapters::Result& result, const std::string& command) {
+[[maybe_unused]] void RequireSuccess(const humanoid::adapters::Result& result,
+                                     const std::string& command) {
   if (!result.Succeeded()) {
     throw std::runtime_error(command + " failed: " + result.message);
+  }
+}
+
+/**
+ * @brief Throws if a status failed.
+ *
+ * @param status Operation status.
+ * @param command Command name.
+ */
+void RequireSuccess(const humanoid::common::Status& status, const std::string& command) {
+  if (!status.isOk()) {
+    throw std::runtime_error(command + " failed: " + status.message());
   }
 }
 
@@ -245,17 +259,18 @@ int main(int argc, char* argv[]) {
       return EXIT_SUCCESS;
     }
 
-    const humanoid::adapters::Result initialize_result = adapter->Initialize();
-    if (!initialize_result.Succeeded()) {
-      std::cout << "Read-only robot communication unavailable: " << initialize_result.message
+    const humanoid::common::Status initialize_result = adapter->Initialize();
+    if (!initialize_result.isOk()) {
+      std::cout << "Read-only robot communication unavailable: " << initialize_result.message()
                 << '\n';
       return EXIT_SUCCESS;
     }
 
-    const humanoid::adapters::Result connect_result = adapter->Connect();
-    if (!connect_result.Succeeded()) {
+    const humanoid::common::Status connect_result = adapter->Connect();
+    if (!connect_result.isOk()) {
       static_cast<void>(adapter->Shutdown());
-      std::cout << "Read-only robot communication unavailable: " << connect_result.message << '\n';
+      std::cout << "Read-only robot communication unavailable: " << connect_result.message()
+                << '\n';
       return EXIT_SUCCESS;
     }
 

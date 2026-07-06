@@ -50,7 +50,12 @@ int main() {
     }
 
     std::unique_ptr<humanoid::core::RobotAdapter> adapter = unitree_plugin->CreateAdapter();
-    RequireOk(adapter->Initialize(), "Adapter.Initialize");
+    const humanoid::common::Status initialize_status = adapter->Initialize();
+    if (!initialize_status.isOk()) {
+      std::cout << "Adapter initialization unavailable: " << initialize_status.message() << '\n';
+      RequireOk(factory.DestroyPlugin(creation.plugin), "DestroyPlugin");
+      return EXIT_SUCCESS;
+    }
 
     const humanoid::core::RobotInformation information = adapter->GetRobotInformation();
     const humanoid::core::RobotCapabilities capabilities = adapter->GetCapabilities();

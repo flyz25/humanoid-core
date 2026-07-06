@@ -9,7 +9,10 @@
 
 #include <humanoid/common/Status.hpp>
 #include <humanoid/common/Version.hpp>
+#include <humanoid/core/Command.h>
+#include <humanoid/core/CommandResult.h>
 #include <humanoid/core/RobotState.hpp>
+#include <humanoid/core/SafetyValidator.h>
 
 namespace humanoid::core {
 
@@ -103,6 +106,11 @@ struct RobotCapabilities final {
    * @brief True when the adapter can expose normalized fault or safety state.
    */
   bool supportsHealthState{false};
+
+  /**
+   * @brief True when the adapter can execute framework `Command` values.
+   */
+  bool supportsCommandExecution{false};
 };
 
 /**
@@ -193,6 +201,24 @@ public:
    * @return Vendor-independent adapter capabilities.
    */
   [[nodiscard]] virtual RobotCapabilities GetCapabilities() const = 0;
+
+  /**
+   * @brief Returns the generic command capability declaration.
+   *
+   * @return Vendor-independent command capability set.
+   */
+  [[nodiscard]] virtual CommandCapabilitySet GetCommandCapabilities() const = 0;
+
+  /**
+   * @brief Executes a validated framework command.
+   *
+   * The adapter must translate the command to vendor APIs internally and must
+   * never expose SDK exceptions or vendor types through this boundary.
+   *
+   * @param command Vendor-independent command to execute.
+   * @return Final command result.
+   */
+  [[nodiscard]] virtual CommandResult ExecuteCommand(const Command& command) = 0;
 
   /**
    * @brief Performs one non-blocking adapter update cycle.

@@ -51,9 +51,10 @@ Applications
             -> Vendor SDK
 ```
 
-Applications receive `std::unique_ptr<humanoid::adapters::IRobotAdapter>` from
-`RobotFactoryRegistry`. Applications never instantiate concrete adapters and
-never include Unitree SDK headers.
+Applications receive `std::unique_ptr<humanoid::core::RobotAdapter>` from
+factory or plugin composition roots. `humanoid::adapters::IRobotAdapter` is kept
+only as a source-compatible alias to the same public interface. Applications
+never instantiate concrete adapters and never include Unitree SDK headers.
 
 Unitree G1 dependency flow:
 
@@ -61,7 +62,7 @@ Unitree G1 dependency flow:
 Application
   -> RobotFactoryRegistry
     -> IRobotFactory
-      -> IRobotAdapter
+      -> core::RobotAdapter
         -> UnitreeRobotFactory
           -> UnitreeG1Adapter
             -> LocoClientWrapper
@@ -73,6 +74,12 @@ Application
 Only implementation files under `plugins/unitree/sdk/` include Unitree SDK2
 headers. `src/sdk/LocoClientWrapper.cpp` is a compatibility facade over the SDK
 abstraction layer and does not include vendor SDK headers.
+
+The Unitree SDK2 headers bundled with the pinned SDK release are compiled only
+inside the SDK abstraction target. That target uses a C++17 compilation boundary
+because the SDK's CycloneDDS C++ headers are not accepted by GCC 11 in C++20
+mode. The public humanoid-core framework, plugin API, command framework, and
+examples remain C++20.
 
 Milestone 4.6 adds read-only SDK2 communication monitoring inside the SDK
 abstraction. Heartbeats, connection timeout handling, automatic reconnect, and
@@ -148,7 +155,7 @@ Command producer
     -> injected executor
       -> CommandDispatcher
         -> SafetyValidator
-        -> IRobotAdapter
+        -> core::RobotAdapter
   -> CommandQueue
   <- CommandResult / CommandStatus
 ```
@@ -178,19 +185,20 @@ The aggregate core target `humanoid::humanoid_core` does not link against
 lifecycle visibility, and `PluginFactory` for dependency-injected creator
 registration, creation, destruction, and enumeration.
 
-Milestone 4.4 adds the first concrete plugin package:
+The Unitree G1 plugin package provides the production plugin boundary:
 
 ```text
 Application or plugin host
   -> PluginFactory
     -> UnitreeG1Plugin
       -> UnitreeG1Adapter
-        -> mock RobotState
+        -> SdkWrapper
+          -> Unitree SDK2
 ```
 
-The Unitree G1 plugin skeleton is SDK-free. It validates plugin packaging,
-metadata, lifecycle, adapter construction, and conservative mock state feedback.
-It does not communicate with Unitree SDK2 and does not command robot movement.
+The plugin owns lifecycle, metadata, factory creation, capability declaration,
+state snapshots, command forwarding, and SDK error translation. It still keeps
+all Unitree SDK headers confined to `plugins/unitree/sdk/`.
 
 Milestone 4.8 adds buildable integration examples that exercise the composition
 paths for plugin registry/factory wiring, plugin lifecycle, robot factory
@@ -549,7 +557,7 @@ humanoid-core/
   motion/                    Motion interfaces and manager
   network/                   Network interfaces and endpoint metadata
   plugins/                   Plugin interfaces, registry, factory, and plugin packages
-  plugins/unitree/g1/        SDK-free Unitree G1 plugin skeleton
+  plugins/unitree/g1/        Unitree G1 production plugin boundary
   plugins/unitree/sdk/       Unitree SDK2 abstraction boundary
   robot/                     Robot interfaces plus manager
   safety/                    Safety interfaces and manager
@@ -590,8 +598,10 @@ ctest --test-dir build --output-on-failure
 If the SDK is unavailable, CMake disables only the Unitree adapter targets and
 continues building the vendor-independent framework.
 
-The SDK-free Unitree G1 plugin skeleton under `plugins/unitree/g1` is still
-built when `ENABLE_UNITREE=OFF`.
+The Unitree G1 plugin under `plugins/unitree/g1` is always buildable. With
+`ENABLE_UNITREE=ON` and SDK2 available it links the SDK abstraction; with
+Unitree disabled it reports SDK unavailability cleanly while preserving plugin
+metadata, lifecycle, factory creation, and capability queries.
 
 Manual SDK override:
 
@@ -613,7 +623,7 @@ Plugin registry and factory loading example:
 ./build/examples/humanoid_core_plugin_loading_example
 ```
 
-Full composition example using plugin factory, Unitree plugin skeleton,
+Full composition example using plugin factory, Unitree plugin,
 `RobotStateManager`, and `TelemetryService`:
 
 ```bash
@@ -831,12 +841,12 @@ track a floating branch head for production builds.
 
 Add new vendors without modifying application code:
 
-1. Implement `humanoid::adapters::IRobotAdapter`.
+1. Implement `humanoid::core::RobotAdapter`.
 2. Implement `humanoid::adapters::IRobotFactory`.
 3. Hide vendor SDK headers inside a vendor SDK abstraction boundary.
 4. Register the factory with `RobotFactoryRegistry`.
-5. Keep application code dependent only on `IRobotFactory`, `IRobotAdapter`, and
-   manager interfaces.
+5. Keep application code dependent only on `IRobotFactory`,
+   `humanoid::core::RobotAdapter`, and manager interfaces.
 
 ## Coding Style
 

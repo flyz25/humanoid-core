@@ -196,15 +196,15 @@ The validator rejects commands when:
 - Current posture state is contradictory or base motion is requested while the
   robot is not standing.
 
-`Stop` remains permitted during emergency-stop, fault, low-battery, and
-contradictory-motion states when the robot is connected and the stop capability
-is supported. This preserves a safe stop path without bypassing connection or
-capability checks.
+`Stop` and `EmergencyStop` remain permitted during emergency-stop, fault,
+low-battery, and contradictory-motion states when the robot is connected and
+the stop capability is supported. This preserves a safe stop path without
+bypassing connection or capability checks.
 
 ## Command Dispatcher
 
 `CommandDispatcher` receives a dependency-injected
-`std::shared_ptr<humanoid::adapters::IRobotAdapter>`. It validates generic
+`std::shared_ptr<humanoid::core::RobotAdapter>`. It validates generic
 commands, applies `SafetyValidator`, and forwards supported operations through
 that interface. It never includes an SDK header or depends on a concrete
 adapter.
@@ -232,38 +232,47 @@ The dispatcher exposes:
 
 `Shutdown()` controls dispatcher resources only. Adapter lifecycle remains
 owned by the application composition root, so dispatcher shutdown does not call
-`IRobotAdapter::Shutdown()`.
+`RobotAdapter::Shutdown()`.
 
 The asynchronous dispatcher path delegates queue ownership, scheduling,
 timeout, cancellation, and worker lifecycle to `CommandQueue`. The dispatcher
 retains command-specific validation, safety gating, adapter translation, and
 serialized adapter access.
 
-The default constructor validates connection state through the legacy
-`IRobotAdapter::GetRobotState()` query and uses the capabilities currently
-expressible by that interface. The overload accepting `RobotStateManager`,
-`CommandCapabilitySet`, and `SafetyValidator` enables full state, battery,
+The default constructor validates connection state through
+`RobotAdapter::GetRobotState()` and uses `RobotAdapter::GetCommandCapabilities()`
+for capability gating. The overload accepting `RobotStateManager`,
+`CommandCapabilitySet`, and `SafetyValidator` enables explicit state, battery,
 fault, emergency-stop, and posture validation from an injected state cache.
 
 ### Adapter Mapping
 
-The current `IRobotAdapter` contract supports the following mappings:
+The current `RobotAdapter` contract supports the following mappings through
+`ExecuteCommand()`:
 
-| Command type | Adapter operation | Required payload |
+| Command type | Dispatcher behavior | Required payload |
 | --- | --- | --- |
-| `Stand` | `StandUp()` | Empty |
-| `Walk` | `Move(vx, vy, omega)` | `linear_x`, `linear_y`, `angular_z` |
-| `Move` | `Move(vx, vy, omega)` | `linear_x`, `linear_y`, `angular_z` |
-| `Rotate` | `Move(0, 0, omega)` | `angular_z` |
-| `Stop` | `Stop()` | Empty |
+| `Stand` | Forward when capability is supported | Empty |
+| `Sit` | Forward when capability is supported | Empty |
+| `Walk` | Forward velocity command | `linear_x`, `linear_y`, `angular_z` |
+| `Move` | Forward velocity command | `linear_x`, `linear_y`, `angular_z` |
+| `Velocity` | Forward velocity command | `linear_x`, `linear_y`, `angular_z` |
+| `Rotate` | Forward yaw command | `angular_z` |
+| `Stop` | Forward stop command | Empty |
+| `EmergencyStop` | Forward emergency-stop command | Empty |
+| `HandOpen` | Forward or reject by capability | Empty |
+| `HandClose` | Forward or reject by capability | Empty |
+| `Gesture` | Forward gesture command | `gesture` |
+| `PlayAudio` | Forward playback command | `app_name`, `stream_id`, `pcm_data` |
+| `StopAudio` | Forward audio stop command | `app_name` |
+| `SetVolume` | Forward volume command | `volume` in `[0, 100]` |
+| `MuteAudio` | Forward mute command | Empty |
+| `Custom` | Forward only when capability is explicitly enabled | Adapter-defined |
 
-Velocity payload values must be finite `double` or `std::int64_t` values that
-fit in the adapter's `float` parameter range. Capability limits remain the
-adapter's responsibility.
-
-`Sit`, hand, audio, and custom commands are rejected because the current
-adapter interface has no corresponding operation. The dispatcher does not fake
-support or call vendor APIs directly.
+Numeric payload values must be finite `double` or `std::int64_t` values.
+Capability limits remain the adapter's responsibility. Unsupported commands are
+rejected explicitly by `SafetyValidator` or by the adapter; the dispatcher does
+not fake support or call vendor APIs directly.
 
 ### Execution Semantics
 
@@ -278,7 +287,7 @@ timeout requires a valid monotonic creation timestamp. Expired commands return
 their deadline also report timeout.
 
 Cancellation is deterministic for queued commands. Running and synchronous
-commands cannot be interrupted because `IRobotAdapter` has no cancellation
+commands cannot be interrupted because `RobotAdapter` has no cancellation
 contract; cancellation attempts for them return `CommandStatus::Rejected`.
 Adapter exceptions are contained and translated to `CommandStatus::Failed`.
 

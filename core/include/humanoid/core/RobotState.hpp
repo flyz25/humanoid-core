@@ -5,7 +5,9 @@
  * @brief Defines the vendor-independent robot state snapshot model.
  */
 
+#include <array>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
@@ -20,6 +22,19 @@ namespace humanoid::core {
  */
 using RobotStateTimestamp =
     std::chrono::time_point<std::chrono::steady_clock, std::chrono::nanoseconds>;
+
+/**
+ * @brief Maximum number of joint samples retained in a generic robot state.
+ *
+ * The value covers the Unitree G1 low-state motor array while keeping
+ * RobotState allocation-free and vendor independent.
+ */
+inline constexpr std::size_t kMaxRobotJointStates = 35U;
+
+/**
+ * @brief Maximum number of foot/contact samples retained in a generic robot state.
+ */
+inline constexpr std::size_t kMaxRobotContactStates = 4U;
 
 /**
  * @brief Vendor-independent connection status.
@@ -76,9 +91,224 @@ struct RobotMotionState final {
   bool sitting{false};
 
   /**
+   * @brief Vendor-normalized robot mode identifier when available.
+   */
+  std::int32_t robotMode{0};
+
+  /**
+   * @brief Vendor-normalized motion mode identifier when available.
+   */
+  std::int32_t motionMode{0};
+
+  /**
    * @brief Constructs an inactive motion state.
    */
   constexpr RobotMotionState() noexcept = default;
+};
+
+/**
+ * @brief Vendor-independent IMU sample.
+ */
+struct RobotImuState final {
+  /**
+   * @brief True when the IMU sample was populated by the adapter.
+   */
+  bool valid{false};
+
+  /**
+   * @brief Quaternion X component.
+   */
+  float quaternionX{0.0F};
+
+  /**
+   * @brief Quaternion Y component.
+   */
+  float quaternionY{0.0F};
+
+  /**
+   * @brief Quaternion Z component.
+   */
+  float quaternionZ{0.0F};
+
+  /**
+   * @brief Quaternion W component.
+   */
+  float quaternionW{1.0F};
+
+  /**
+   * @brief Angular velocity around X, in radians per second.
+   */
+  float angularVelocityX{0.0F};
+
+  /**
+   * @brief Angular velocity around Y, in radians per second.
+   */
+  float angularVelocityY{0.0F};
+
+  /**
+   * @brief Angular velocity around Z, in radians per second.
+   */
+  float angularVelocityZ{0.0F};
+
+  /**
+   * @brief Linear acceleration along X, in meters per second squared.
+   */
+  float linearAccelerationX{0.0F};
+
+  /**
+   * @brief Linear acceleration along Y, in meters per second squared.
+   */
+  float linearAccelerationY{0.0F};
+
+  /**
+   * @brief Linear acceleration along Z, in meters per second squared.
+   */
+  float linearAccelerationZ{0.0F};
+
+  /**
+   * @brief IMU temperature in degrees Celsius when available.
+   */
+  float temperatureCelsius{0.0F};
+
+  /**
+   * @brief Constructs an empty IMU sample.
+   */
+  constexpr RobotImuState() noexcept = default;
+};
+
+/**
+ * @brief Vendor-independent joint/motor state sample.
+ */
+struct RobotJointState final {
+  /**
+   * @brief True when this joint entry contains adapter-provided data.
+   */
+  bool valid{false};
+
+  /**
+   * @brief Joint position in radians.
+   */
+  float position{0.0F};
+
+  /**
+   * @brief Joint velocity in radians per second.
+   */
+  float velocity{0.0F};
+
+  /**
+   * @brief Joint acceleration in radians per second squared when available.
+   */
+  float acceleration{0.0F};
+
+  /**
+   * @brief Estimated torque in Newton meters when available.
+   */
+  float torque{0.0F};
+
+  /**
+   * @brief Motor voltage when available.
+   */
+  float voltage{0.0F};
+
+  /**
+   * @brief Primary motor temperature in degrees Celsius when available.
+   */
+  float temperatureCelsius{0.0F};
+
+  /**
+   * @brief Vendor-normalized motor mode.
+   */
+  std::uint32_t mode{0U};
+
+  /**
+   * @brief Vendor-normalized motor fault code; zero indicates no reported fault.
+   */
+  std::uint32_t faultCode{0U};
+
+  /**
+   * @brief Constructs an empty joint state sample.
+   */
+  constexpr RobotJointState() noexcept = default;
+};
+
+/**
+ * @brief Vendor-independent foot/contact state sample.
+ */
+struct RobotContactState final {
+  /**
+   * @brief True when this contact entry contains adapter-provided data.
+   */
+  bool valid{false};
+
+  /**
+   * @brief True when contact is currently detected.
+   */
+  bool contact{false};
+
+  /**
+   * @brief Contact force in Newtons when available.
+   */
+  float force{0.0F};
+
+  /**
+   * @brief Contact sensor temperature in degrees Celsius when available.
+   */
+  float temperatureCelsius{0.0F};
+
+  /**
+   * @brief Constructs an empty contact state sample.
+   */
+  constexpr RobotContactState() noexcept = default;
+};
+
+/**
+ * @brief Vendor-independent diagnostics and synchronization state.
+ */
+struct RobotDiagnosticsState final {
+  /**
+   * @brief True when low-level state feedback has been received.
+   */
+  bool stateFeedbackAvailable{false};
+
+  /**
+   * @brief Latest sequence or tick value reported by the robot when available.
+   */
+  std::uint64_t sequence{0U};
+
+  /**
+   * @brief Latest heartbeat count observed by the communication layer.
+   */
+  std::uint64_t heartbeatCount{0U};
+
+  /**
+   * @brief Reconnect attempts observed by the communication layer.
+   */
+  std::uint64_t reconnectAttemptCount{0U};
+
+  /**
+   * @brief Estimated state latency in milliseconds when available.
+   */
+  float latencyMs{0.0F};
+
+  /**
+   * @brief Highest motor temperature observed in the current state sample.
+   */
+  float maxMotorTemperatureCelsius{0.0F};
+
+  /**
+   * @brief Number of joint entries populated by the adapter.
+   */
+  std::uint32_t jointCount{0U};
+
+  /**
+   * @brief Number of contact entries populated by the adapter.
+   */
+  std::uint32_t contactCount{0U};
+
+  /**
+   * @brief Constructs empty diagnostics.
+   */
+  constexpr RobotDiagnosticsState() noexcept = default;
 };
 
 /**
@@ -213,6 +443,26 @@ struct RobotState final {
    * @brief Orientation state.
    */
   RobotOrientation orientation{};
+
+  /**
+   * @brief IMU sample when available from the active adapter.
+   */
+  RobotImuState imu{};
+
+  /**
+   * @brief Fixed-capacity joint/motor state samples.
+   */
+  std::array<RobotJointState, kMaxRobotJointStates> joints{};
+
+  /**
+   * @brief Fixed-capacity foot/contact state samples.
+   */
+  std::array<RobotContactState, kMaxRobotContactStates> contacts{};
+
+  /**
+   * @brief Diagnostic and synchronization metadata.
+   */
+  RobotDiagnosticsState diagnostics{};
 
   /**
    * @brief Health, emergency-stop, and fault state.

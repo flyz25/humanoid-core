@@ -2,28 +2,22 @@
 
 /**
  * @file IRobotAdapter.h
- * @brief Defines the application-facing robot adapter interface.
+ * @brief Compatibility include for the unified robot adapter contract.
+ *
+ * The repository previously exposed a second adapter abstraction from the
+ * `humanoid::adapters` namespace. The single public robot adapter interface is
+ * now `humanoid::core::RobotAdapter`. This header preserves existing include
+ * paths and robot configuration types without defining another virtual
+ * interface.
  */
 
 #include <chrono>
 #include <cstdint>
 #include <string>
 
-#include <humanoid/adapters/Result.h>
+#include <humanoid/core/RobotAdapter.h>
 
 namespace humanoid::adapters {
-
-/**
- * @brief High-level adapter connection state.
- */
-enum class RobotConnectionState {
-  kUninitialized,
-  kInitialized,
-  kConnected,
-  kDisconnected,
-  kShutdown,
-  kFaulted
-};
 
 /**
  * @brief Robot configuration consumed by factories and adapters.
@@ -71,132 +65,8 @@ struct RobotConfig final {
 };
 
 /**
- * @brief Generic robot state returned by adapters.
+ * @brief Compatibility alias for the single public adapter interface.
  */
-struct RobotState final {
-  /**
-   * @brief Robot vendor name.
-   */
-  std::string vendor;
-
-  /**
-   * @brief Robot model name.
-   */
-  std::string model;
-
-  /**
-   * @brief Current adapter connection state.
-   */
-  RobotConnectionState connection_state{RobotConnectionState::kUninitialized};
-
-  /**
-   * @brief True after adapter resources are initialized.
-   */
-  bool initialized{false};
-
-  /**
-   * @brief True after communication has been established.
-   */
-  bool connected{false};
-};
-
-/**
- * @brief Combines robot state with a query result.
- */
-struct RobotStateResult final {
-  /**
-   * @brief State query result.
-   */
-  Result result;
-
-  /**
-   * @brief Generic robot state.
-   */
-  RobotState state;
-};
-
-/**
- * @brief Pure abstract robot communication interface.
- */
-class IRobotAdapter {
-public:
-  /**
-   * @brief Destroys the adapter interface.
-   */
-  virtual ~IRobotAdapter() = default;
-
-  /**
-   * @brief Initializes adapter resources.
-   *
-   * @return Operation result.
-   */
-  virtual Result Initialize() = 0;
-
-  /**
-   * @brief Establishes or verifies communication with the robot.
-   *
-   * @return Operation result.
-   */
-  virtual Result Connect() = 0;
-
-  /**
-   * @brief Disconnects communication with the robot.
-   *
-   * @return Operation result.
-   */
-  virtual Result Disconnect() = 0;
-
-  /**
-   * @brief Releases adapter resources.
-   *
-   * @return Operation result.
-   */
-  virtual Result Shutdown() = 0;
-
-  /**
-   * @brief Commands the robot to stand up.
-   *
-   * @return Operation result.
-   */
-  virtual Result StandUp() = 0;
-
-  /**
-   * @brief Commands balanced standing.
-   *
-   * @return Operation result.
-   */
-  virtual Result BalanceStand() = 0;
-
-  /**
-   * @brief Sends a velocity command.
-   *
-   * @param vx Forward velocity in meters per second.
-   * @param vy Lateral velocity in meters per second.
-   * @param omega Yaw velocity in radians per second.
-   * @return Operation result.
-   */
-  virtual Result Move(float vx, float vy, float omega) = 0;
-
-  /**
-   * @brief Stops active motion.
-   *
-   * @return Operation result.
-   */
-  virtual Result Stop() = 0;
-
-  /**
-   * @brief Requests an emergency stop.
-   *
-   * @return Operation result.
-   */
-  virtual Result EmergencyStop() = 0;
-
-  /**
-   * @brief Returns generic robot state.
-   *
-   * @return State query result.
-   */
-  [[nodiscard]] virtual RobotStateResult GetRobotState() const = 0;
-};
+using IRobotAdapter = humanoid::core::RobotAdapter;
 
 } // namespace humanoid::adapters

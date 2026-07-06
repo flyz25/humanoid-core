@@ -36,20 +36,19 @@ instances, and call lifecycle methods through `IPlugin`.
 ## Unitree G1 Plugin Package
 
 `humanoid::plugins::unitree::g1::RegisterUnitreeG1Plugin()` statically
-registers the SDK-free Unitree G1 plugin package with a host-owned
-`PluginFactory`.
+registers the Unitree G1 plugin package with a host-owned `PluginFactory`.
 
-The Unitree G1 plugin skeleton intentionally does not include Unitree SDK2
-headers, open robot communication, or send motion commands. It validates plugin
-packaging, lifecycle, adapter construction, capability reporting, and
-conservative mock state feedback.
+The Unitree G1 plugin public headers intentionally do not include Unitree SDK2
+headers or vendor types. The plugin adapter delegates lifecycle, connection,
+state synchronization, and command execution to the SDK abstraction when that
+target is available; otherwise it reports `Unavailable` statuses cleanly.
 
 ## SDK Boundary
 
 Physical Unitree SDK2 integration remains outside the plugin infrastructure API:
 
 ```text
-IRobotAdapter
+core::RobotAdapter
   -> UnitreeG1Adapter
     -> LocoClientWrapper
       -> SdkWrapper
