@@ -95,16 +95,18 @@ private:
  *
  * @param sdk_return Unitree SDK2 return code.
  * @param command Command name.
+ * @param failure_code Error category used when the SDK returns a non-zero value.
  * @return Normalized result.
  */
-[[nodiscard]] inline SdkResult FromSdkReturn(std::int32_t sdk_return, const char* command) {
+[[nodiscard]] inline SdkResult FromSdkReturn(std::int32_t sdk_return, const char* command,
+                                             SdkErrorCode failure_code) {
   if (sdk_return == 0) {
     return Success(std::string{command} + " succeeded");
   }
 
   std::ostringstream message;
   message << command << " failed with Unitree SDK2 return code " << sdk_return;
-  return Failure(SdkErrorCode::kUnknown, message.str());
+  return Failure(failure_code, message.str());
 }
 
 /**
@@ -112,20 +114,20 @@ private:
  *
  * @tparam Operation Callable returning a Unitree SDK2 integer return code.
  * @param command Command name.
- * @param exception_code Error category used when an exception is thrown.
+ * @param failure_code Error category used when the SDK operation fails.
  * @param operation Unitree SDK operation.
  * @return Normalized result.
  */
 template <typename Operation>
-[[nodiscard]] SdkResult InvokeSdkCommand(const char* command, SdkErrorCode exception_code,
+[[nodiscard]] SdkResult InvokeSdkCommand(const char* command, SdkErrorCode failure_code,
                                          Operation operation) {
   try {
-    return FromSdkReturn(static_cast<std::int32_t>(operation()), command);
+    return FromSdkReturn(static_cast<std::int32_t>(operation()), command, failure_code);
   } catch (const std::exception& exception) {
-    return Failure(exception_code, std::string{command} +
-                                       " failed with Unitree SDK2 exception: " + exception.what());
+    return Failure(failure_code, std::string{command} +
+                                     " failed with Unitree SDK2 exception: " + exception.what());
   } catch (...) {
-    return Failure(exception_code,
+    return Failure(failure_code,
                    std::string{command} + " failed with an unknown Unitree SDK2 exception");
   }
 }

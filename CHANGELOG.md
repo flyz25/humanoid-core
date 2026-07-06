@@ -9,6 +9,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- Test Contract Repair Sprint: classified the Unitree G1 plugin contract test
+  as an offline SDK integration test, corrected Unitree SDK non-zero return-code
+  mapping to use the caller-provided failure category instead of
+  `SdkErrorCode::kUnknown`, and restored deterministic default CTest execution
+  without requiring Unitree G1 hardware, Ethernet, or DDS connectivity.
 - Repository Repair Sprint for Unitree G1 bring-up: unified the public robot
   adapter abstraction around `humanoid::core::RobotAdapter`, converted the
   legacy `IRobotAdapter` header into a compatibility alias, completed Unitree G1

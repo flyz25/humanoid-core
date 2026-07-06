@@ -319,6 +319,8 @@ humanoid_core_configure_target(humanoid_core_unitree_g1_plugin_skeleton_test)
 
 add_test(NAME humanoid_core_unitree_g1_plugin_skeleton_test
          COMMAND humanoid_core_unitree_g1_plugin_skeleton_test)
+set_tests_properties(humanoid_core_unitree_g1_plugin_skeleton_test
+                     PROPERTIES LABELS "integration;sdk;unitree;offline")
 
 if(TARGET humanoid::unitree_sdk_abstraction)
   add_executable(humanoid_core_unitree_sdk_converter_test
