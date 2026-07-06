@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: humanoid-core-cloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: humanoid-core-cloud
+  template:
+    metadata:
+      labels:
+        app: humanoid-core-cloud
+    spec:
+      containers:
+        - name: humanoid-core-cloud
+          image: humanoid-core:0.12.0-alpha
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: humanoid-core-cloud-config

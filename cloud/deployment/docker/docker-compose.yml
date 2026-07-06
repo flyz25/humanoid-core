@@ -1,0 +1,9 @@
+services:
+  humanoid-core-cloud:
+    build:
+      context: ../../..
+      dockerfile: cloud/deployment/docker/Dockerfile
+    image: humanoid-core:0.12.0-alpha
+    environment:
+      HUMANOID_CORE_ENABLE_CLOUD: "true"
+      HUMANOID_CORE_API_VERSION: "v1"

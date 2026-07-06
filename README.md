@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.11.0-alpha`
+Current release: `0.12.0-alpha`
 
 ## Architecture
 
@@ -92,6 +92,25 @@ service, and action catalogs, reusable ROS2 interface assets, RViz
 configuration, launch files, examples, and tests. If `rclcpp` is not installed,
 CMake reports that ROS2 runtime endpoints are disabled and continues building
 humanoid-core, bridge contracts, examples, tests, install rules, and packages.
+
+Milestone 12 adds an optional cloud and fleet platform:
+
+```text
+Cloud platform application
+  -> Cloud Platform
+    -> ROS2 Bridge (optional)
+      -> humanoid-core interfaces
+        -> Plugin Architecture
+          -> SDK isolation
+```
+
+The `cloud/` module provides versioned REST API metadata, optional gRPC service
+contracts, WebSocket stream metadata, fleet management, authentication and audit
+records, OTA planning, observability records, dashboard backend catalogs,
+deployment assets, examples, and tests. It does not start a network server and
+does not depend on HTTP, gRPC, database, authentication, or cloud SDKs. Disable
+all cloud targets with `-DENABLE_CLOUD=OFF`; the framework continues to build
+and operate offline.
 
 Milestone 5 adds the generic command path:
 
@@ -824,7 +843,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.10.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `0.12.0-alpha`.
 
 Release tags use:
 
@@ -848,10 +867,17 @@ Production hardening documentation:
 - `docs/Repository_Governance_Report.md`
 - `docs/Milestone_5_Report.md`
 - `docs/Milestone_9_Report.md`
+- `docs/Milestone_10_Report.md`
+- `docs/Milestone_11_Report.md`
+- `docs/Milestone_12_Report.md`
 - `docs/Milestone_4_Report.md`
 - `docs/integration/Milestone_4_8_Integration_Report.md`
 - `docs/architecture/plugin_architecture.md`
 - `docs/thread_safety.md`
 - `docs/dependency_graph.md`
 - `docs/security_review.md`
+- `docs/cloud_guide.md`
+- `docs/fleet_guide.md`
+- `docs/security_guide.md`
+- `docs/deployment_guide.md`
 - `docs/adr/`

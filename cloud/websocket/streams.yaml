@@ -1,0 +1,18 @@
+version: v1
+streams:
+  - name: robot_state
+    path: /ws/v1/robot-state
+  - name: telemetry
+    path: /ws/v1/telemetry
+  - name: mission_status
+    path: /ws/v1/mission-status
+  - name: behavior_tree_status
+    path: /ws/v1/behavior-tree-status
+  - name: planner_status
+    path: /ws/v1/planner-status
+  - name: perception_results
+    path: /ws/v1/perception-results
+  - name: runtime_status
+    path: /ws/v1/runtime-status
+  - name: diagnostics
+    path: /ws/v1/diagnostics

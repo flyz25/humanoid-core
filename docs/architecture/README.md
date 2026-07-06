@@ -649,6 +649,9 @@ parsing, or physical robot communication plugins.
   publication.
 - `ros2`: optional ROS2 bridge contracts, endpoint catalogs, interface assets,
   launch files, RViz configuration, examples, and bridge validation.
+- `cloud`: optional cloud and fleet platform contracts, endpoint catalogs,
+  fleet/auth/OTA/observability managers, deployment assets, examples, and
+  validation.
 
 ## ROS2 Ecosystem Integration
 
@@ -667,6 +670,27 @@ service catalogs, action catalogs, interface assets, RViz configuration, launch
 files, examples, and validation tests. If ROS2 is unavailable, CMake disables
 runtime ROS2 endpoints while keeping the framework, bridge contracts, install,
 package, examples, and tests buildable.
+
+## Cloud and Fleet Platform
+
+Milestone 12 adds cloud as an optional outer platform layer, not as a core
+dependency.
+
+```text
+Cloud application or deployment adapter
+  -> humanoid::cloud_platform
+    -> humanoid-core
+      -> Plugin Architecture
+        -> SDK isolation
+```
+
+The `cloud/` module owns backend-facing catalogs and in-memory orchestration
+primitives for REST, gRPC, WebSocket, fleet management, authentication, OTA,
+observability, dashboard APIs, and deployment manifests. It intentionally avoids
+HTTP server libraries, gRPC runtime libraries, authentication SDKs, databases,
+cloud SDKs, and generated transport code. Production deployments can adapt these
+contracts to concrete infrastructure while preserving the framework dependency
+direction.
 
 ## Adapter Rule
 

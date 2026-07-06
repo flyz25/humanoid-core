@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: humanoid-core-cloud-config
+data:
+  HUMANOID_CORE_ENABLE_CLOUD: "true"
+  HUMANOID_CORE_API_VERSION: "v1"

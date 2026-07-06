@@ -1,0 +1,26 @@
+version: v1
+views:
+  - name: fleet_overview
+    endpoints:
+      - /api/v1/fleet/status
+      - /api/v1/robots
+  - name: robot_status
+    endpoints:
+      - /api/v1/robots
+      - /api/v1/telemetry/latest
+      - /api/v1/diagnostics
+  - name: mission_queue
+    endpoints:
+      - /api/v1/missions
+  - name: behavior_tree_status
+    endpoints:
+      - /api/v1/behavior-trees
+  - name: planner_status
+    endpoints:
+      - /api/v1/planner/goals
+  - name: perception_visualization
+    endpoints:
+      - /api/v1/perception/results
+  - name: runtime_monitoring
+    endpoints:
+      - /api/v1/runtime/status

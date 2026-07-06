@@ -1,0 +1,6 @@
+apiVersion: v2
+name: humanoid-core
+description: Optional humanoid-core cloud platform deployment chart.
+type: application
+version: 0.12.0-alpha
+appVersion: 0.12.0-alpha

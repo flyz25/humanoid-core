@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(
   humanoid-core
-  VERSION 0.11.0
+  VERSION 0.12.0
   DESCRIPTION "Clean architecture C++20 framework foundation for humanoid robotics"
   LANGUAGES CXX)
 
@@ -18,6 +18,7 @@ option(HUMANOID_CORE_BUILD_EXAMPLES "Build humanoid-core examples" ON)
 option(HUMANOID_CORE_BUILD_TESTS "Build humanoid-core tests when GoogleTest is available" ON)
 option(ENABLE_UNITREE "Enable Unitree SDK2 adapter targets when Unitree SDK2 is available" ON)
 option(ENABLE_ROS2 "Enable optional ROS2 integration targets when ROS2 is available" ON)
+option(ENABLE_CLOUD "Enable optional cloud platform targets" ON)
 option(HUMANOID_CORE_REQUIRE_GTEST "Fail configuration if GoogleTest is unavailable" OFF)
 option(HUMANOID_CORE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
@@ -73,6 +74,7 @@ target_link_libraries(
 
 add_subdirectory(plugins/unitree)
 add_subdirectory(ros2)
+add_subdirectory(cloud)
 
 if(HUMANOID_CORE_BUILD_EXAMPLES)
   add_subdirectory(examples)

@@ -9,6 +9,11 @@ Applications
   -> humanoid::robot_factory
   -> humanoid::adapter_interfaces
 
+Cloud applications
+  -> humanoid::cloud_platform
+  -> optional ROS2 deployment adapters
+  -> humanoid::humanoid_core
+
 humanoid::humanoid_core
   -> humanoid::core
   -> humanoid::common
@@ -27,6 +32,16 @@ humanoid::humanoid_core
 
 humanoid::plugins
   -> humanoid::common
+
+humanoid::cloud_platform
+  -> humanoid::humanoid_core
+  -> REST API metadata
+  -> gRPC service metadata
+  -> WebSocket stream metadata
+  -> FleetManager
+  -> AuthManager
+  -> OtaManager
+  -> ObservabilityRegistry
 
 humanoid::unitree_g1_plugin
   -> humanoid::plugins
@@ -211,6 +226,11 @@ unitree_sdk2
   ROS2 runtime packages inside the `ros2/` module only.
 - ROS2 runtime adapters must translate generated ROS2 messages into
   framework-owned DTOs before calling humanoid-core services.
+- Cloud integration may depend on humanoid-core public interfaces and optional
+  ROS2 bridge contracts, but humanoid-core must not depend on cloud targets.
+- Cloud transport, authentication, storage, and dashboard adapters must
+  translate external requests into framework-owned contracts before calling
+  humanoid-core services.
 - `common` depends only on the C++ standard library.
 
 ## Forbidden Dependencies
@@ -218,6 +238,10 @@ unitree_sdk2
 - Applications including vendor SDK headers.
 - Applications directly constructing concrete robot adapters.
 - Managers depending on concrete adapters or vendor SDKs.
+- Core framework targets including HTTP, gRPC, authentication, database,
+  observability backend, cloud provider, or WebSocket SDK headers.
+- Cloud adapters bypassing command, mission, behavior tree, runtime,
+  perception, planner, or plugin interfaces.
 - Core modules depending on Unitree SDK2, ROS2, OpenCV, AI runtimes, GUI
   frameworks, planners, navigation, behavior trees, or mission execution paths
   that bypass the command framework.

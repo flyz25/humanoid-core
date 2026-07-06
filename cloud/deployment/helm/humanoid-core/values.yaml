@@ -1,0 +1,14 @@
+replicaCount: 1
+
+image:
+  repository: humanoid-core
+  tag: 0.12.0-alpha
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+env:
+  HUMANOID_CORE_ENABLE_CLOUD: "true"
+  HUMANOID_CORE_API_VERSION: "v1"

@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package humanoid.cloud.v1;
+
+message CloudResult {
+  string code = 1;
+  string message = 2;
+}
+
+message RobotRequest {
+  string robot_id = 1;
+}
+
+message MissionRequest {
+  string mission_id = 1;
+}
+
+message GoalRequest {
+  string goal_id = 1;
+  string description = 2;
+}
+
+message TelemetryFrame {
+  string robot_id = 1;
+  int64 timestamp_ns = 2;
+  bytes payload = 3;
+}
+
+message RuntimeStatus {
+  string execution_id = 1;
+  string state = 2;
+}
+
+service RobotControlService {
+  rpc Connect(RobotRequest) returns (CloudResult);
+  rpc Disconnect(RobotRequest) returns (CloudResult);
+}
+
+service MissionService {
+  rpc ExecuteMission(MissionRequest) returns (CloudResult);
+}
+
+service TelemetryService {
+  rpc StreamTelemetry(RobotRequest) returns (stream TelemetryFrame);
+}
+
+service PlannerService {
+  rpc Plan(GoalRequest) returns (CloudResult);
+}
+
+service RuntimeService {
+  rpc StreamRuntimeStatus(RobotRequest) returns (stream RuntimeStatus);
+}
+
+service FleetService {
+  rpc ListRobots(CloudResult) returns (CloudResult);
+  rpc StreamFleetStatus(CloudResult) returns (stream RuntimeStatus);
+}

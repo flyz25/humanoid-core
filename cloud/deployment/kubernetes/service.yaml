@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: humanoid-core-cloud
+spec:
+  type: ClusterIP
+  selector:
+    app: humanoid-core-cloud
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

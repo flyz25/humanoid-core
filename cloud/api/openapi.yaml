@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: humanoid-core Cloud Platform API
+  version: v1
+  description: Optional REST API contract for enterprise humanoid-core deployments.
+servers:
+  - url: /api/v1
+security:
+  - ApiKeyAuth: []
+paths:
+  /robots:
+    get:
+      operationId: robot.list
+      summary: List registered robots.
+      responses:
+        "200":
+          description: Robot list.
+  /robots/{id}/connect:
+    post:
+      operationId: robot.connect
+      summary: Request robot connection through framework interfaces.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "202":
+          description: Connection accepted.
+  /robots/{id}/disconnect:
+    post:
+      operationId: robot.disconnect
+      summary: Request robot disconnection through framework interfaces.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "202":
+          description: Disconnection accepted.
+  /missions:
+    get:
+      operationId: mission.list
+      summary: List missions.
+      responses:
+        "200":
+          description: Mission list.
+  /missions/{id}/start:
+    post:
+      operationId: mission.start
+      summary: Start a mission through the Mission Framework.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "202":
+          description: Mission start accepted.
+  /behavior-trees:
+    post:
+      operationId: bt.load
+      summary: Load a behavior tree document through the loader boundary.
+      responses:
+        "202":
+          description: Behavior tree accepted.
+  /planner/goals:
+    post:
+      operationId: planner.goal
+      summary: Submit a planning goal.
+      responses:
+        "202":
+          description: Goal accepted.
+  /telemetry/latest:
+    get:
+      operationId: telemetry.latest
+      summary: Read latest telemetry snapshot.
+      responses:
+        "200":
+          description: Telemetry snapshot.
+  /perception/results:
+    get:
+      operationId: perception.results
+      summary: Read latest perception results.
+      responses:
+        "200":
+          description: Perception results.
+  /fleet/status:
+    get:
+      operationId: fleet.status
+      summary: Read fleet status.
+      responses:
+        "200":
+          description: Fleet status.
+  /runtime/status:
+    get:
+      operationId: runtime.status
+      summary: Read runtime status.
+      responses:
+        "200":
+          description: Runtime status.
+  /health:
+    get:
+      operationId: health.check
+      summary: Read service health.
+      security: []
+      responses:
+        "200":
+          description: Health snapshot.
+  /diagnostics:
+    get:
+      operationId: diagnostics.list
+      summary: Read diagnostics.
+      responses:
+        "200":
+          description: Diagnostics.
+  /configuration:
+    get:
+      operationId: configuration.get
+      summary: Read effective configuration.
+      responses:
+        "200":
+          description: Configuration.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    CloudResult:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

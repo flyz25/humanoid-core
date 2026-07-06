@@ -1,0 +1,15 @@
+[Unit]
+Description=humanoid-core optional cloud platform
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/humanoid-core/cloud.env
+ExecStart=/usr/bin/humanoid_core_cloud_rest_api_example
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

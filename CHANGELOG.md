@@ -7,6 +7,19 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.12.0-alpha] - 2026-07-06
+
+### Added
+
+- Milestone 12 Cloud, Fleet Management & Enterprise Platform: added optional
+  `ENABLE_CLOUD` build support, the `humanoid::cloud_platform` target,
+  versioned REST/OpenAPI contracts, optional gRPC contracts, WebSocket stream
+  catalogs, fleet management, authentication/RBAC/audit primitives, OTA update
+  planning, observability records, dashboard backend metadata, deployment
+  assets, cloud examples, validation coverage, and documentation while keeping
+  core framework targets free of cloud, HTTP, gRPC, authentication, database,
+  ROS2, and vendor SDK dependencies.
+
 ## [0.11.0-alpha] - 2026-07-06
 
 ### Added
