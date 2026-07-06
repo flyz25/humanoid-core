@@ -1,0 +1,6 @@
+string greeting_id
+---
+bool success
+string message
+---
+string status

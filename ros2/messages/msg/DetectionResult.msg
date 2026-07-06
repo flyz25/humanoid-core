@@ -1,0 +1,15 @@
+string id
+string type
+float64 confidence
+string label
+float64 x
+float64 y
+float64 width
+float64 height
+bool has_position
+float64 position_x
+float64 position_y
+float64 position_z
+string coordinate_frame
+string tracking_id
+builtin_interfaces/Time stamp

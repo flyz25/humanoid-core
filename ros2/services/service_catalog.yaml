@@ -1,0 +1,11 @@
+services:
+  connect_robot: /humanoid/connect_robot
+  disconnect_robot: /humanoid/disconnect_robot
+  start_mission: /humanoid/mission/start
+  pause_mission: /humanoid/mission/pause
+  resume_mission: /humanoid/mission/resume
+  cancel_mission: /humanoid/mission/cancel
+  load_behavior_tree: /humanoid/bt/load
+  load_planner_goal: /humanoid/planner/load_goal
+  sensor_control: /humanoid/sensor/control
+  health_check: /humanoid/health_check

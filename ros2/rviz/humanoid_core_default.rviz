@@ -1,0 +1,31 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/RobotModel
+      Enabled: true
+      Name: Robot Visualization
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: Mission Status
+      Topic:
+        Value: /humanoid/mission/status
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: Behavior Tree
+      Topic:
+        Value: /humanoid/bt/status
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: Detection Results
+      Topic:
+        Value: /humanoid/detections
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: Planner
+      Topic:
+        Value: /humanoid/planner/status
+  Global Options:
+    Fixed Frame: map

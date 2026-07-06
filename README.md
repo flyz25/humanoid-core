@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.10.0-alpha`
+Current release: `0.11.0-alpha`
 
 ## Architecture
 
@@ -75,6 +75,23 @@ Robot adapter or state producer
 
 The state and telemetry path remains SDK-free. `RobotStateManager` is injected
 through `CoreContext`, and `TelemetryService` receives that manager explicitly.
+
+Milestone 11 adds optional ROS2 ecosystem integration:
+
+```text
+ROS2 application
+  -> ROS2Bridge
+    -> humanoid-core interfaces
+      -> Plugin Architecture
+        -> SDK isolation
+```
+
+ROS2 is treated as an optional backend, not a core dependency. The `ros2/`
+module provides bridge contracts, framework-owned DTO conversions, topic,
+service, and action catalogs, reusable ROS2 interface assets, RViz
+configuration, launch files, examples, and tests. If `rclcpp` is not installed,
+CMake reports that ROS2 runtime endpoints are disabled and continues building
+humanoid-core, bridge contracts, examples, tests, install rules, and packages.
 
 Milestone 5 adds the generic command path:
 

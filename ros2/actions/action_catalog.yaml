@@ -1,0 +1,8 @@
+actions:
+  execute_mission: /humanoid/action/execute_mission
+  execute_behavior_tree: /humanoid/action/execute_bt
+  navigate: /humanoid/action/navigate
+  wave: /humanoid/action/wave
+  greeting: /humanoid/action/greeting
+  inspection: /humanoid/action/inspection
+  custom: /humanoid/action/custom

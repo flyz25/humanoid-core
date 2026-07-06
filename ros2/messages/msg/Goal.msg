@@ -1,0 +1,9 @@
+string id
+string type
+string priority
+string description
+string[] constraint_keys
+string[] constraint_values
+string[] metadata_keys
+string[] metadata_values
+builtin_interfaces/Time stamp

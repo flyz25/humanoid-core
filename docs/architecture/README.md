@@ -647,6 +647,26 @@ parsing, or physical robot communication plugins.
 - `src/sdk`: legacy adapter-facing SDK facades hidden behind adapter implementations.
 - `src/services`: vendor-independent runtime services such as telemetry
   publication.
+- `ros2`: optional ROS2 bridge contracts, endpoint catalogs, interface assets,
+  launch files, RViz configuration, examples, and bridge validation.
+
+## ROS2 Ecosystem Integration
+
+Milestone 11 adds ROS2 as an optional bridge layer instead of a core dependency.
+
+```text
+ROS2 application
+  -> ROS2Bridge
+    -> humanoid-core
+      -> Plugin Architecture
+        -> SDK isolation
+```
+
+The `ros2/` module provides bridge contracts, DTO conversions, topic catalogs,
+service catalogs, action catalogs, interface assets, RViz configuration, launch
+files, examples, and validation tests. If ROS2 is unavailable, CMake disables
+runtime ROS2 endpoints while keeping the framework, bridge contracts, install,
+package, examples, and tests buildable.
 
 ## Adapter Rule
 

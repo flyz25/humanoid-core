@@ -1,0 +1,4 @@
+string sensor_id
+string sensor_type
+uint64 sequence_number
+builtin_interfaces/Time stamp

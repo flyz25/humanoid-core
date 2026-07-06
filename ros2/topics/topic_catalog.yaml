@@ -1,0 +1,20 @@
+publishers:
+  robot_state: /humanoid/robot_state
+  telemetry: /humanoid/telemetry
+  battery: /humanoid/battery
+  joint_state: /humanoid/joint_state
+  pose: /humanoid/pose
+  velocity: /humanoid/velocity
+  diagnostics: /humanoid/diagnostics
+  planner_status: /humanoid/planner/status
+  mission_status: /humanoid/mission/status
+  behavior_tree_status: /humanoid/bt/status
+  perception_result: /humanoid/perception
+  detection_result: /humanoid/detections
+  runtime_status: /humanoid/runtime/status
+subscribers:
+  command: /humanoid/command
+  mission_request: /humanoid/mission/request
+  planner_goal: /humanoid/planner/goal
+  emergency_stop: /humanoid/emergency_stop
+  robot_mode: /humanoid/robot_mode

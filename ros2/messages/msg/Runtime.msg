@@ -1,0 +1,4 @@
+uint64 execution_id
+string state
+bool cancellation_requested
+builtin_interfaces/Time stamp

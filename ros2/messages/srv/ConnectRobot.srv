@@ -1,0 +1,5 @@
+string vendor
+string model
+---
+bool success
+string message

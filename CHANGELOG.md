@@ -7,6 +7,16 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.11.0-alpha] - 2026-07-06
+
+### Added
+
+- Milestone 11 ROS2 Ecosystem Integration: added an optional ROS2 bridge module,
+  ROS2-facing DTO conversion layer, topic/service/action catalogs, reusable
+  `.msg`, `.srv`, and `.action` interface assets, RViz configuration, launch
+  files, runnable bridge examples, validation coverage, and documentation while
+  keeping core framework targets free of ROS2 headers and dependencies.
+
 ## [0.10.0-alpha] - 2026-07-06
 
 ### Added
@@ -267,7 +277,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   release process, issue templates, pull request template, CODEOWNERS, and
   semantic-versioning policy.
 
-[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.10.0-alpha...HEAD
+[Unreleased]: https://github.com/humanoid-core/humanoid-core/compare/v0.11.0-alpha...HEAD
+[0.11.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.10.0-alpha...v0.11.0-alpha
 [0.10.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.9.0-alpha...v0.10.0-alpha
 [0.9.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.8.0-alpha...v0.9.0-alpha
 [0.8.0-alpha]: https://github.com/humanoid-core/humanoid-core/compare/v0.7.0-alpha...v0.8.0-alpha

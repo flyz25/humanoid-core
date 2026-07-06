@@ -1,0 +1,8 @@
+string action_type
+string[] parameter_keys
+string[] parameter_values
+---
+bool success
+string message
+---
+string status

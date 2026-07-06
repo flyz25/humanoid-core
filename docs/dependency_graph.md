@@ -207,6 +207,10 @@ unitree_sdk2
 - Perception applications and future perception services must receive concrete
   sensors, pipeline stages, inference engines, and fusion engines through
   dependency injection.
+- ROS2 integration may depend on humanoid-core public interfaces and optional
+  ROS2 runtime packages inside the `ros2/` module only.
+- ROS2 runtime adapters must translate generated ROS2 messages into
+  framework-owned DTOs before calling humanoid-core services.
 - `common` depends only on the C++ standard library.
 
 ## Forbidden Dependencies
@@ -237,4 +241,9 @@ unitree_sdk2
   Runtime, Torch, OpenVINO, Unitree SDK, or vendor sensor SDK headers.
 - Perception pipeline stages bypassing `IInferenceEngine`, `Sensor`, or
   `ISensorFusion` boundaries when integrating replaceable backends.
+- Core framework headers or targets depending on `rclcpp`, generated ROS2
+  message headers, DDS middleware headers, launch libraries, RViz libraries, or
+  ROS2 build tooling.
+- ROS2 bridge code depending directly on vendor SDKs or concrete robot adapter
+  implementations.
 - Global singleton access as a framework dependency pattern.
