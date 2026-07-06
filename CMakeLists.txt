@@ -2,12 +2,11 @@ cmake_minimum_required(VERSION 3.22)
 
 project(
   humanoid-core
-  VERSION 0.12.0
+  VERSION 1.0.0
   DESCRIPTION "Clean architecture C++20 framework foundation for humanoid robotics"
   LANGUAGES CXX)
 
-set(HUMANOID_CORE_VERSION_PRERELEASE "alpha")
-set(HUMANOID_CORE_SEMANTIC_VERSION "${PROJECT_VERSION}-${HUMANOID_CORE_VERSION_PRERELEASE}")
+set(HUMANOID_CORE_SEMANTIC_VERSION "${PROJECT_VERSION}")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(HUMANOID_CORE_BUILD_EXAMPLES "Build humanoid-core examples" ON)
 option(HUMANOID_CORE_BUILD_TESTS "Build humanoid-core tests when GoogleTest is available" ON)
+option(HUMANOID_CORE_BUILD_BENCHMARKS "Build local humanoid-core benchmark suite" OFF)
 option(ENABLE_UNITREE "Enable Unitree SDK2 adapter targets when Unitree SDK2 is available" ON)
 option(ENABLE_ROS2 "Enable optional ROS2 integration targets when ROS2 is available" ON)
 option(ENABLE_CLOUD "Enable optional cloud platform targets" ON)
@@ -82,6 +82,10 @@ endif()
 
 if(BUILD_TESTING AND HUMANOID_CORE_BUILD_TESTS)
   add_subdirectory(tests)
+endif()
+
+if(HUMANOID_CORE_BUILD_BENCHMARKS)
+  add_subdirectory(benchmarks)
 endif()
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

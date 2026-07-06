@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Build release artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ git doxygen graphviz
+
+      - name: Validate semantic version tag
+        run: |
+          test "${GITHUB_REF_NAME}" = "v1.0.0"
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_UNITREE=ON \
+            -DENABLE_ROS2=ON \
+            -DENABLE_CLOUD=ON \
+            -DHUMANOID_CORE_BUILD_EXAMPLES=ON \
+            -DHUMANOID_CORE_BUILD_TESTS=ON \
+            -DHUMANOID_CORE_BUILD_BENCHMARKS=ON \
+            -DHUMANOID_CORE_WARNINGS_AS_ERRORS=ON \
+            -DUNITREE_SDK2_ROOT=${{ github.workspace }}/third_party/unitree_sdk2
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Install
+        run: cmake --install build --prefix install
+
+      - name: Package
+        run: cmake --build build --target package --parallel
+
+      - name: Generate documentation
+        run: doxygen docs/Doxyfile
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: build/humanoid-core-v1.0.0.sbom.spdx.json
+
+      - name: Docker image
+        run: docker build -f cloud/deployment/docker/Dockerfile -t humanoid-core:1.0.0 .
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/humanoid-core-1.0.0-Linux.tar.gz
+            build/humanoid-core-v1.0.0.sbom.spdx.json
+          body_path: docs/v1_Release_Notes.md

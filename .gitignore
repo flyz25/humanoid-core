@@ -25,6 +25,11 @@ Testing/
 
 .cache/
 .pytest_cache/
+html/
+latex/
+docs/doxygen/
+__pycache__/
+*.pyc
 .idea/
 .vscode/
 .DS_Store

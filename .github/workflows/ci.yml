@@ -9,7 +9,7 @@ on:
 
 jobs:
   linux:
-    name: Ubuntu ${{ matrix.build_type }} Unitree=${{ matrix.enable_unitree }}
+    name: Ubuntu ${{ matrix.build_type }} Unitree=${{ matrix.enable_unitree }} ROS2=${{ matrix.enable_ros2 }} Cloud=${{ matrix.enable_cloud }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -19,6 +19,12 @@ jobs:
           - Debug
           - Release
         enable_unitree:
+          - ON
+          - OFF
+        enable_ros2:
+          - ON
+          - OFF
+        enable_cloud:
           - ON
           - OFF
 
@@ -39,6 +45,8 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DENABLE_UNITREE=${{ matrix.enable_unitree }} \
+            -DENABLE_ROS2=${{ matrix.enable_ros2 }} \
+            -DENABLE_CLOUD=${{ matrix.enable_cloud }} \
             -DHUMANOID_CORE_BUILD_EXAMPLES=ON \
             -DHUMANOID_CORE_BUILD_TESTS=ON \
             -DHUMANOID_CORE_WARNINGS_AS_ERRORS=ON \
@@ -66,6 +74,118 @@ jobs:
       - name: Upload install tree
         uses: actions/upload-artifact@v4
         with:
-          name: humanoid-core-${{ matrix.build_type }}-unitree-${{ matrix.enable_unitree }}
+          name: humanoid-core-${{ matrix.build_type }}-unitree-${{ matrix.enable_unitree }}-ros2-${{ matrix.enable_ros2 }}-cloud-${{ matrix.enable_cloud }}
           path: install
           if-no-files-found: error
+
+  sanitizers:
+    name: Ubuntu sanitizers
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - address,undefined
+          - thread
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ git
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DENABLE_UNITREE=OFF \
+            -DENABLE_ROS2=OFF \
+            -DENABLE_CLOUD=ON \
+            -DHUMANOID_CORE_BUILD_EXAMPLES=ON \
+            -DHUMANOID_CORE_BUILD_TESTS=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}"
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy cppcheck cmake ninja-build g++ doxygen graphviz
+          sudo npm install -g markdownlint-cli2
+
+      - name: Configure compile commands
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_UNITREE=OFF \
+            -DENABLE_ROS2=OFF \
+            -DENABLE_CLOUD=ON \
+            -DHUMANOID_CORE_BUILD_EXAMPLES=ON \
+            -DHUMANOID_CORE_BUILD_TESTS=ON
+
+      - name: clang-tidy
+        run: scripts/run_clang_tidy.sh
+
+      - name: cppcheck
+        run: cppcheck --project=build/compile_commands.json --inline-suppr --error-exitcode=1 --suppress=missingIncludeSystem --suppress=unmatchedSuppression --suppress=unusedFunction:tests/* --suppress=unusedFunction:examples/* --suppress=unusedFunction:benchmarks/* --exclude=third_party/unitree_sdk2
+
+      - name: Markdown lint
+        run: scripts/run_markdownlint.sh
+
+      - name: Doxygen
+        run: doxygen docs/Doxyfile
+
+  cross-platform-smoke:
+    name: ${{ matrix.os }} Release smoke
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_UNITREE=OFF -DENABLE_ROS2=OFF -DENABLE_CLOUD=OFF -DHUMANOID_CORE_BUILD_EXAMPLES=ON -DHUMANOID_CORE_BUILD_TESTS=ON -DHUMANOID_CORE_WARNINGS_AS_ERRORS=ON
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build --build-config Release --output-on-failure
+
+      - name: Install
+        run: cmake --install build --config Release --prefix install
+
+      - name: Package
+        run: cmake --build build --config Release --target package --parallel

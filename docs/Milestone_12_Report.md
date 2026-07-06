@@ -66,7 +66,8 @@ The release validation covers:
 - Cloud examples passed: fleet manager, REST API catalog, WebSocket catalog,
   mission upload, remote robot control catalog, cloud telemetry, robot
   registration, and OTA update.
-- Docker build passed for `humanoid-core:0.12.0-alpha`.
+- Docker build passed for `humanoid-core:0.12.0-alpha` during Milestone 12
+  validation.
 - `clang-format --dry-run --Werror`, `git diff --check`, Markdown lint, and
   dependency-boundary checks passed.
 

@@ -13,12 +13,12 @@ namespace humanoid::common {
 /**
  * @brief Major version component for the humanoid-core public API.
  */
-inline constexpr int kVersionMajor = 0;
+inline constexpr int kVersionMajor = 1;
 
 /**
  * @brief Minor version component for the humanoid-core public API.
  */
-inline constexpr int kVersionMinor = 12;
+inline constexpr int kVersionMinor = 0;
 
 /**
  * @brief Patch version component for the humanoid-core public API.
@@ -28,12 +28,12 @@ inline constexpr int kVersionPatch = 0;
 /**
  * @brief Prerelease identifier for the current humanoid-core package.
  */
-inline constexpr std::string_view kVersionPrerelease = "alpha";
+inline constexpr std::string_view kVersionPrerelease = "";
 
 /**
  * @brief Full semantic version string for the current humanoid-core package.
  */
-inline constexpr std::string_view kVersionString = "0.12.0-alpha";
+inline constexpr std::string_view kVersionString = "1.0.0";
 
 /**
  * @brief Represents a semantic version.

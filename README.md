@@ -9,7 +9,7 @@ The current SDK integration supports Unitree G1 through Unitree SDK2. Unitree
 SDK2 is included as a pinned Git submodule at `third_party/unitree_sdk2`; it is
 not installed into `/usr/local` and is not required as a system dependency.
 
-Current release: `0.12.0-alpha`
+Current release: `1.0.0`
 
 ## Architecture
 
@@ -843,7 +843,7 @@ Repository governance:
 
 ## Versioning Policy
 
-humanoid-core uses Semantic Versioning. Current version: `0.12.0-alpha`.
+humanoid-core uses Semantic Versioning. Current version: `1.0.0`.
 
 Release tags use:
 
@@ -870,6 +870,11 @@ Production hardening documentation:
 - `docs/Milestone_10_Report.md`
 - `docs/Milestone_11_Report.md`
 - `docs/Milestone_12_Report.md`
+- `docs/Production_Readiness_Report.md`
+- `docs/Security_Audit_Report.md`
+- `docs/Performance_Report.md`
+- `docs/API_Stability_Report.md`
+- `docs/v1_Release_Notes.md`
 - `docs/Milestone_4_Report.md`
 - `docs/integration/Milestone_4_8_Integration_Report.md`
 - `docs/architecture/plugin_architecture.md`

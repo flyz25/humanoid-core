@@ -7,6 +7,23 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-06
+
+### Added
+
+- Milestone 13 Production Readiness: added an opt-in benchmark suite, Doxygen
+  configuration, production readiness report, security audit report,
+  performance report, API stability report, v1 release notes, release workflow,
+  expanded CI validation across Unitree, ROS2, and Cloud build toggles,
+  sanitizer jobs, static-analysis jobs, SBOM generation, Docker release
+  validation, and stable version metadata.
+
+### Changed
+
+- Promoted humanoid-core from `0.12.0-alpha` to stable `1.0.0`.
+- Updated cppcheck configuration from C++17 to C++20 to match the repository
+  language standard.
+
 ## [0.12.0-alpha] - 2026-07-06
 
 ### Added
